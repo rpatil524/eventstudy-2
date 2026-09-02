@@ -27,11 +27,26 @@ run_event_study = function(task, parameter_set = ParameterSet$new()) {
 #'
 #' @export
 fit_model = function(task, parameter_set) {
-  # Fit a return model for each event
-  task$data_tbl = task$data_tbl %>%
-    mutate(model = purrr::map(.x=data,
-                              .f=.initialize_and_fit_model,
-                              return_model=parameter_set$return_model))
+  # Resolve the degenerate-input handling mode once for the entire fit pass
+  mode <- .resolve_degenerate_mode(parameter_set$degenerate_handling)
+
+  # Fit a return model for each event using an explicit row-indexed map so that
+  # the outer row keys (event_id, firm_symbol) are available inside each fit
+  # call.  purrr::pmap-inside-dplyr::mutate is forbidden per plan (NSE
+  # evaluation is untested in this context); the explicit seq_len approach is
+  # deterministic and avoids NSE ambiguity.
+  task$data_tbl$model <- purrr::map(
+    seq_len(nrow(task$data_tbl)),
+    function(i) {
+      .initialize_and_fit_model(
+        task$data_tbl$data[[i]],
+        parameter_set$return_model,
+        degenerate_mode = mode,
+        event_id        = task$data_tbl$event_id[[i]],
+        firm_symbol     = task$data_tbl$firm_symbol[[i]]
+      )
+    }
+  )
 
   # Calculate abnormal returns for each event
   task$data_tbl = task$data_tbl %>%
@@ -43,9 +58,16 @@ fit_model = function(task, parameter_set) {
 
 
 #' @noRd
-.initialize_and_fit_model <- function(data_tbl, return_model) {
+.initialize_and_fit_model <- function(data_tbl, return_model,
+                                       degenerate_mode = "lenient",
+                                       event_id = NULL,
+                                       firm_symbol = NULL) {
   # Each event needs its own model, therefore a deep clone is necessary
   cloned_return_model = return_model$clone(deep=TRUE)
+  # Thread contract context — models read these fields inside fit()
+  cloned_return_model$degenerate_mode <- degenerate_mode
+  cloned_return_model$event_id        <- event_id
+  cloned_return_model$firm_symbol     <- firm_symbol
   cloned_return_model$fit(data_tbl)
   cloned_return_model
 }

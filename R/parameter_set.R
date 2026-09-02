@@ -19,6 +19,11 @@ ParameterSet = R6::R6Class(classname = "ParameterSet",
                              #' @field study_type Type of event study: "return" (default),
                              #'   "volume", or "volatility". Affects axis labels in plots.
                              study_type = "return",
+                             #' @field degenerate_handling Controls how degenerate estimation data
+                             #'   is handled. One of \code{"lenient"} (default), \code{"strict"},
+                             #'   or \code{NULL} (defer to package option or built-in default).
+                             #'   See \code{?degenerate-input-contract} for details.
+                             degenerate_handling = NULL,
                              #' @description
                              #' Initialize the parameters that defines the Event Study that should be applied.
                              #'
@@ -30,10 +35,13 @@ ParameterSet = R6::R6Class(classname = "ParameterSet",
                              #'   Defaults to SingleEventStatisticsSet (AR T and CAR T tests).
                              #' @param multi_event_statistics Definition of multiple event test statistics.
                              #'   Defaults to MultiEventStatisticsSet (CSect T test).
+                             #' @param degenerate_handling One of \code{"lenient"}, \code{"strict"},
+                             #'   or \code{NULL}. See \code{?degenerate-input-contract}.
                              initialize = function(return_calculation = SimpleReturn$new(),
                                                    return_model = MarketModel$new(),
                                                    single_event_statistics = SingleEventStatisticsSet$new(),
-                                                   multi_event_statistics = MultiEventStatisticsSet$new()) {
+                                                   multi_event_statistics = MultiEventStatisticsSet$new(),
+                                                   degenerate_handling = NULL) {
                                # Validate return_calculation object
                                private$validate_object(return_calculation, "ReturnCalculation")
                                self$return_calculation = return_calculation
@@ -52,6 +60,12 @@ ParameterSet = R6::R6Class(classname = "ParameterSet",
                                  private$validate_object(multi_event_statistics, "StatisticsSetBase")
                                  self$multi_event_statistics = multi_event_statistics
                                }
+
+                               # Validate degenerate_handling — NULL means "use option/default"
+                               if (!is.null(degenerate_handling)) {
+                                 match.arg(degenerate_handling, c("lenient", "strict"))
+                               }
+                               self$degenerate_handling <- degenerate_handling
                              },
                              #' @description
                              #' Print a summary of the parameter set.
@@ -71,6 +85,7 @@ ParameterSet = R6::R6Class(classname = "ParameterSet",
                                } else {
                                  cat("  Multi event tests:  none\n")
                                }
+                               cat("  Degenerate mode:  ", .resolve_degenerate_mode(self$degenerate_handling), "\n")
                                invisible(self)
                              }
                            ),
