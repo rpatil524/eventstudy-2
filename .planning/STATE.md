@@ -1,19 +1,16 @@
 ---
 gsd_state_version: 1.0
-status: Awaiting next milestone
-stopped_at: context exhaustion at 77% (2026-09-02)
-last_updated: "2026-09-02T18:06:13.050Z"
+milestone: v0.60.0
+milestone_name: Grounded AI Advisor
+status: planning
+last_updated: "2026-09-02T20:31:52.927Z"
 last_activity: 2026-09-02
-last_activity_desc: Milestone v0.50.0 completed and archived
-state_head: d2042b686cb97fb6f031457c5e6ca92c5b73c412
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
-current_phase: 4
-current_phase_name: Regression Net and Check Gate
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -27,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 ## Current Position
 
-Phase: Milestone v0.50.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-02 — Milestone v0.50.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-09-02 — Milestone v0.60.0 started
 
 ## Performance Metrics
 
