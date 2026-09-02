@@ -137,7 +137,17 @@ PatellZTest <- R6Class("PatellZTest",
                             dplyr::mutate(standardized_abnormal_returns = abnormal_returns / fec_sigma)
 
                           # AAR & AAR Z Test
-                          Q_total = sqrt(sum(sd_asar$Q_i))
+                          # WR-01 fix: exclude degenerate events (all-NA fec_sigma) from Q_total.
+                          # Degenerate events contribute Q_i = 1 (the fallback at the sd_asar step)
+                          # inflating the denominator and deflating valid-event z-scores. Only sum
+                          # Q_i for events where at least one fec_sigma value is finite.
+                          valid_event_ids <- fec_sigma %>%
+                            dplyr::group_by(event_id) %>%
+                            dplyr::summarise(.valid = any(is.finite(fec_sigma)), .groups = "drop") %>%
+                            dplyr::filter(.valid) %>%
+                            dplyr::pull(event_id)
+                          sd_asar_valid <- sd_asar %>% dplyr::filter(event_id %in% valid_event_ids)
+                          Q_total = sqrt(sum(sd_asar_valid$Q_i))
 
                           aar_caar_stats = aar_caar_stats_tmp %>%
                             dplyr::group_by(relative_index) %>%
@@ -230,7 +240,12 @@ SignTest <- R6Class("SignTest",
                           dplyr::summarise(
                             n_pos_car = sum(car > 0, na.rm = TRUE),
                             n_valid   = sum(!is.na(car)),
-                            csign_z   = (n_pos_car - 0.5 * n_valid) / (0.5 * sqrt(n_valid)),
+                            # WR-02 fix: guard n_valid >= 2, mirroring the point-in-time sign_z guard.
+                            # When n_valid == 1 the formula yields a finite but statistically
+                            # meaningless number. Return NA instead (same pattern as sign_z).
+                            csign_z   = ifelse(n_valid >= 2,
+                                               (n_pos_car - 0.5 * n_valid) / (0.5 * sqrt(n_valid)),
+                                               NA_real_),
                             .groups = "drop"
                           )
 

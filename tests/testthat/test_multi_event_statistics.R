@@ -779,3 +779,110 @@ test_that("STATS-03: SignTest mid-window NA gap does not corrupt post-gap CAAR",
   expect_true(all(is.finite(result$caar)),
               "SignTest CAAR must be finite after mid-window NA gap (coalesce chain)")
 })
+
+
+# ============================================================
+# WR-01: PatellZTest Q_total must exclude degenerate events (Plan 02-02)
+# ============================================================
+
+test_that("WR-01: PatellZTest Q_total excludes degenerate events — degenerate events must not change valid-event z-scores", {
+  # Build a 2-firm dataset where E1 is valid and E2 is degenerate (all-NA fec_sigma).
+  # Before WR-01 fix, E2's Q_i = 1 (fallback) inflates Q_total and deflates E1's z-score.
+  # After fix, Q_total is computed from valid events only, so the z-score for the valid
+  # events is the same as if the degenerate events were absent.
+  n_est <- 20L
+  n_ev  <- 3L
+
+  d_valid <- do.call(rbind, lapply(1:2, function(i) {
+    tibble::tibble(
+      event_id = paste0("E", i),
+      firm_symbol = paste0("F", i),
+      relative_index = c(seq(-n_est, -1L), 0L:(n_ev - 1L)),
+      abnormal_returns = c(rnorm(n_est, sd = 0.01), rep(0.02, n_ev)),
+      event_window = c(rep(0L, n_est), rep(1L, n_ev)),
+      estimation_window = c(rep(1L, n_est), rep(0L, n_ev))
+    )
+  }))
+
+  fec_val <- 0.05
+  Q_i_expected <- (n_est - 2) / (n_est - 4)  # (20-2)/(20-4) = 1.125
+
+  # Reference: only valid events
+  model_valid_only <- tibble::tibble(
+    event_id    = c("E1", "E2"),
+    firm_symbol = c("F1", "F2"),
+    model = lapply(1:2, function(i)
+      list(statistics = list(sigma = fec_val,
+                             forecast_error_corrected_sigma = rep(fec_val, n_ev),
+                             residuals = rnorm(n_est), degree_of_freedom = n_est - 2L))
+    )
+  )
+  result_valid_only <- PatellZTest$new()$compute(d_valid, model_valid_only)
+
+  # Mixed dataset: add a degenerate event E3 (all-NA fec_sigma)
+  d_degen <- tibble::tibble(
+    event_id = "E3",
+    firm_symbol = "F3",
+    relative_index = c(seq(-n_est, -1L), 0L:(n_ev - 1L)),
+    abnormal_returns = c(rnorm(n_est, sd = 0.01), rep(NA_real_, n_ev)),
+    event_window = c(rep(0L, n_est), rep(1L, n_ev)),
+    estimation_window = c(rep(1L, n_est), rep(0L, n_ev))
+  )
+  d_mixed <- rbind(d_valid, d_degen)
+
+  model_mixed <- tibble::tibble(
+    event_id    = c("E1", "E2", "E3"),
+    firm_symbol = c("F1", "F2", "F3"),
+    model = c(
+      model_valid_only$model,
+      list(list(statistics = list(sigma = NA_real_,
+                                   forecast_error_corrected_sigma = NULL,
+                                   residuals = NULL, degree_of_freedom = NA_real_)))
+    )
+  )
+  result_mixed <- PatellZTest$new()$compute(d_mixed, model_mixed)
+
+  # After WR-01 fix, valid-event z-scores must match the valid-only result
+  day0_valid <- result_valid_only[result_valid_only$relative_index == 0L, ]
+  day0_mixed <- result_mixed[result_mixed$relative_index == 0L, ]
+
+  expect_equal(day0_mixed$aar_z, day0_valid$aar_z, tolerance = 1e-10,
+               info = "WR-01: degenerate event must not change valid-event aar_z")
+})
+
+
+# ============================================================
+# WR-02: SignTest csign_z NA guard for n_valid == 1 (Plan 02-02)
+# ============================================================
+
+test_that("WR-02: SignTest csign_z is NA (not finite) when n_events == 1", {
+  # Before WR-02 fix, csign_z with n_valid == 1 yielded (1-0.5)/(0.5*1) = 1.0 —
+  # a plausible-looking but statistically meaningless number.
+  # After fix, csign_z must be NA when n_valid == 1.
+  d <- make_single_event_data()
+  result <- SignTest$new()$compute(d, NULL)
+
+  expect_true(all(is.na(result$csign_z)),
+              "SignTest csign_z must be NA when n_events == 1 (statistically meaningless)")
+  expect_false(any(is.finite(result$csign_z)),
+               "SignTest csign_z must not be a finite number when n_events == 1")
+})
+
+test_that("WR-02: SignTest csign_z is finite with >= 2 events (regression — guard must not fire on valid data)", {
+  set.seed(42)
+  d <- do.call(rbind, lapply(1:3, function(i) {
+    tibble::tibble(
+      event_id = paste0("E", i),
+      firm_symbol = paste0("F", i),
+      relative_index = -3:3,
+      abnormal_returns = rnorm(7, 0.005, 0.02),
+      event_window = 1L,
+      estimation_window = 0L
+    )
+  }))
+
+  result <- SignTest$new()$compute(d, NULL)
+
+  expect_true(all(is.finite(result$csign_z)),
+              "SignTest csign_z must be finite for n_events >= 2")
+})
