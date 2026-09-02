@@ -1071,7 +1071,15 @@ GARCHModel <- R6Class("GARCHModel",
                              if (converged) {
                                private$.fitted_model <- res$result
                                private$.is_fitted <- TRUE
-                               private$calculate_statistics(data_tbl)
+                               tryCatch(
+                                 private$calculate_statistics(data_tbl),
+                                 error = function(e) {
+                                   private$.is_fitted <- FALSE
+                                   warning("GARCH model statistics computation failed: ",
+                                           conditionMessage(e),
+                                           ". Returning NA abnormal returns.", call. = FALSE)
+                                 }
+                               )
                              } else {
                                private$.is_fitted <- FALSE
                                warning("GARCH model did not converge. Returning NA abnormal returns.")

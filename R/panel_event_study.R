@@ -165,11 +165,24 @@ estimate_panel_event_study <- function(task,
 #' @noRd
 .compute_se <- function(fit, panel, cluster) {
   if (requireNamespace("sandwich", quietly = TRUE)) {
-    vcov_cl <- sandwich::vcovCL(fit, cluster = panel[[cluster]])
-    sqrt(diag(vcov_cl))
+    vcov_cl <- tryCatch(
+      sandwich::vcovCL(fit, cluster = panel[[cluster]]),
+      error = function(e) {
+        warning("sandwich::vcovCL failed (singular cluster structure): ",
+                conditionMessage(e), " - falling back to OLS standard errors.",
+                call. = FALSE)
+        NULL
+      }
+    )
+    if (!is.null(vcov_cl)) {
+      sqrt(diag(vcov_cl))
+    } else {
+      summary(fit)$coefficients[, 2]
+    }
   } else {
-    message("Install the 'sandwich' package for cluster-robust standard errors. ",
-            "Falling back to OLS standard errors.")
+    warning("Package 'sandwich' is not installed - cluster-robust standard errors unavailable. ",
+            "Falling back to OLS standard errors. ",
+            "Install with: install.packages('sandwich')", call. = FALSE)
     summary(fit)$coefficients[, 2]
   }
 }
@@ -407,20 +420,29 @@ estimate_panel_event_study <- function(task,
 .estimate_callaway_santanna <- function(task, panel, leads, lags,
                                           base_period, ...) {
   if (!requireNamespace("did", quietly = TRUE)) {
-    stop("Package 'did' is required for method='callaway_santanna'. ",
-         "Install it with: install.packages('did')")
+    warning("Package 'did' is not installed - callaway_santanna estimator unavailable. ",
+            "Install with: install.packages('did')", call. = FALSE)
+    return(invisible(NULL))
   }
 
   # did::att_gt expects specific column names
-  att_gt_result <- did::att_gt(
-    yname = task$outcome,
-    tname = task$time_id,
-    idname = task$unit_id,
-    gname = task$treatment_time,
-    data = panel,
-    base_period = "universal",
-    ...
+  att_gt_result <- tryCatch(
+    did::att_gt(
+      yname = task$outcome,
+      tname = task$time_id,
+      idname = task$unit_id,
+      gname = task$treatment_time,
+      data = panel,
+      base_period = "universal",
+      ...
+    ),
+    error = function(e) {
+      warning("did::att_gt failed: ", conditionMessage(e),
+              " - returning NULL.", call. = FALSE)
+      NULL
+    }
   )
+  if (is.null(att_gt_result)) return(invisible(NULL))
 
   # Aggregate to dynamic event-study estimates
   agg <- did::aggte(att_gt_result, type = "dynamic")
@@ -454,22 +476,54 @@ estimate_panel_event_study <- function(task,
 .estimate_dechaisemartin_dhaultfoeuille <- function(task, panel, leads, lags,
                                                        ...) {
   if (!requireNamespace("DIDmultiplegt", quietly = TRUE)) {
-    stop("Package 'DIDmultiplegt' is required for ",
-         "method='dechaisemartin_dhaultfoeuille'. ",
-         "Install it with: install.packages('DIDmultiplegt')")
+    warning("Package 'DIDmultiplegt' is not installed - ",
+            "dechaisemartin_dhaultfoeuille estimator unavailable. ",
+            "Consider callaway_santanna or borusyak_jaravel_spiess as alternatives. ",
+            "Install with: install.packages('DIDmultiplegt')", call. = FALSE)
+    return(invisible(NULL))
   }
 
-  result <- DIDmultiplegt::did_multiplegt(
-    df = as.data.frame(panel),
-    Y = task$outcome,
-    G = task$unit_id,
-    T = task$time_id,
-    D = task$treatment,
-    dynamic = lags,
-    placebo = leads,
-    mode = "old",
-    ...
+  # Opt-out: skip the DIDmultiplegt call on known-crash platforms
+  if (isTRUE(getOption("eventstudy.skip_didmultiplegt"))) {
+    warning("eventstudy.skip_didmultiplegt=TRUE: skipping DIDmultiplegt call.",
+            call. = FALSE)
+    return(invisible(NULL))
+  }
+
+  # Opt-in subprocess probe via callr (only when both option and callr are available)
+  if (requireNamespace("callr", quietly = TRUE) &&
+      isTRUE(getOption("eventstudy.probe_didmultiplegt", FALSE))) {
+    probe_ok <- tryCatch(
+      callr::r(function() requireNamespace("DIDmultiplegt", quietly = TRUE),
+               timeout = 30),
+      error = function(e) FALSE
+    )
+    if (!isTRUE(probe_ok)) {
+      warning("DIDmultiplegt failed to load in a subprocess probe - skipping call.",
+              call. = FALSE)
+      return(invisible(NULL))
+    }
+  }
+
+  result <- tryCatch(
+    DIDmultiplegt::did_multiplegt(
+      df = as.data.frame(panel),
+      Y = task$outcome,
+      G = task$unit_id,
+      T = task$time_id,
+      D = task$treatment,
+      dynamic = lags,
+      placebo = leads,
+      mode = "old",
+      ...
+    ),
+    error = function(e) {
+      warning("DIDmultiplegt::did_multiplegt failed: ", conditionMessage(e),
+              " - returning NULL.", call. = FALSE)
+      NULL
+    }
   )
+  if (is.null(result)) return(invisible(NULL))
 
   # Parse results into standard format
   # did_multiplegt_old returns a named numeric vector with elements:
@@ -547,20 +601,29 @@ estimate_panel_event_study <- function(task,
 .estimate_borusyak_jaravel_spiess <- function(task, panel, leads, lags,
                                                 base_period, ...) {
   if (!requireNamespace("didimputation", quietly = TRUE)) {
-    stop("Package 'didimputation' is required for ",
-         "method='borusyak_jaravel_spiess'. ",
-         "Install it with: install.packages('didimputation')")
+    warning("Package 'didimputation' is not installed - ",
+            "borusyak_jaravel_spiess estimator unavailable. ",
+            "Install with: install.packages('didimputation')", call. = FALSE)
+    return(invisible(NULL))
   }
 
-  result <- didimputation::did_imputation(
-    data = as.data.frame(panel),
-    yname = task$outcome,
-    gname = task$treatment_time,
-    tname = task$time_id,
-    idname = task$unit_id,
-    horizon = TRUE,
-    ...
+  result <- tryCatch(
+    didimputation::did_imputation(
+      data = as.data.frame(panel),
+      yname = task$outcome,
+      gname = task$treatment_time,
+      tname = task$time_id,
+      idname = task$unit_id,
+      horizon = TRUE,
+      ...
+    ),
+    error = function(e) {
+      warning("didimputation::did_imputation failed: ", conditionMessage(e),
+              " - returning NULL.", call. = FALSE)
+      NULL
+    }
   )
+  if (is.null(result)) return(invisible(NULL))
 
   coef_tbl <- tibble::tibble(
     relative_time = as.numeric(as.character(result$term)),

@@ -344,7 +344,15 @@ DCCGARCHModel <- R6Class("DCCGARCHModel",
                                  if (converged) {
                                    private$.fitted_model <- res$result
                                    private$.is_fitted <- TRUE
-                                   private$calculate_statistics(data_tbl)
+                                   tryCatch(
+                                     private$calculate_statistics(data_tbl),
+                                     error = function(e) {
+                                       private$.is_fitted <- FALSE
+                                       warning("DCC-GARCH model statistics computation failed: ",
+                                               conditionMessage(e),
+                                               ". Returning NA abnormal returns.", call. = FALSE)
+                                     }
+                                   )
                                  } else {
                                    private$.is_fitted <- FALSE
                                    warning("DCC-GARCH model produced non-finite covariance. Returning NA.")

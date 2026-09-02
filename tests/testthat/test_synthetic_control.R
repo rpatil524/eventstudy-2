@@ -376,3 +376,99 @@ test_that("estimate_synthetic_control warns on non-convergence", {
   )
   expect_no_warning(estimate_synthetic_control(task, method = "optim"))
 })
+
+
+# --- EXTERNAL-04: Synthetic control numerical guards ---
+
+test_that("solve.QP failure (via mock) degrades to optim fallback without crashing", {
+  skip_if_not_installed("quadprog")
+  d <- create_sc_test_data(n_donors = 3, n_periods = 30)
+  task <- SyntheticControlTask$new(d$treated_data, d$donor_data, d$treatment_time)
+
+  # Mock solve.QP to simulate an unrecoverable singularity (1e-8 ridge not enough)
+  local_mocked_bindings(
+    solve.QP = function(...) stop("simulated: system is computationally singular"),
+    .package = "quadprog"
+  )
+
+  # Should warn and fall back to optim — no crash
+  result <- withCallingHandlers(
+    estimate_synthetic_control(task, method = "quadprog"),
+    warning = function(w) {
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  # Weights should be numeric (optim fallback produces valid simplex weights)
+  expect_false(is.null(result$results$weights))
+  expect_true(is.numeric(result$results$weights))
+})
+
+
+test_that("solve.QP failure (via mock) produces named warning and falls back to optim", {
+  skip_if_not_installed("quadprog")
+  d <- create_sc_test_data(n_donors = 3, n_periods = 30)
+  task <- SyntheticControlTask$new(d$treated_data, d$donor_data, d$treatment_time)
+
+  # Mock solve.QP to simulate a singular-matrix failure
+  local_mocked_bindings(
+    solve.QP = function(...) stop("simulated singular matrix in quadprog"),
+    .package = "quadprog"
+  )
+
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_synthetic_control(task, method = "quadprog"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  # Warning must name solve.QP or quadprog
+  expect_true(any(grepl("solve.QP|quadprog", ws)))
+  # Must still produce weights (optim fallback)
+  expect_false(is.null(result$results$weights))
+  expect_true(is.numeric(result$results$weights))
+})
+
+
+test_that("empty donor pool (.solve_sc_optim n==0) warns and does not crash from max()", {
+  # Directly exercise the empty-donor-pool guard in .solve_sc_optim via :::
+  # Empty X: 10 rows, 0 columns (zero donors)
+  y <- rnorm(10)
+  X <- matrix(numeric(0), nrow = 10, ncol = 0)
+
+  ws <- character(0)
+  result <- withCallingHandlers(
+    EventStudy:::.solve_sc_optim(y, X),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  # Must warn about empty donor pool (no max() crash)
+  expect_true(length(ws) >= 1L)
+  expect_true(any(grepl("empty donor pool", ws, ignore.case = TRUE)))
+  # Must return length-0 numeric (not throw)
+  expect_true(is.numeric(result))
+  expect_equal(length(result), 0L)
+})
+
+
+test_that("valid donor pool weights unchanged after solve.QP guard addition", {
+  skip_if_not_installed("quadprog")
+  d <- create_sc_test_data(n_donors = 5, n_periods = 40, treatment_time = 21)
+  task <- SyntheticControlTask$new(
+    d$treated_data, d$donor_data, d$treatment_time
+  )
+
+  task_qp <- estimate_synthetic_control(task, method = "quadprog")
+  w <- task_qp$results$weights
+
+  # Weights must form a simplex
+  expect_true(all(w >= -1e-6))
+  expect_equal(sum(w), 1, tolerance = 1e-4)
+  expect_equal(length(w), 5)
+})
