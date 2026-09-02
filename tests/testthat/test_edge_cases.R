@@ -198,32 +198,36 @@ test_that("MarketModel with zero-variance index returns emits one warning and se
 
 
 test_that("ComparisonPeriodMeanAdjustedModel with constant estimation returns", {
+  # Phase 2 contract: zero-variance in firm_returns triggers the degenerate guard.
+  # Previously this fitted with sigma=0 (which propagated Inf downstream).
+  # Now the model correctly does not fit and returns NA abnormal returns.
   data = create_mock_model_data()
-  # All estimation window firm returns identical
+  # All estimation window firm returns identical -> sd(firm_returns) == 0
   data$firm_returns[data$estimation_window == 1] = 0.001
 
   cpmam = ComparisonPeriodMeanAdjustedModel$new()
-  cpmam$fit(data)
+  suppressWarnings(cpmam$fit(data))
 
-  expect_true(cpmam$is_fitted)
-  # sigma = sd of constant = 0
-  expect_equal(cpmam$statistics$sigma, 0)
-  # degree_of_freedom should still be valid
-  expect_true(cpmam$statistics$degree_of_freedom > 0)
+  expect_false(cpmam$is_fitted)
+  ar <- cpmam$abnormal_returns(data)
+  expect_true(all(is.na(ar$abnormal_returns)))
 })
 
 
 test_that("MarketAdjustedModel with constant estimation residuals", {
+  # Phase 2 contract: zero-variance in (firm - index) triggers the degenerate guard.
+  # Previously this fitted with sigma=0 (which propagated Inf downstream).
+  # Now the model correctly does not fit and returns NA abnormal returns.
   data = create_mock_model_data()
-  # Make firm_returns = index_returns exactly (zero residuals)
+  # Make firm_returns = index_returns exactly -> sd(firm - index) == 0
   data$firm_returns = data$index_returns
 
   mam = MarketAdjustedModel$new()
-  mam$fit(data)
+  suppressWarnings(mam$fit(data))
 
-  expect_true(mam$is_fitted)
-  # sigma = sd(0, 0, ..., 0) = 0
-  expect_equal(mam$statistics$sigma, 0)
+  expect_false(mam$is_fitted)
+  ar <- mam$abnormal_returns(data)
+  expect_true(all(is.na(ar$abnormal_returns)))
 })
 
 
@@ -1582,23 +1586,24 @@ test_that("export_results escapes LaTeX special characters", {
 # ============================================================================
 
 test_that("MarketAdjustedModel warns and does not fit with < 2 estimation obs", {
+  # Phase 2: warning message updated to contract-format (includes count + threshold)
   data <- create_mock_model_data(n_estimation = 1, n_event = 5)
   model <- MarketAdjustedModel$new()
-  expect_warning(model$fit(data), "insufficient estimation data")
+  expect_warning(model$fit(data), "insufficient estimation observations")
   expect_false(model$is_fitted)
 })
 
 test_that("ComparisonPeriodMeanAdjustedModel warns with < 2 estimation obs", {
   data <- create_mock_model_data(n_estimation = 1, n_event = 5)
   model <- ComparisonPeriodMeanAdjustedModel$new()
-  expect_warning(model$fit(data), "insufficient estimation data")
+  expect_warning(model$fit(data), "insufficient estimation observations")
   expect_false(model$is_fitted)
 })
 
 test_that("BHARModel warns with < 2 estimation obs", {
   data <- create_mock_model_data(n_estimation = 1, n_event = 5)
   model <- BHARModel$new()
-  expect_warning(model$fit(data), "insufficient estimation data")
+  expect_warning(model$fit(data), "insufficient estimation observations")
   expect_false(model$is_fitted)
 })
 
@@ -1606,7 +1611,7 @@ test_that("VolumeModel warns with < 2 estimation obs", {
   data <- create_mock_model_data(n_estimation = 1, n_event = 5)
   data$firm_volume <- abs(rnorm(nrow(data), 1000, 100))
   model <- VolumeModel$new()
-  expect_warning(model$fit(data), "insufficient estimation data")
+  expect_warning(model$fit(data), "insufficient estimation observations")
   expect_false(model$is_fitted)
 })
 

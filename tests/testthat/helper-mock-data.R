@@ -189,3 +189,62 @@ create_degenerate_model_data_zero_variance <- function(n_event = 11) {
   d$index_returns[est_rows] <- 0.001
   d
 }
+
+
+#' Create degenerate volume model data with insufficient valid observations
+#'
+#' Returns a data set with a firm_volume column where all but the first
+#' n_valid estimation-window rows have NA volume, producing fewer than 2
+#' finite entries for the VolumeModel estimation guard.
+#'
+#' @param n_valid Integer. Number of estimation rows to leave non-NA (default 1).
+#' @param n_event Integer. Number of event-window rows (default 11).
+create_degenerate_volume_model_data_insufficient <- function(n_valid = 1, n_event = 11) {
+  d <- create_mock_model_data(n_estimation = 120, n_event = n_event)
+  set.seed(7)
+  n_total <- nrow(d)
+  # Add a firm_volume column (realistic positive values)
+  d$firm_volume <- abs(rnorm(n_total, mean = 1e6, sd = 2e5))
+  # NA out all but n_valid estimation rows
+  est_rows <- which(d$estimation_window == 1)
+  if (length(est_rows) > n_valid) {
+    rows_to_na <- est_rows[(n_valid + 1):length(est_rows)]
+    d$firm_volume[rows_to_na] <- NA_real_
+  }
+  d
+}
+
+
+#' Create degenerate volume model data with zero variance after log-transform
+#'
+#' Returns a data set with a firm_volume column where all estimation-window
+#' rows have the same constant volume, making sd(log(vol + 1)) == 0 and
+#' triggering the VolumeModel zero-variance guard.
+#'
+#' @param n_event Integer. Number of event-window rows (default 11).
+create_degenerate_volume_model_data_zero_variance <- function(n_event = 11) {
+  d <- create_mock_model_data(n_estimation = 120, n_event = n_event)
+  set.seed(8)
+  n_total <- nrow(d)
+  d$firm_volume <- abs(rnorm(n_total, mean = 1e6, sd = 2e5))
+  # Set all estimation-window volumes to a constant so sd(log(vol+1)) == 0
+  est_rows <- which(d$estimation_window == 1)
+  d$firm_volume[est_rows] <- 1000.0
+  d
+}
+
+
+#' Create degenerate volatility model data with zero variance in firm returns
+#'
+#' Returns a data set where all estimation-window firm_returns are set to a
+#' single constant (0.001), making var(firm_returns) == 0 in the estimation
+#' window and triggering the VolatilityModel zero-variance guard.
+#'
+#' @param n_event Integer. Number of event-window rows (default 11).
+create_degenerate_volatility_model_data_zero_var <- function(n_event = 11) {
+  d <- create_mock_model_data(n_estimation = 120, n_event = n_event)
+  # Set all estimation-window firm_returns to a constant
+  est_rows <- which(d$estimation_window == 1)
+  d$firm_returns[est_rows] <- 0.001
+  d
+}

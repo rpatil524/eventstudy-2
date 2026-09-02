@@ -356,14 +356,41 @@ MarketAdjustedModel <- R6Class("MarketAdjustedModel",
                                  fit = function(data_tbl) {
                                    estimation_tbl <- data_tbl %>%
                                      dplyr::filter(estimation_window == 1)
+
+                                   # Resolve mode once per fit call
+                                   mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                                   # --- Contract guard: insufficient estimation observations ---
                                    n_valid <- sum(!is.na(estimation_tbl$firm_returns) &
                                                     !is.na(estimation_tbl$index_returns))
                                    if (n_valid < 2) {
-                                     warning("MarketAdjustedModel: insufficient estimation data (",
-                                             n_valid, " valid obs). Model not fitted.")
+                                     .handle_degenerate(
+                                       mode        = mode,
+                                       condition   = paste0("insufficient estimation observations (", n_valid, " valid, need 2)"),
+                                       component   = self$model_name,
+                                       event_id    = self$event_id,
+                                       firm_symbol = self$firm_symbol,
+                                       private_env = private
+                                     )
                                      private$.is_fitted <- FALSE
-                                     return(invisible(NULL))
+                                     return(invisible(self))
                                    }
+
+                                   # --- Contract guard: zero or near-zero variance in residuals ---
+                                   if (stats::sd(estimation_tbl$firm_returns - estimation_tbl$index_returns,
+                                                  na.rm = TRUE) < .Machine$double.eps) {
+                                     .handle_degenerate(
+                                       mode        = mode,
+                                       condition   = "zero or near-zero variance in firm_returns - index_returns",
+                                       component   = self$model_name,
+                                       event_id    = self$event_id,
+                                       firm_symbol = self$firm_symbol,
+                                       private_env = private
+                                     )
+                                     private$.is_fitted <- FALSE
+                                     return(invisible(self))
+                                   }
+
                                    private$.is_fitted = TRUE
 
                                    # Calculate statistics
@@ -374,8 +401,19 @@ MarketAdjustedModel <- R6Class("MarketAdjustedModel",
                                  #'
                                  #' @param data_tbl Data frame or tibble containing the data to calculate abnormal returns.
                                  abnormal_returns = function(data_tbl) {
-                                   data_tbl %>%
-                                     mutate(abnormal_returns = firm_returns - index_returns)
+                                   if (private$.is_fitted) {
+                                     data_tbl %>%
+                                       mutate(abnormal_returns = firm_returns - index_returns)
+                                   } else if (private$.degenerate_handled) {
+                                     # fit() already emitted a contract-formatted warning; suppress
+                                     # the redundant warning to honour the one-warning guarantee.
+                                     data_tbl %>%
+                                       mutate(abnormal_returns = NA_real_)
+                                   } else {
+                                     warning("MarketAdjustedModel is not fitted. Returning NA abnormal returns.")
+                                     data_tbl %>%
+                                       mutate(abnormal_returns = NA_real_)
+                                   }
                                  }
                                ),
                                private = list(
@@ -430,13 +468,39 @@ ComparisonPeriodMeanAdjustedModel <- R6Class("ComparisonPeriodMeanAdjustedModel"
                                                  est_returns <- data_tbl %>%
                                                    filter(estimation_window == 1) %>%
                                                    .[['firm_returns']]
+
+                                                 # Resolve mode once per fit call
+                                                 mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                                                 # --- Contract guard: insufficient estimation observations ---
                                                  n_valid <- sum(!is.na(est_returns))
                                                  if (n_valid < 2) {
-                                                   warning("ComparisonPeriodMeanAdjustedModel: insufficient estimation data (",
-                                                           n_valid, " valid obs). Model not fitted.")
+                                                   .handle_degenerate(
+                                                     mode        = mode,
+                                                     condition   = paste0("insufficient estimation observations (", n_valid, " valid, need 2)"),
+                                                     component   = self$model_name,
+                                                     event_id    = self$event_id,
+                                                     firm_symbol = self$firm_symbol,
+                                                     private_env = private
+                                                   )
                                                    private$.is_fitted <- FALSE
-                                                   return(invisible(NULL))
+                                                   return(invisible(self))
                                                  }
+
+                                                 # --- Contract guard: zero or near-zero variance in firm_returns ---
+                                                 if (stats::sd(est_returns, na.rm = TRUE) < .Machine$double.eps) {
+                                                   .handle_degenerate(
+                                                     mode        = mode,
+                                                     condition   = "zero or near-zero variance in firm_returns (estimation window)",
+                                                     component   = self$model_name,
+                                                     event_id    = self$event_id,
+                                                     firm_symbol = self$firm_symbol,
+                                                     private_env = private
+                                                   )
+                                                   private$.is_fitted <- FALSE
+                                                   return(invisible(self))
+                                                 }
+
                                                  reference_mean <- mean(est_returns, na.rm = TRUE)
 
                                                  private$.fitted_model = reference_mean
@@ -450,8 +514,19 @@ ComparisonPeriodMeanAdjustedModel <- R6Class("ComparisonPeriodMeanAdjustedModel"
                                                #'
                                                #' @param data_tbl Data frame or tibble containing the data to calculate abnormal returns.
                                                abnormal_returns = function(data_tbl) {
-                                                 data_tbl %>%
-                                                   mutate(abnormal_returns = firm_returns - private$.fitted_model)
+                                                 if (private$.is_fitted) {
+                                                   data_tbl %>%
+                                                     mutate(abnormal_returns = firm_returns - private$.fitted_model)
+                                                 } else if (private$.degenerate_handled) {
+                                                   # fit() already emitted a contract-formatted warning; suppress
+                                                   # the redundant warning to honour the one-warning guarantee.
+                                                   data_tbl %>%
+                                                     mutate(abnormal_returns = NA_real_)
+                                                 } else {
+                                                   warning("ComparisonPeriodMeanAdjustedModel is not fitted. Returning NA abnormal returns.")
+                                                   data_tbl %>%
+                                                     mutate(abnormal_returns = NA_real_)
+                                                 }
                                                }
                                              ),
                                              private = list(
@@ -487,11 +562,23 @@ CustomModel <- R6Class("CustomModel",
                        public = list(
                          model_name = "CustomModel",
                          abnormal_returns = function(data_tbl) {
-                           # Calculate abnormal returns
-                           mm_model = private$.fitted_model
-                           data_tbl %>%
-                             mutate(abnormal_returns = firm_returns - predict(mm_model, data_tbl),
-                                    abnormal_returns = ifelse(event_date == 1, abnormal_returns + loss_market_cap, abnormal_returns))
+                           # Guard: if not fitted (via degenerate or pre-fit call), return NA
+                           # without calling predict() on a NULL model (which would error).
+                           if (private$.is_fitted) {
+                             mm_model = private$.fitted_model
+                             data_tbl %>%
+                               mutate(abnormal_returns = firm_returns - predict(mm_model, data_tbl),
+                                      abnormal_returns = ifelse(event_date == 1, abnormal_returns + loss_market_cap, abnormal_returns))
+                           } else if (private$.degenerate_handled) {
+                             # fit() already emitted a contract-formatted warning; suppress
+                             # the redundant warning to honour the one-warning guarantee.
+                             data_tbl %>%
+                               mutate(abnormal_returns = NA_real_)
+                           } else {
+                             warning("CustomModel is not fitted. Returning NA abnormal returns.")
+                             data_tbl %>%
+                               mutate(abnormal_returns = NA_real_)
+                           }
                          }
                        )
 )
@@ -988,14 +1075,41 @@ BHARModel <- R6Class("BHARModel",
                         fit = function(data_tbl) {
                           estimation_tbl <- data_tbl %>%
                             dplyr::filter(estimation_window == 1)
+
+                          # Resolve mode once per fit call
+                          mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                          # --- Contract guard: insufficient estimation observations ---
                           n_valid <- sum(!is.na(estimation_tbl$firm_returns) &
                                           !is.na(estimation_tbl$index_returns))
                           if (n_valid < 2) {
-                            warning("BHARModel: insufficient estimation data (",
-                                    n_valid, " valid obs). Model not fitted.")
+                            .handle_degenerate(
+                              mode        = mode,
+                              condition   = paste0("insufficient estimation observations (", n_valid, " valid, need 2)"),
+                              component   = self$model_name,
+                              event_id    = self$event_id,
+                              firm_symbol = self$firm_symbol,
+                              private_env = private
+                            )
                             private$.is_fitted <- FALSE
-                            return(invisible(NULL))
+                            return(invisible(self))
                           }
+
+                          # --- Contract guard: zero or near-zero variance in firm_returns - index_returns ---
+                          if (stats::sd(estimation_tbl$firm_returns - estimation_tbl$index_returns,
+                                         na.rm = TRUE) < .Machine$double.eps) {
+                            .handle_degenerate(
+                              mode        = mode,
+                              condition   = "zero or near-zero variance in firm_returns - index_returns",
+                              component   = self$model_name,
+                              event_id    = self$event_id,
+                              firm_symbol = self$firm_symbol,
+                              private_env = private
+                            )
+                            private$.is_fitted <- FALSE
+                            return(invisible(self))
+                          }
+
                           private$.is_fitted <- TRUE
                           private$calculate_statistics(data_tbl)
                         },
@@ -1004,16 +1118,29 @@ BHARModel <- R6Class("BHARModel",
                         #'
                         #' @param data_tbl Data frame or tibble.
                         abnormal_returns = function(data_tbl) {
-                          data_tbl %>%
-                            dplyr::group_by(event_window) %>%
-                            dplyr::mutate(
-                              # Compound returns within each window separately
-                              cum_firm = cumprod(1 + dplyr::coalesce(firm_returns, 0)),
-                              cum_index = cumprod(1 + dplyr::coalesce(index_returns, 0)),
-                              abnormal_returns = cum_firm - cum_index
-                            ) %>%
-                            dplyr::ungroup() %>%
-                            dplyr::select(-cum_firm, -cum_index)
+                          if (private$.is_fitted) {
+                            data_tbl %>%
+                              dplyr::group_by(event_window) %>%
+                              dplyr::mutate(
+                                # Compound returns within each window separately
+                                cum_firm = cumprod(1 + dplyr::coalesce(firm_returns, 0)),
+                                cum_index = cumprod(1 + dplyr::coalesce(index_returns, 0)),
+                                abnormal_returns = cum_firm - cum_index
+                              ) %>%
+                              dplyr::ungroup() %>%
+                              dplyr::select(-cum_firm, -cum_index)
+                          } else if (private$.degenerate_handled) {
+                            # fit() already emitted a contract-formatted warning; suppress
+                            # the redundant warning to honour the one-warning guarantee.
+                            # Critically: do NOT run the coalesce-based compounding here,
+                            # as it would produce plausible-looking wrong values when unfitted.
+                            data_tbl %>%
+                              dplyr::mutate(abnormal_returns = NA_real_)
+                          } else {
+                            warning("BHARModel is not fitted. Returning NA abnormal returns.")
+                            data_tbl %>%
+                              dplyr::mutate(abnormal_returns = NA_real_)
+                          }
                         }
                       ),
                       private = list(
@@ -1034,7 +1161,10 @@ BHARModel <- R6Class("BHARModel",
                           sigma <- sd(estimation_tbl$firm_returns -
                                         estimation_tbl$index_returns, na.rm = TRUE)
                           private$.statistics$sigma <- sigma
-                          private$.statistics$degree_of_freedom <- nrow(estimation_tbl) - 1
+                          # Use .finite_residual_df() to count only non-NA rows (MODELS-03)
+                          # nrow(estimation_tbl) would include NA rows, inflating df incorrectly.
+                          bhar_residuals_finite <- estimation_tbl$firm_returns - estimation_tbl$index_returns
+                          private$.statistics$degree_of_freedom <- .finite_residual_df(bhar_residuals_finite, n_params = 1L)
 
                           # Constant-mean forecast error correction (no regression)
                           event_window_tbl <- data_tbl %>% dplyr::filter(event_window == 1)
@@ -1085,14 +1215,39 @@ VolumeModel <- R6Class("VolumeModel",
                             estimation_tbl <- data_tbl %>%
                               dplyr::filter(estimation_window == 1)
 
+                            # Resolve mode once per fit call
+                            mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
                             vol <- estimation_tbl$firm_volume
                             if (self$log_transform) vol <- log(vol + 1)
+
+                            # --- Contract guard: insufficient estimation observations ---
                             n_valid <- sum(is.finite(vol))
                             if (n_valid < 2) {
-                              warning("VolumeModel: insufficient estimation data (",
-                                      n_valid, " valid obs). Model not fitted.")
+                              .handle_degenerate(
+                                mode        = mode,
+                                condition   = paste0("insufficient estimation observations (", n_valid, " valid, need 2)"),
+                                component   = self$model_name,
+                                event_id    = self$event_id,
+                                firm_symbol = self$firm_symbol,
+                                private_env = private
+                              )
                               private$.is_fitted <- FALSE
-                              return(invisible(NULL))
+                              return(invisible(self))
+                            }
+
+                            # --- Contract guard: zero or near-zero variance in volume ---
+                            if (stats::sd(vol, na.rm = TRUE) < .Machine$double.eps) {
+                              .handle_degenerate(
+                                mode        = mode,
+                                condition   = "zero or near-zero variance in firm_volume (estimation window)",
+                                component   = self$model_name,
+                                event_id    = self$event_id,
+                                firm_symbol = self$firm_symbol,
+                                private_env = private
+                              )
+                              private$.is_fitted <- FALSE
+                              return(invisible(self))
                             }
 
                             private$.fitted_model <- mean(vol, na.rm = TRUE)
@@ -1104,13 +1259,24 @@ VolumeModel <- R6Class("VolumeModel",
                           #'
                           #' @param data_tbl Data frame or tibble.
                           abnormal_returns = function(data_tbl) {
-                            expected <- private$.fitted_model
-                            data_tbl %>%
-                              dplyr::mutate(
-                                .vol = if (self$log_transform) log(firm_volume + 1) else firm_volume,
-                                abnormal_returns = .vol - expected
-                              ) %>%
-                              dplyr::select(-.vol)
+                            if (private$.is_fitted) {
+                              expected <- private$.fitted_model
+                              data_tbl %>%
+                                dplyr::mutate(
+                                  .vol = if (self$log_transform) log(firm_volume + 1) else firm_volume,
+                                  abnormal_returns = .vol - expected
+                                ) %>%
+                                dplyr::select(-.vol)
+                            } else if (private$.degenerate_handled) {
+                              # fit() already emitted a contract-formatted warning; suppress
+                              # the redundant warning to honour the one-warning guarantee.
+                              data_tbl %>%
+                                dplyr::mutate(abnormal_returns = NA_real_)
+                            } else {
+                              warning("VolumeModel is not fitted. Returning NA abnormal returns.")
+                              data_tbl %>%
+                                dplyr::mutate(abnormal_returns = NA_real_)
+                            }
                           }
                         ),
                         private = list(
@@ -1166,7 +1332,43 @@ VolatilityModel <- R6Class("VolatilityModel",
                                 estimation_tbl <- data_tbl %>%
                                   dplyr::filter(estimation_window == 1)
 
-                                est_var <- var(estimation_tbl$firm_returns, na.rm = TRUE)
+                                # Resolve mode once per fit call
+                                mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                                # --- Contract guard: insufficient estimation observations ---
+                                n_valid <- sum(!is.na(estimation_tbl$firm_returns))
+                                if (n_valid < 2) {
+                                  .handle_degenerate(
+                                    mode        = mode,
+                                    condition   = paste0("insufficient estimation observations (", n_valid, " valid, need 2)"),
+                                    component   = self$model_name,
+                                    event_id    = self$event_id,
+                                    firm_symbol = self$firm_symbol,
+                                    private_env = private
+                                  )
+                                  private$.is_fitted <- FALSE
+                                  return(invisible(self))
+                                }
+
+                                # --- Contract guard: zero or NA variance in firm_returns ---
+                                # IMPORTANT: this guard is placed BEFORE private$.is_fitted <- TRUE
+                                # so the is_fitted flag is never set on degenerate data
+                                # (previously this guard lived in calculate_statistics() AFTER
+                                # is_fitted was set to TRUE, creating an inconsistency window).
+                                est_var <- stats::var(estimation_tbl$firm_returns, na.rm = TRUE)
+                                if (is.na(est_var) || est_var < .Machine$double.eps) {
+                                  .handle_degenerate(
+                                    mode        = mode,
+                                    condition   = "zero or NA variance in firm_returns (estimation window)",
+                                    component   = self$model_name,
+                                    event_id    = self$event_id,
+                                    firm_symbol = self$firm_symbol,
+                                    private_env = private
+                                  )
+                                  private$.is_fitted <- FALSE
+                                  return(invisible(self))
+                                }
+
                                 private$.fitted_model <- est_var
                                 private$.is_fitted <- TRUE
                                 private$calculate_statistics(data_tbl)
@@ -1176,30 +1378,33 @@ VolatilityModel <- R6Class("VolatilityModel",
                               #'
                               #' @param data_tbl Data frame or tibble.
                               abnormal_returns = function(data_tbl) {
-                                if (!private$.is_fitted) {
-                                  warning("VolatilityModel is not fitted. Returning NA.")
-                                  return(data_tbl %>%
-                                           dplyr::mutate(abnormal_returns = NA_real_))
+                                if (private$.is_fitted) {
+                                  est_var <- private$.fitted_model
+                                  data_tbl %>%
+                                    dplyr::mutate(
+                                      abnormal_returns = (firm_returns^2 / est_var) - 1
+                                    )
+                                } else if (private$.degenerate_handled) {
+                                  # fit() already emitted a contract-formatted warning; suppress
+                                  # the redundant warning to honour the one-warning guarantee.
+                                  data_tbl %>%
+                                    dplyr::mutate(abnormal_returns = NA_real_)
+                                } else {
+                                  warning("VolatilityModel is not fitted. Returning NA abnormal returns.")
+                                  data_tbl %>%
+                                    dplyr::mutate(abnormal_returns = NA_real_)
                                 }
-                                est_var <- private$.fitted_model
-                                data_tbl %>%
-                                  dplyr::mutate(
-                                    abnormal_returns = (firm_returns^2 / est_var) - 1
-                                  )
                               }
                             ),
                             private = list(
                               calculate_statistics = function(data_tbl) {
+                                # Note: the zero-variance guard has been relocated to fit() BEFORE
+                                # private$.is_fitted <- TRUE. calculate_statistics() is only called
+                                # on the valid-input path, so est_var is guaranteed > 0 here.
                                 estimation_tbl <- data_tbl %>%
                                   dplyr::filter(estimation_window == 1)
 
-                                est_var <- var(estimation_tbl$firm_returns, na.rm = TRUE)
-                                if (is.na(est_var) || est_var < .Machine$double.eps) {
-                                  private$.is_fitted <- FALSE
-                                  warning("VolatilityModel: zero or NA variance in estimation window. ",
-                                          "Cannot compute abnormal volatility.")
-                                  return(invisible(NULL))
-                                }
+                                est_var <- private$.fitted_model  # already validated in fit()
                                 # Residuals in ratio form to match abnormal_returns = r^2/V - 1
                                 residuals <- estimation_tbl$firm_returns^2 / est_var - 1
                                 private$add_residuals(residuals)

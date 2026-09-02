@@ -445,12 +445,16 @@ test_that("MarketModel without HAC has no vcov_hac", {
 test_that("BHARModel compounds returns within event window only, not across windows", {
 
   # Bug: cumprod ran over entire data frame, so event window compounding
-
   # was contaminated by estimation window values.
   # Fix: group_by(event_window) before cumprod so each window compounds independently.
+  # Note: estimation window needs non-constant returns to avoid the zero-variance guard.
+  set.seed(99)
+  n_est <- 5
+  est_firm   <- rnorm(n_est, mean = 0.01, sd = 0.005)
+  est_index  <- rnorm(n_est, mean = 0.005, sd = 0.005)
   data <- tibble::tibble(
-    firm_returns = c(rep(0.01, 5), rep(0.02, 5)),
-    index_returns = c(rep(0.005, 5), rep(0.01, 5)),
+    firm_returns = c(est_firm, rep(0.02, 5)),
+    index_returns = c(est_index, rep(0.01, 5)),
     estimation_window = c(rep(1, 5), rep(0, 5)),
     event_window = c(rep(0, 5), rep(1, 5)),
     relative_index = c(-5:-1, 0:4),
@@ -592,4 +596,421 @@ test_that("LinearFactorModel FEC uses hat matrix (X'X)^{-1} for correction", {
   sigma <- stats$sigma
   # All FEC values should be >= sigma (since h_t >= 0)
   expect_true(all(fec >= sigma * 0.999))  # small tolerance for floating point
+})
+
+
+# ============================================================
+# Phase 2 — Degenerate-input contract tests (Plan 02-01)
+# ============================================================
+
+# ---- .finite_residual_df helper ----
+
+test_that(".finite_residual_df returns finite-only count minus n_params, floored at 1", {
+  # c(1, 2, NA, 4): 3 finite, minus n_params=1 -> 2
+  expect_equal(EventStudy:::.finite_residual_df(c(1, 2, NA, 4)), 2L)
+  # c(1, NA, NA): 1 finite, minus 1 -> 0, floor to 1
+  expect_equal(EventStudy:::.finite_residual_df(c(1, NA, NA)), 1L)
+  # All NA -> 0 finite, floor to 1
+  expect_equal(EventStudy:::.finite_residual_df(c(NA, NA)), 1L)
+  # n_params = 2: c(1, 2, 3, NA) has 3 finite, minus 2 -> 1
+  expect_equal(EventStudy:::.finite_residual_df(c(1, 2, 3, NA), n_params = 2L), 1L)
+  # Inf is not finite: c(1, Inf, 3, NA) has 2 finite (1 and 3), minus 1 -> 1
+  expect_equal(EventStudy:::.finite_residual_df(c(1, Inf, 3, NA)), 1L)
+})
+
+
+# ---- MarketAdjustedModel degenerate contract ----
+
+test_that("MarketAdjustedModel: lenient mode — insufficient obs returns is_fitted=FALSE + one warning + all-NA ARs", {
+  for (cond in c("insuff", "zerovar")) {
+    m <- MarketAdjustedModel$new()
+    m$degenerate_mode <- "lenient"
+    m$event_id    <- "EVT_MA"
+    m$firm_symbol <- "FIRM_MA"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]]  <- NA_real_
+      d$index_returns[est[-1]] <- NA_real_
+    } else {
+      # zero-variance: firm == index in estimation window
+      d$firm_returns[est] <- d$index_returns[est]
+    }
+    ws <- character(0)
+    withCallingHandlers(
+      m$fit(d),
+      warning = function(w) {
+        ws[[length(ws) + 1L]] <<- conditionMessage(w)
+        invokeRestart("muffleWarning")
+      }
+    )
+    expect_false(m$is_fitted,
+                 info = paste0("is_fitted should be FALSE for cond=", cond))
+    expect_equal(length(ws), 1L,
+                 info = paste0("exactly one warning for cond=", cond))
+    ar <- m$abnormal_returns(d)
+    expect_true(all(is.na(ar$abnormal_returns)),
+                info = paste0("all-NA ARs for cond=", cond))
+    # Second call to abnormal_returns should NOT emit an additional warning
+    extra_ws <- character(0)
+    withCallingHandlers(
+      m$abnormal_returns(d),
+      warning = function(w) {
+        extra_ws[[length(extra_ws) + 1L]] <<- conditionMessage(w)
+        invokeRestart("muffleWarning")
+      }
+    )
+    expect_equal(length(extra_ws), 0L,
+                 info = paste0("no second warning from abnormal_returns for cond=", cond))
+  }
+})
+
+test_that("MarketAdjustedModel: strict mode — insufficient obs and zero-variance raise named error", {
+  for (cond in c("insuff", "zerovar")) {
+    m <- MarketAdjustedModel$new()
+    m$degenerate_mode <- "strict"
+    m$event_id    <- "EVT_MA"
+    m$firm_symbol <- "FIRM_MA"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]]  <- NA_real_
+      d$index_returns[est[-1]] <- NA_real_
+    } else {
+      d$firm_returns[est] <- d$index_returns[est]
+    }
+    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+    expect_type(err_msg, "character")
+    expect_match(err_msg, "MarketAdjustedModel",
+                 info = paste0("error names model for cond=", cond))
+    expect_match(err_msg, "EVT_MA",
+                 info = paste0("error names event_id for cond=", cond))
+    expect_match(err_msg, "FIRM_MA",
+                 info = paste0("error names firm_symbol for cond=", cond))
+  }
+})
+
+
+# ---- ComparisonPeriodMeanAdjustedModel degenerate contract ----
+
+test_that("ComparisonPeriodMeanAdjustedModel: lenient mode — degenerate returns is_fitted=FALSE + one warning + all-NA ARs", {
+  # insuff: too few valid firm_returns in estimation window
+  # zerovar: all firm_returns are constant (sd == 0)
+  for (cond in c("insuff", "zerovar")) {
+    m <- ComparisonPeriodMeanAdjustedModel$new()
+    m$degenerate_mode <- "lenient"
+    m$event_id    <- "EVT_CPM"
+    m$firm_symbol <- "FIRM_CPM"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]] <- NA_real_
+    } else {
+      # CPM checks sd(firm_returns) so set all estimation firm_returns to a constant
+      d$firm_returns[est] <- 0.001
+    }
+    ws <- character(0)
+    withCallingHandlers(m$fit(d), warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    })
+    expect_false(m$is_fitted, info = paste0("cond=", cond))
+    expect_equal(length(ws), 1L, info = paste0("exactly one warning cond=", cond))
+    ar <- m$abnormal_returns(d)
+    expect_true(all(is.na(ar$abnormal_returns)), info = paste0("cond=", cond))
+  }
+})
+
+test_that("ComparisonPeriodMeanAdjustedModel: strict mode — raises named error", {
+  for (cond in c("insuff", "zerovar")) {
+    m <- ComparisonPeriodMeanAdjustedModel$new()
+    m$degenerate_mode <- "strict"
+    m$event_id    <- "EVT_CPM"
+    m$firm_symbol <- "FIRM_CPM"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]] <- NA_real_
+    } else {
+      d$firm_returns[est] <- 0.001
+    }
+    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+    expect_type(err_msg, "character")
+    expect_match(err_msg, "ComparisonPeriodMeanAdjustedModel")
+    expect_match(err_msg, "EVT_CPM")
+    expect_match(err_msg, "FIRM_CPM")
+  }
+})
+
+
+# ---- CustomModel degenerate contract ----
+
+test_that("CustomModel: degenerate input — abnormal_returns returns NA without calling predict(NULL)", {
+  # CustomModel inherits MarketModel's fit() which already has the contract guards.
+  # Test that abnormal_returns() does not crash when fit() failed degenerately.
+  m <- CustomModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_CM"
+  m$firm_symbol <- "FIRM_CM"
+  d <- create_degenerate_model_data_insufficient()
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_false(m$is_fitted)
+  # abnormal_returns must NOT throw (predict(NULL,...) would throw)
+  ar <- expect_no_error(m$abnormal_returns(d))
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+
+# ---- BHARModel degenerate contract ----
+
+test_that("BHARModel: lenient mode — degenerate returns is_fitted=FALSE + one warning + all-NA ARs", {
+  for (cond in c("insuff", "zerovar")) {
+    m <- BHARModel$new()
+    m$degenerate_mode <- "lenient"
+    m$event_id    <- "EVT_BHAR"
+    m$firm_symbol <- "FIRM_BHAR"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]]  <- NA_real_
+      d$index_returns[est[-1]] <- NA_real_
+    } else {
+      d$firm_returns[est] <- d$index_returns[est]  # zero variance in diff
+    }
+    ws <- character(0)
+    withCallingHandlers(m$fit(d), warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    })
+    expect_false(m$is_fitted, info = paste0("cond=", cond))
+    expect_equal(length(ws), 1L, info = paste0("one warning cond=", cond))
+    ar <- m$abnormal_returns(d)
+    expect_true(all(is.na(ar$abnormal_returns)), info = paste0("all-NA cond=", cond))
+  }
+})
+
+test_that("BHARModel: strict mode — raises named error", {
+  for (cond in c("insuff", "zerovar")) {
+    m <- BHARModel$new()
+    m$degenerate_mode <- "strict"
+    m$event_id    <- "EVT_BHAR"
+    m$firm_symbol <- "FIRM_BHAR"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]]  <- NA_real_
+      d$index_returns[est[-1]] <- NA_real_
+    } else {
+      d$firm_returns[est] <- d$index_returns[est]
+    }
+    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+    expect_type(err_msg, "character")
+    expect_match(err_msg, "BHARModel")
+    expect_match(err_msg, "EVT_BHAR")
+    expect_match(err_msg, "FIRM_BHAR")
+  }
+})
+
+test_that("BHARModel: df reflects only finite residuals (MODELS-03)", {
+  # Inject NA rows into estimation window — df should be < nrow-1
+  m <- BHARModel$new()
+  d <- create_mock_model_data(n_estimation = 50, n_event = 11)
+  est <- which(d$estimation_window == 1)
+  # NA out half the estimation rows
+  d$firm_returns[est[1:10]]  <- NA_real_
+  d$index_returns[est[1:10]] <- NA_real_
+  m$fit(d)
+  expect_true(m$is_fitted)
+  df_model <- m$statistics$degree_of_freedom
+  # nrow - 1 = 49, but 10 NA rows so finite df should be <= 39
+  expect_lt(df_model, nrow(d[d$estimation_window == 1, ]) - 1)
+})
+
+
+# ---- VolumeModel degenerate contract ----
+
+test_that("VolumeModel: lenient mode — insufficient obs returns is_fitted=FALSE + one warning + all-NA ARs", {
+  m <- VolumeModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_VOL"
+  m$firm_symbol <- "FIRM_VOL"
+  d <- create_degenerate_volume_model_data_insufficient()
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_false(m$is_fitted)
+  expect_length(ws, 1L)
+  ar <- m$abnormal_returns(d)
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+test_that("VolumeModel: lenient mode — zero variance returns is_fitted=FALSE + one warning + all-NA ARs", {
+  m <- VolumeModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_VOL"
+  m$firm_symbol <- "FIRM_VOL"
+  d <- create_degenerate_volume_model_data_zero_variance()
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_false(m$is_fitted)
+  expect_length(ws, 1L)
+  ar <- m$abnormal_returns(d)
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+test_that("VolumeModel: strict mode — raises named error", {
+  for (factory in c("insuff", "zerovar")) {
+    m <- VolumeModel$new()
+    m$degenerate_mode <- "strict"
+    m$event_id    <- "EVT_VOL"
+    m$firm_symbol <- "FIRM_VOL"
+    d <- if (factory == "insuff") create_degenerate_volume_model_data_insufficient() else create_degenerate_volume_model_data_zero_variance()
+    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+    expect_type(err_msg, "character")
+    expect_match(err_msg, "VolumeModel")
+    expect_match(err_msg, "EVT_VOL")
+    expect_match(err_msg, "FIRM_VOL")
+  }
+})
+
+
+# ---- VolatilityModel degenerate contract ----
+
+test_that("VolatilityModel: lenient mode — zero variance returns is_fitted=FALSE + one warning + all-NA ARs", {
+  m <- VolatilityModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_VOLA"
+  m$firm_symbol <- "FIRM_VOLA"
+  d <- create_degenerate_volatility_model_data_zero_var()
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  # CRITICAL: is_fitted must be FALSE (guard is now in fit() BEFORE is_fitted <- TRUE)
+  expect_false(m$is_fitted)
+  expect_length(ws, 1L)
+  ar <- m$abnormal_returns(d)
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+test_that("VolatilityModel: strict mode — zero variance raises named error", {
+  m <- VolatilityModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_VOLA"
+  m$firm_symbol <- "FIRM_VOLA"
+  d <- create_degenerate_volatility_model_data_zero_var()
+  err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_type(err_msg, "character")
+  expect_match(err_msg, "VolatilityModel")
+  expect_match(err_msg, "EVT_VOLA")
+  expect_match(err_msg, "FIRM_VOLA")
+})
+
+test_that("VolatilityModel: insufficient obs raises contract error in strict mode", {
+  m <- VolatilityModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_VOLA2"
+  m$firm_symbol <- "FIRM_VOLA2"
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  d$firm_returns[est[-1]] <- NA_real_
+  err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_type(err_msg, "character")
+  expect_match(err_msg, "VolatilityModel")
+})
+
+
+# ============================================================
+# CONTRACT-05: Per-model valid-input baseline invariance (Plan 02-01)
+#
+# These baselines were captured POST-migration because the guards are pure
+# early-return paths that cannot alter the valid-input code path. The
+# invariance tests prove this claim holds going forward: any future edit
+# that inadvertently changes valid-input computation will be caught here.
+# ============================================================
+
+test_that("MarketAdjustedModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_marketadjusted_baseline.rds"))
+  m <- MarketAdjustedModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  expect_equal(m$statistics$forecast_error_corrected_sigma[1:3], bl$fec, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("ComparisonPeriodMeanAdjustedModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_comparisonperiod_baseline.rds"))
+  m <- ComparisonPeriodMeanAdjustedModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("CustomModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_custom_baseline.rds"))
+  m <- CustomModel$new()
+  d <- create_mock_model_data()
+  d$loss_market_cap <- 0
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("BHARModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_bhar_baseline.rds"))
+  m <- BHARModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("VolumeModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_volume_baseline.rds"))
+  m <- VolumeModel$new()
+  d <- create_mock_model_data()
+  set.seed(77)
+  d$firm_volume <- abs(rnorm(nrow(d), mean = 1e6, sd = 2e5))
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("VolatilityModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_volatility_baseline.rds"))
+  m <- VolatilityModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
 })
