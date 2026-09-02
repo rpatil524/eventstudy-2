@@ -305,10 +305,16 @@ test_that("callaway_santanna warns and returns task with NULL results when did i
   panel <- create_mock_staggered_panel()
   task <- PanelEventStudyTask$new(panel)
 
-  expect_warning(
-    result <- estimate_panel_event_study(task, method = "callaway_santanna"),
-    "did"
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task, method = "callaway_santanna"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
   )
+  # Inner estimator must warn about missing "did" package
+  expect_true(any(grepl("did", ws, ignore.case = TRUE)))
   expect_null(result$results)
 })
 
@@ -322,10 +328,15 @@ test_that("callaway_santanna tryCatch catches att_gt runtime failures", {
   task2 <- task
   task2$outcome <- "nonexistent_column"
 
-  expect_warning(
-    result <- estimate_panel_event_study(task2, method = "callaway_santanna"),
-    "did::att_gt failed"
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task2, method = "callaway_santanna"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
   )
+  expect_true(any(grepl("did::att_gt failed", ws, ignore.case = TRUE)))
   expect_null(result$results)
 })
 
@@ -340,11 +351,15 @@ test_that("dechaisemartin warns and returns task with NULL results when DIDmulti
   panel <- create_mock_staggered_panel()
   task <- PanelEventStudyTask$new(panel)
 
-  expect_warning(
-    result <- estimate_panel_event_study(task,
-                                          method = "dechaisemartin_dhaultfoeuille"),
-    "DIDmultiplegt"
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task, method = "dechaisemartin_dhaultfoeuille"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
   )
+  expect_true(any(grepl("DIDmultiplegt", ws, ignore.case = TRUE)))
   expect_null(result$results)
 })
 
@@ -363,11 +378,15 @@ test_that("dechaisemartin opt-out option produces warning and NULL results", {
   panel <- create_mock_staggered_panel()
   task <- PanelEventStudyTask$new(panel)
 
-  expect_warning(
-    result <- estimate_panel_event_study(task,
-                                          method = "dechaisemartin_dhaultfoeuille"),
-    "skip_didmultiplegt"
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task, method = "dechaisemartin_dhaultfoeuille"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
   )
+  expect_true(any(grepl("skip_didmultiplegt", ws, ignore.case = TRUE)))
   expect_null(result$results)
 })
 
@@ -390,11 +409,15 @@ test_that("dechaisemartin callr probe gate: probe option FALSE means no callr in
   panel <- create_mock_staggered_panel()
   task <- PanelEventStudyTask$new(panel)
 
-  expect_warning(
-    result <- estimate_panel_event_study(task,
-                                          method = "dechaisemartin_dhaultfoeuille"),
-    "DIDmultiplegt"
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task, method = "dechaisemartin_dhaultfoeuille"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
   )
+  expect_true(any(grepl("DIDmultiplegt", ws, ignore.case = TRUE)))
   expect_null(result$results)
 })
 
@@ -409,10 +432,15 @@ test_that("borusyak_jaravel_spiess warns and returns task with NULL results when
   panel <- create_mock_staggered_panel()
   task <- PanelEventStudyTask$new(panel)
 
-  expect_warning(
-    result <- estimate_panel_event_study(task, method = "borusyak_jaravel_spiess"),
-    "didimputation"
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task, method = "borusyak_jaravel_spiess"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
   )
+  expect_true(any(grepl("didimputation", ws, ignore.case = TRUE)))
   expect_null(result$results)
 })
 
@@ -426,15 +454,78 @@ test_that("borusyak_jaravel_spiess tryCatch catches did_imputation runtime failu
   task2 <- task
   task2$outcome <- "nonexistent_column_xyz"
 
-  expect_warning(
-    result <- estimate_panel_event_study(task2, method = "borusyak_jaravel_spiess"),
-    "didimputation::did_imputation failed"
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task2, method = "borusyak_jaravel_spiess"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
   )
+  expect_true(any(grepl("didimputation::did_imputation failed", ws, ignore.case = TRUE)))
   expect_null(result$results)
 })
 
 
 # --- EXTERNAL-03: sandwich absence warning upgrade ---
+
+# --- WR-02 regression: wrapper emits warning when external estimator returns NULL ---
+
+test_that("estimate_panel_event_study: wrapper warns when external estimator returns NULL results", {
+  # WR-02: The switch() in estimate_panel_event_study discards the return value
+  # of inner estimators.  When an external estimator fails (package absent or
+  # runtime error), it returns invisible(NULL) and sets task$results=NULL.
+  # The wrapper now emits ONE additional warning naming the method so the
+  # caller is informed rather than silently receiving a NULL-results task.
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) pkg != "did",
+    .package = "base"
+  )
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_panel_event_study(task, method = "callaway_santanna"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  # task$results must be NULL (estimator returned NULL)
+  expect_null(result$results)
+  # At least one warning must mention the method name (wrapper-level signal)
+  expect_true(any(grepl("callaway_santanna", ws)),
+              label = "wrapper must warn naming the failed method")
+  # The wrapper warning must also state task$results is NULL
+  expect_true(any(grepl("NULL", ws)),
+              label = "wrapper warning must state results are NULL")
+})
+
+
+test_that("estimate_panel_event_study: wrapper does NOT warn when external estimator succeeds", {
+  # WR-02: The NULL guard must only fire when task$results actually stays NULL.
+  # A successful callaway_santanna run (did installed) should produce no wrapper warning.
+  skip_if_not_installed("did")
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  ws <- character(0)
+  result <- withCallingHandlers(
+    suppressWarnings(estimate_panel_event_study(task, method = "callaway_santanna")),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  # No wrapper-level "returned no results" warning should fire
+  wrapper_warns <- grepl("returned no results", ws, ignore.case = TRUE)
+  expect_false(any(wrapper_warns),
+               label = "wrapper must NOT warn when results are populated")
+})
+
 
 test_that(".compute_se emits warning (not message) when sandwich is absent", {
   local_mocked_bindings(

@@ -157,6 +157,20 @@ estimate_panel_event_study <- function(task,
       task, panel, leads, lags, base_period, ...)
   )
 
+  # Wrapper-level NULL guard: the external estimators (callaway_santanna,
+  # dechaisemartin_dhaultfoeuille, borusyak_jaravel_spiess) return
+  # invisible(NULL) when the package is absent or estimation fails.  The
+  # switch() discards their return value, so task$results stays NULL with no
+  # caller-visible signal.  Emit one wrapper-level warning so the caller is
+  # informed rather than receiving a silently incomplete task.
+  if (method %in% c("callaway_santanna",
+                     "dechaisemartin_dhaultfoeuille",
+                     "borusyak_jaravel_spiess") && is.null(task$results)) {
+    warning("estimate_panel_event_study: estimator '", method,
+            "' returned no results (package missing or estimation failed). ",
+            "task$results is NULL.", call. = FALSE)
+  }
+
   task
 }
 
