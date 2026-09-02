@@ -445,12 +445,16 @@ test_that("MarketModel without HAC has no vcov_hac", {
 test_that("BHARModel compounds returns within event window only, not across windows", {
 
   # Bug: cumprod ran over entire data frame, so event window compounding
-
   # was contaminated by estimation window values.
   # Fix: group_by(event_window) before cumprod so each window compounds independently.
+  # Note: estimation window needs non-constant returns to avoid the zero-variance guard.
+  set.seed(99)
+  n_est <- 5
+  est_firm   <- rnorm(n_est, mean = 0.01, sd = 0.005)
+  est_index  <- rnorm(n_est, mean = 0.005, sd = 0.005)
   data <- tibble::tibble(
-    firm_returns = c(rep(0.01, 5), rep(0.02, 5)),
-    index_returns = c(rep(0.005, 5), rep(0.01, 5)),
+    firm_returns = c(est_firm, rep(0.02, 5)),
+    index_returns = c(est_index, rep(0.01, 5)),
     estimation_window = c(rep(1, 5), rep(0, 5)),
     event_window = c(rep(0, 5), rep(1, 5)),
     relative_index = c(-5:-1, 0:4),
@@ -602,16 +606,16 @@ test_that("LinearFactorModel FEC uses hat matrix (X'X)^{-1} for correction", {
 # ---- .finite_residual_df helper ----
 
 test_that(".finite_residual_df returns finite-only count minus n_params, floored at 1", {
-  # Basic finite-only counting
+  # c(1, 2, NA, 4): 3 finite, minus n_params=1 -> 2
   expect_equal(EventStudy:::.finite_residual_df(c(1, 2, NA, 4)), 2L)
-  # Only 1 finite, floor to 1
+  # c(1, NA, NA): 1 finite, minus 1 -> 0, floor to 1
   expect_equal(EventStudy:::.finite_residual_df(c(1, NA, NA)), 1L)
-  # All NA -> floor to 1
+  # All NA -> 0 finite, floor to 1
   expect_equal(EventStudy:::.finite_residual_df(c(NA, NA)), 1L)
-  # n_params = 2
+  # n_params = 2: c(1, 2, 3, NA) has 3 finite, minus 2 -> 1
   expect_equal(EventStudy:::.finite_residual_df(c(1, 2, 3, NA), n_params = 2L), 1L)
-  # Inf is not finite
-  expect_equal(EventStudy:::.finite_residual_df(c(1, Inf, 3, NA)), 2L)
+  # Inf is not finite: c(1, Inf, 3, NA) has 2 finite (1 and 3), minus 1 -> 1
+  expect_equal(EventStudy:::.finite_residual_df(c(1, Inf, 3, NA)), 1L)
 })
 
 
@@ -642,8 +646,8 @@ test_that("MarketAdjustedModel: lenient mode — insufficient obs returns is_fit
     )
     expect_false(m$is_fitted,
                  info = paste0("is_fitted should be FALSE for cond=", cond))
-    expect_length(ws, 1L,
-                  label = paste0("exactly one warning for cond=", cond))
+    expect_equal(length(ws), 1L,
+                 info = paste0("exactly one warning for cond=", cond))
     ar <- m$abnormal_returns(d)
     expect_true(all(is.na(ar$abnormal_returns)),
                 info = paste0("all-NA ARs for cond=", cond))
@@ -656,8 +660,8 @@ test_that("MarketAdjustedModel: lenient mode — insufficient obs returns is_fit
         invokeRestart("muffleWarning")
       }
     )
-    expect_length(extra_ws, 0L,
-                  label = paste0("no second warning from abnormal_returns for cond=", cond))
+    expect_equal(length(extra_ws), 0L,
+                 info = paste0("no second warning from abnormal_returns for cond=", cond))
   }
 })
 
@@ -711,7 +715,7 @@ test_that("ComparisonPeriodMeanAdjustedModel: lenient mode — degenerate return
       invokeRestart("muffleWarning")
     })
     expect_false(m$is_fitted, info = paste0("cond=", cond))
-    expect_length(ws, 1L, label = paste0("exactly one warning cond=", cond))
+    expect_equal(length(ws), 1L, info = paste0("exactly one warning cond=", cond))
     ar <- m$abnormal_returns(d)
     expect_true(all(is.na(ar$abnormal_returns)), info = paste0("cond=", cond))
   }
@@ -783,7 +787,7 @@ test_that("BHARModel: lenient mode — degenerate returns is_fitted=FALSE + one 
       invokeRestart("muffleWarning")
     })
     expect_false(m$is_fitted, info = paste0("cond=", cond))
-    expect_length(ws, 1L, label = paste0("one warning cond=", cond))
+    expect_equal(length(ws), 1L, info = paste0("one warning cond=", cond))
     ar <- m$abnormal_returns(d)
     expect_true(all(is.na(ar$abnormal_returns)), info = paste0("all-NA cond=", cond))
   }
@@ -923,4 +927,90 @@ test_that("VolatilityModel: insufficient obs raises contract error in strict mod
   err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
   expect_type(err_msg, "character")
   expect_match(err_msg, "VolatilityModel")
+})
+
+
+# ============================================================
+# CONTRACT-05: Per-model valid-input baseline invariance (Plan 02-01)
+#
+# These baselines were captured POST-migration because the guards are pure
+# early-return paths that cannot alter the valid-input code path. The
+# invariance tests prove this claim holds going forward: any future edit
+# that inadvertently changes valid-input computation will be caught here.
+# ============================================================
+
+test_that("MarketAdjustedModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_marketadjusted_baseline.rds"))
+  m <- MarketAdjustedModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  expect_equal(m$statistics$forecast_error_corrected_sigma[1:3], bl$fec, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("ComparisonPeriodMeanAdjustedModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_comparisonperiod_baseline.rds"))
+  m <- ComparisonPeriodMeanAdjustedModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("CustomModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_custom_baseline.rds"))
+  m <- CustomModel$new()
+  d <- create_mock_model_data()
+  d$loss_market_cap <- 0
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("BHARModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_bhar_baseline.rds"))
+  m <- BHARModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("VolumeModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_volume_baseline.rds"))
+  m <- VolumeModel$new()
+  d <- create_mock_model_data()
+  set.seed(77)
+  d$firm_volume <- abs(rnorm(nrow(d), mean = 1e6, sd = 2e5))
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+test_that("VolatilityModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_volatility_baseline.rds"))
+  m <- VolatilityModel$new()
+  d <- create_mock_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma, bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
+  expect_equal(ar, bl$ar5, tolerance = 1e-8)
 })
