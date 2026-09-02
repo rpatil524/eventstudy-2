@@ -373,15 +373,18 @@ test_that("export_results: NA abnormal_returns in AR column preserved as NA (not
 })
 
 
-test_that("export_results: CAR cumsum coalesce — interior NA does not blank entire tail", {
-  # A single interior NA in abnormal_returns should NOT propagate NA to every
-  # subsequent cumsum entry; coalesce treats it as 0 for accumulation.
+test_that("export_results: CAR — interior NA propagates through cumsum (correct NA behavior)", {
+  # Regression (CR-01): cumsum(abnormal_returns) must propagate NA forward.
+  # A prior change used cumsum(coalesce(abnormal_returns, 0)) which silently
+  # converted NA returns to zero, producing plausible-but-wrong CAR values.
+  # Correct behavior: from the NA day onwards, every cumulative sum is NA.
   task <- create_fitted_mock_task(n_firms = 2)
 
   # Inject NA only into the MIDDLE of the event window for firm 1
   d <- task$data_tbl$data[[1]]
   ew_rows <- which(d$event_window == 1L)
-  mid <- ew_rows[ceiling(length(ew_rows) / 2)]
+  mid_pos <- ceiling(length(ew_rows) / 2)
+  mid <- ew_rows[mid_pos]
   d$abnormal_returns[mid] <- NA_real_
   task$data_tbl$data[[1]] <- d
 
@@ -391,8 +394,14 @@ test_that("export_results: CAR cumsum coalesce — interior NA does not blank en
 
   dat <- read.csv(tmp, na.strings = "NA")
   car_event1 <- dat[dat$event_id == 1, "car"]
-  # After coalesce the tail should NOT be all-NA
-  expect_false(all(is.na(car_event1)))
+  # From the injection point onwards every CAR must be NA (NA propagation)
+  tail_cars <- car_event1[seq(mid_pos, length(car_event1))]
+  expect_true(all(is.na(tail_cars)))
+  # Pre-injection CARs should NOT be NA
+  if (mid_pos > 1) {
+    head_cars <- car_event1[seq_len(mid_pos - 1)]
+    expect_false(any(is.na(head_cars)))
+  }
 })
 
 
@@ -408,20 +417,30 @@ test_that("tidy AR: NA abnormal_returns preserved as NA, not 0", {
 })
 
 
-test_that("tidy CAR: interior NA does not blank entire cumulative tail", {
+test_that("tidy CAR: interior NA propagates through cumsum tail (correct NA behavior)", {
+  # Regression (CR-01): tidy() CAR uses cumsum(abnormal_returns) which
+  # propagates NA forward.  A prior change used coalesce(..., 0) which
+  # silently converted NA to zero, understating the cumulative return.
   task <- create_fitted_mock_task(n_firms = 2)
 
   d <- task$data_tbl$data[[1]]
   ew_rows <- which(d$event_window == 1L)
-  mid <- ew_rows[ceiling(length(ew_rows) / 2)]
+  mid_pos <- ceiling(length(ew_rows) / 2)
+  mid <- ew_rows[mid_pos]
   d$abnormal_returns[mid] <- NA_real_
   task$data_tbl$data[[1]] <- d
 
   result <- suppressWarnings(tidy.EventStudyTask(task, type = "car"))
   expect_no_error(result)
   event1 <- result[result$event_id == 1, , drop = FALSE]
-  # After coalesce the tail estimates should not all be NA
-  expect_false(all(is.na(event1$estimate)))
+  # From the injection point onwards all estimates must be NA
+  tail_estimates <- event1$estimate[seq(mid_pos, nrow(event1))]
+  expect_true(all(is.na(tail_estimates)))
+  # Pre-injection CARs should be non-NA
+  if (mid_pos > 1) {
+    head_estimates <- event1$estimate[seq_len(mid_pos - 1)]
+    expect_false(any(is.na(head_estimates)))
+  }
 })
 
 
@@ -445,24 +464,60 @@ test_that("tidy model: does not error on task with NA abnormal_returns", {
 })
 
 
-test_that("CAR coalesce is no-op on fully finite abnormal_returns", {
-  # Valid (all-finite) input must produce byte-identical output before/after
-  # the coalesce change — coalesce(x, 0) == x when x is finite.
+test_that("CAR valid-input unchanged: cumsum(ar) matches expected values on finite input", {
+  # For fully-finite abnormal returns, cumsum(ar) is identical to the
+  # (now-reverted) cumsum(coalesce(ar, 0)).  Verify CARs are non-NA and match
+  # direct cumsum to ensure the revert did not break the happy path.
   task <- create_fitted_mock_task(n_firms = 2)
 
-  tmp_before <- tempfile(fileext = ".csv")
-  on.exit(unlink(tmp_before), add = TRUE)
-  export_results(task, tmp_before, which = "car")
-  dat_before <- read.csv(tmp_before)
+  tmp <- tempfile(fileext = ".csv")
+  on.exit(unlink(tmp), add = TRUE)
+  export_results(task, tmp, which = "car")
+  dat <- read.csv(tmp)
 
-  # Produce tidy CAR independently
-  tidy_car <- tidy.EventStudyTask(task, type = "car")
+  # All CARs should be non-NA when input is fully finite
+  expect_false(anyNA(dat$car))
 
-  # The cumsum of coalesce(ar, 0) equals cumsum(ar) when ar is fully finite
+  # CAR values should match direct cumsum of the event-window ARs
   d1 <- task$data_tbl$data[[1]]
   ew_ar <- d1$abnormal_returns[d1$event_window == 1L]
   expect_false(anyNA(ew_ar))  # confirm no NA in the test data
-  car_no_coalesce <- cumsum(ew_ar)
-  car_with_coalesce <- cumsum(dplyr::coalesce(ew_ar, 0))
-  expect_equal(car_no_coalesce, car_with_coalesce)  # byte-identical
+  expected_car <- cumsum(ew_ar)
+  actual_car <- dat$car[dat$event_id == 1]
+  expect_equal(actual_car, expected_car, tolerance = 1e-10)
+})
+
+
+# --- CR-01 regression: all-NA event produces NA CAR, not 0 ---
+
+test_that("export_results: all-NA event (unfitted model) CAR is NA, not 0", {
+  # CR-01 regression: cumsum(coalesce(na_vec, 0)) = 0 for all-NA input,
+  # making unfitted events report CAR=0 (plausible-wrong "no effect").
+  # After revert: cumsum(na_vec) = NA, which renders as blank in export.
+  task <- create_fitted_mock_task(n_firms = 2)
+  task <- .inject_na_abnormal_returns(task, 1L)
+
+  tmp <- tempfile(fileext = ".csv")
+  on.exit(unlink(tmp), add = TRUE)
+  expect_no_error(export_results(task, tmp, which = "car"))
+
+  dat <- read.csv(tmp, na.strings = "NA")
+  car_event1 <- dat[dat$event_id == 1, "car"]
+  # All CAR values for the all-NA event must be NA (not 0)
+  expect_true(all(is.na(car_event1)),
+              label = "CAR for all-NA event must be NA, not 0")
+})
+
+
+test_that("tidy CAR: all-NA abnormal_returns produce NA estimates, not 0", {
+  # CR-01 regression: tidy() CAR must not report estimate=0 for unfitted events.
+  task <- create_fitted_mock_task(n_firms = 2)
+  task <- .inject_na_abnormal_returns(task, 1L)
+
+  result <- suppressWarnings(tidy.EventStudyTask(task, type = "car"))
+  expect_no_error(result)
+  event1 <- result[result$event_id == 1, , drop = FALSE]
+  # All CAR estimates must be NA (not 0.0)
+  expect_true(all(is.na(event1$estimate)),
+              label = "tidy CAR estimate must be NA for all-NA event, not 0")
 })

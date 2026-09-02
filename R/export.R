@@ -84,7 +84,7 @@ export_results <- function(task,
         d %>%
           dplyr::filter(event_window == 1) %>%
           dplyr::select(relative_index, abnormal_returns) %>%
-          dplyr::mutate(car = cumsum(dplyr::coalesce(abnormal_returns, 0)))
+          dplyr::mutate(car = cumsum(abnormal_returns))
       })) %>%
       tidyr::unnest(data)
   }
@@ -304,7 +304,7 @@ tidy.EventStudyTask <- function(x, type = c("ar", "car", "aar", "model"),
         dplyr::filter(event_window == 1) %>%
         dplyr::transmute(
           term      = paste0("[", relative_index[1], ",", relative_index, "]"),
-          estimate  = cumsum(dplyr::coalesce(abnormal_returns, 0)),
+          estimate  = cumsum(abnormal_returns),
           n         = seq_len(dplyr::n()),
           std.error = if (has_sigma) sqrt(n) * sigma else NA_real_,
           statistic = if (has_sigma) estimate / (sqrt(n) * sigma) else NA_real_,
