@@ -620,7 +620,8 @@ LinearFactorModel <- R6Class("LinearFactorModel",
                                 #'
                                 #' @param data_tbl Data frame or tibble containing the data to fit.
                                 fit = function(data_tbl) {
-                                  # Validate required columns
+                                  # Validate required columns — plain stop(), not contract
+                                  # (missing columns = programmer error, not degenerate data)
                                   missing_cols <- setdiff(self$required_columns, names(data_tbl))
                                   if (length(missing_cols) > 0) {
                                     stop(self$model_name, " requires columns: ",
@@ -630,6 +631,30 @@ LinearFactorModel <- R6Class("LinearFactorModel",
                                   estimation_tbl <- data_tbl %>%
                                     dplyr::filter(estimation_window == 1)
 
+                                  # Resolve degenerate mode once per fit call (inherited field)
+                                  mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                                  # --- Contract guard: insufficient estimation observations ---
+                                  n_valid <- sum(stats::complete.cases(
+                                    estimation_tbl[self$required_columns]
+                                  ))
+                                  if (n_valid < 2) {
+                                    .handle_degenerate(
+                                      mode        = mode,
+                                      condition   = paste0("insufficient estimation observations (",
+                                                           n_valid, " valid, need 2)"),
+                                      component   = self$model_name,
+                                      event_id    = self$event_id,
+                                      firm_symbol = self$firm_symbol,
+                                      private_env = private
+                                    )
+                                    private$.is_fitted <- FALSE
+                                    return(invisible(self))
+                                  }
+
+                                  # --- Safe OLS execution ---
+                                  # Single-factor zero-variance is handled by lm() (collinear
+                                  # term silently dropped); no per-factor guard needed here.
                                   safe_lm <- purrr::safely(.f = .estimate_mm_model)
                                   res <- safe_lm(self$formula, estimation_tbl)
 
@@ -638,9 +663,18 @@ LinearFactorModel <- R6Class("LinearFactorModel",
                                     private$.is_fitted <- TRUE
                                     private$calculate_statistics(data_tbl)
                                   } else {
+                                    # lm() failure (e.g. full rank deficiency) is a
+                                    # degenerate condition — route through contract handler
+                                    .handle_degenerate(
+                                      mode        = mode,
+                                      condition   = conditionMessage(res$error),
+                                      component   = self$model_name,
+                                      event_id    = self$event_id,
+                                      firm_symbol = self$firm_symbol,
+                                      private_env = private
+                                    )
                                     private$.is_fitted <- FALSE
                                     private$.error <- res$error
-                                    warning("Model fitting failed: ", conditionMessage(res$error))
                                   }
                                 },
                                 #' @description
@@ -652,6 +686,11 @@ LinearFactorModel <- R6Class("LinearFactorModel",
                                     predicted <- predict(private$.fitted_model, newdata = data_tbl)
                                     data_tbl %>%
                                       dplyr::mutate(abnormal_returns = firm_returns - predicted)
+                                  } else if (private$.degenerate_handled) {
+                                    # fit() already emitted a contract-formatted warning; suppress
+                                    # the redundant warning to honour the one-warning guarantee.
+                                    data_tbl %>%
+                                      dplyr::mutate(abnormal_returns = NA_real_)
                                   } else {
                                     warning(self$model_name, " is not fitted. Returning NA abnormal returns.")
                                     data_tbl %>%
@@ -811,6 +850,11 @@ FamaFrench3FactorModel <- R6Class("FamaFrench3FactorModel",
                                          predicted <- predict(private$.fitted_model, newdata = data_tbl)
                                          data_tbl %>%
                                            dplyr::mutate(abnormal_returns = excess_return - predicted)
+                                       } else if (private$.degenerate_handled) {
+                                         # fit() already emitted a contract-formatted warning; suppress
+                                         # the redundant warning to honour the one-warning guarantee.
+                                         data_tbl %>%
+                                           dplyr::mutate(abnormal_returns = NA_real_)
                                        } else {
                                          warning(self$model_name, " is not fitted.")
                                          data_tbl %>%

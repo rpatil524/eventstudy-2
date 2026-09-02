@@ -247,6 +247,114 @@ test_that("Factor models error on missing columns", {
 })
 
 
+# --- Degenerate-input contract: FamaFrench3FactorModel ---
+
+# Helper: make insufficient-obs degenerate factor data (NA all but 1 estimation row)
+.make_ff3_insufficient <- function() {
+  d <- create_mock_factor_model_data()
+  est <- which(d$estimation_window == 1)
+  for (col in c("excess_return", "market_excess", "smb", "hml")) {
+    d[[col]][est[-1]] <- NA_real_
+  }
+  d
+}
+
+# Helper: make "zero complete-cases" degenerate factor data.
+# For factor models, single-factor zero-variance is absorbed by lm() (collinear
+# term dropped). The contract guard triggers on insufficient complete cases.
+# This variant NAs ALL estimation rows to produce n_valid = 0.
+.make_ff3_zero_variance <- function() {
+  d <- create_mock_factor_model_data()
+  est <- which(d$estimation_window == 1)
+  # NA all required FF3 columns in every estimation row → n_valid = 0
+  for (col in c("excess_return", "market_excess", "smb", "hml")) {
+    d[[col]][est] <- NA_real_
+  }
+  d
+}
+
+test_that("FamaFrench3FactorModel: lenient mode — insufficient obs returns all-NA ARs with one warning", {
+  d <- .make_ff3_insufficient()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  ws <- character(0)
+  withCallingHandlers(
+    m$fit(d),
+    warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_false(m$is_fitted)
+  expect_equal(length(ws), 1L, info = "lenient mode must emit exactly one warning")
+  expect_true(grepl("EVT_FF3", ws[1]), info = "warning must name event_id")
+  expect_true(grepl("FIRM_FF3", ws[1]), info = "warning must name firm_symbol")
+
+  # abnormal_returns must return all-NA without a second warning
+  ws2 <- character(0)
+  withCallingHandlers(
+    ar <- m$abnormal_returns(d),
+    warning = function(w) {
+      ws2[[length(ws2) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(length(ws2), 0L, info = ".degenerate_handled branch must suppress second warning")
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+test_that("FamaFrench3FactorModel: strict mode — insufficient obs errors with event_id + firm_symbol", {
+  d <- .make_ff3_insufficient()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  err <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_true(is.character(err), info = "strict mode must stop()")
+  expect_true(grepl("EVT_FF3", err),   info = "error must contain event_id")
+  expect_true(grepl("FIRM_FF3", err),  info = "error must contain firm_symbol")
+})
+
+test_that("FamaFrench3FactorModel: lenient mode — zero-variance (full rank deficiency) returns all-NA ARs", {
+  # When all required columns are constant in the estimation window, lm() will
+  # fail with a rank-deficiency error, triggering the lm-failure .handle_degenerate path.
+  d <- .make_ff3_zero_variance()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  ws <- character(0)
+  withCallingHandlers(
+    m$fit(d),
+    warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  # Model should be unfitted (either via insufficient-obs guard or lm failure)
+  expect_false(m$is_fitted)
+  expect_true(all(is.na(m$abnormal_returns(d)$abnormal_returns)))
+})
+
+test_that("FamaFrench3FactorModel: strict mode — zero-variance errors with event_id + firm_symbol", {
+  d <- .make_ff3_zero_variance()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  err <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_true(is.character(err), info = "strict mode must stop()")
+  expect_true(grepl("EVT_FF3", err),   info = "error must contain event_id")
+  expect_true(grepl("FIRM_FF3", err),  info = "error must contain firm_symbol")
+})
+
+
 # --- GARCH Model tests ---
 
 test_that("GARCHModel requires rugarch package", {
