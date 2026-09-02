@@ -13,7 +13,7 @@ test_that("CONTRACT-02: ParameterSet default resolves to lenient", {
   ps <- ParameterSet$new()
   expect_null(ps$degenerate_handling)
   # Resolved mode (via .resolve_degenerate_mode) is "lenient"
-  withr::with_options(list(eventstudy.degenerate_handling = NULL), {
+  withr::with_options(list(EventStudy.degenerate_handling = NULL), {
     expect_equal(.resolve_degenerate_mode(ps$degenerate_handling), "lenient")
   })
 })
@@ -25,7 +25,7 @@ test_that("CONTRACT-02: ParameterSet strict field resolves to strict", {
 })
 
 test_that("CONTRACT-02: package option overrides default when field is NULL", {
-  withr::with_options(list(eventstudy.degenerate_handling = "strict"), {
+  withr::with_options(list(EventStudy.degenerate_handling = "strict"), {
     ps <- ParameterSet$new()
     expect_null(ps$degenerate_handling)
     expect_equal(.resolve_degenerate_mode(ps$degenerate_handling), "strict")
@@ -33,7 +33,7 @@ test_that("CONTRACT-02: package option overrides default when field is NULL", {
 })
 
 test_that("CONTRACT-02: ParameterSet field takes precedence over package option", {
-  withr::with_options(list(eventstudy.degenerate_handling = "strict"), {
+  withr::with_options(list(EventStudy.degenerate_handling = "strict"), {
     ps <- ParameterSet$new(degenerate_handling = "lenient")
     expect_equal(.resolve_degenerate_mode(ps$degenerate_handling), "lenient")
   })
@@ -54,10 +54,10 @@ test_that("CONTRACT-02: mode switching within one session works without reload",
   expect_equal(.resolve_degenerate_mode(ps_lenient$degenerate_handling), "lenient")
 
   # Toggling the option live also works
-  withr::with_options(list(eventstudy.degenerate_handling = "strict"), {
+  withr::with_options(list(EventStudy.degenerate_handling = "strict"), {
     expect_equal(.resolve_degenerate_mode(NULL), "strict")
   })
-  withr::with_options(list(eventstudy.degenerate_handling = "lenient"), {
+  withr::with_options(list(EventStudy.degenerate_handling = "lenient"), {
     expect_equal(.resolve_degenerate_mode(NULL), "lenient")
   })
 })

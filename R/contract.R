@@ -20,7 +20,7 @@
 #' \strong{Configuration:}
 #' \itemize{
 #'   \item Via \code{ParameterSet}: \code{ParameterSet$new(degenerate_handling = "strict")}
-#'   \item Via package option: \code{options(eventstudy.degenerate_handling = "strict")}
+#'   \item Via package option: \code{options(EventStudy.degenerate_handling = "strict")}
 #' }
 #' The ParameterSet field takes precedence over the package option; if
 #' neither is set, the default \code{"lenient"} mode is used.
@@ -53,7 +53,7 @@ NULL
   if (!is.null(ps_value)) {
     return(match.arg(ps_value, c("lenient", "strict")))
   }
-  opt <- getOption("eventstudy.degenerate_handling", default = NULL)
+  opt <- getOption("EventStudy.degenerate_handling", default = NULL)
   if (!is.null(opt)) {
     return(match.arg(opt, c("lenient", "strict")))
   }
