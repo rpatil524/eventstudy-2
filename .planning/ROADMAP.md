@@ -71,10 +71,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Calling estimate_panel_event_study() with method = 'de_chaisemartin_dhaultfoeuille' on a platform where DIDmultiplegt is absent or prone to segfault emits a clear warning and returns NULL rather than crashing the R session
   5. Using any optional package (sandwich, rugarch, did) when it is not installed produces a named warning describing the capability lost, not a silent fallback to a different (non-robust) method
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans executed
 
-- [ ] 03-01-PLAN.md — Pipeline hardening: prepare/window missing-date + empty-window, export/tidy NA-safety, cross_sectional singular design (PIPELINE-01/02/03)
-- [ ] 03-02-PLAN.md — External-package wrapping: panel-DiD (did/DIDmultiplegt/didimputation) + rugarch/rmgarch failure wrapping + synthetic-control numerics + uniform absence policy (EXTERNAL-01/02/03/04)
+- [x] 03-01-PLAN.md — Pipeline hardening: prepare/window missing-date + empty-window, export/tidy NA-safety, cross_sectional singular design (PIPELINE-01/02/03)
+- [x] 03-02-PLAN.md — External-package wrapping: panel-DiD (did/DIDmultiplegt/didimputation) + rugarch/rmgarch failure wrapping + synthetic-control numerics + uniform absence policy (EXTERNAL-01/02/03/04)
 
 ### Phase 4: Regression Net and Check Gate
 
@@ -96,5 +96,5 @@ Decimal phases appear between their surrounding integers in numeric order.
 |-------|----------------|--------|-----------|
 | 1. Contract Foundation | 2/2 | Complete    | 2026-09-02 |
 | 2. Model and Stats Sweep | 4/4 | Complete    | 2026-09-02 |
-| 3. Pipeline and External Hardening | 0/2 | Not started | - |
+| 3. Pipeline and External Hardening | 2/2 | In Progress|  |
 | 4. Regression Net and Check Gate | 0/TBD | Not started | - |
