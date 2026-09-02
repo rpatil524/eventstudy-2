@@ -481,3 +481,32 @@ test_that("DCCGARCHModel: lenient mode — zero-variance index_returns — one w
   result <- dm$abnormal_returns(d)
   expect_true(all(is.na(result$abnormal_returns)))
 })
+
+
+# ============================================================
+# WR-04: RollingWindowModel df uses finite pair count (Plan 02-02)
+# ============================================================
+
+test_that("WR-04: RollingWindowModel df reflects finite pair count not nrow (NA-heavy window)", {
+  # With NA rows in the estimation window, nrow() inflates ws and thus df,
+  # making t-statistics too permissive. After WR-04 fix, df uses the finite
+  # pair count so the effective window size is correctly smaller.
+  d <- create_mock_model_data(n_estimation = 200, n_event = 11)
+  est_rows <- which(d$estimation_window == 1)
+  # NA out 80 rows; finite pairs = 120, so effective ws = min(60, 120) = 60, df = 58
+  # Old behavior: ws = min(60, 200) = 60, df = 58 (accidentally same for this window size)
+  # To distinguish, use window_size > 120: ws = min(200, 120) = 120 (new), 200 (old)
+  d$firm_returns[est_rows[1:80]]  <- NA_real_
+  d$index_returns[est_rows[1:80]] <- NA_real_
+
+  rw <- RollingWindowModel$new(window_size = 200, min_obs = 30)
+  rw$fit(d)
+  expect_true(rw$is_fitted)
+
+  # finite pair count = 120, ws = min(200, 120) = 120, df = max(120-2, 1) = 118
+  expect_equal(rw$statistics$degree_of_freedom, 118L,
+               info = "df must reflect finite pair count (120 valid), not nrow (200)")
+  # Old nrow formula: ws = min(200, 200) = 200, df = 198
+  expect_false(rw$statistics$degree_of_freedom == 198L,
+               info = "df must NOT equal nrow-based value (198)")
+})
