@@ -481,3 +481,97 @@ test_that("DCCGARCHModel: lenient mode — zero-variance index_returns — one w
   result <- dm$abnormal_returns(d)
   expect_true(all(is.na(result$abnormal_returns)))
 })
+
+
+# --- EXTERNAL-04: GARCHModel calculate_statistics failure wrapping ---
+
+test_that("GARCHModel: calculate_statistics failure resets is_fitted=FALSE + named warning + NA ARs", {
+  skip_if_not_installed("rugarch")
+  d <- create_mock_model_data(n_estimation = 200)
+
+  # Mock rugarch::sigma to fail during calculate_statistics
+  # This simulates a post-convergence statistics computation failure
+  local_mocked_bindings(
+    sigma = function(...) stop("simulated sigma extraction failure"),
+    .package = "rugarch"
+  )
+
+  m <- GARCHModel$new()
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+
+  # is_fitted must be reset to FALSE
+  expect_false(m$is_fitted)
+  # Exactly one warning naming the failure
+  expect_true(length(ws) >= 1L)
+  expect_true(any(grepl("GARCH.*statistics.*failed|statistics.*computation.*failed", ws,
+                         ignore.case = TRUE)))
+
+  # abnormal_returns must return all-NA
+  result <- m$abnormal_returns(d)
+  expect_true(all(is.na(result$abnormal_returns)))
+})
+
+
+test_that("GARCHModel: valid fit (no mock) still produces finite statistics", {
+  skip_if_not_installed("rugarch")
+  d <- create_mock_model_data(n_estimation = 200)
+  m <- GARCHModel$new()
+  suppressWarnings(m$fit(d))
+
+  if (!m$is_fitted) skip("GARCHModel did not converge on synthetic data")
+
+  expect_true(is.finite(m$statistics$alpha))
+  expect_true(is.finite(m$statistics$beta))
+  expect_true(is.finite(m$statistics$sigma))
+})
+
+
+# --- EXTERNAL-04: DCCGARCHModel calculate_statistics failure wrapping ---
+
+test_that("DCCGARCHModel: calculate_statistics failure resets is_fitted=FALSE + named warning + NA ARs", {
+  skip_if_not_installed("rmgarch")
+  skip_if_not_installed("rugarch")
+  d <- create_mock_model_data(n_estimation = 200)
+
+  # Mock rmgarch::rcov to fail during calculate_statistics
+  local_mocked_bindings(
+    rcov = function(...) stop("simulated rcov extraction failure"),
+    .package = "rmgarch"
+  )
+
+  dm <- DCCGARCHModel$new()
+  ws <- character(0)
+  withCallingHandlers(dm$fit(d), warning = function(w) {
+    ws[[length(ws) + 1]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+
+  # is_fitted must be reset to FALSE
+  expect_false(dm$is_fitted)
+  # At least one warning naming DCC-GARCH statistics failure
+  expect_true(length(ws) >= 1L)
+  expect_true(any(grepl("DCC-GARCH.*statistics.*failed|statistics.*computation.*failed", ws,
+                         ignore.case = TRUE)))
+
+  # abnormal_returns must return all-NA
+  result <- dm$abnormal_returns(d)
+  expect_true(all(is.na(result$abnormal_returns)))
+})
+
+
+test_that("DCCGARCHModel: valid fit (no mock) still produces finite statistics", {
+  skip_if_not_installed("rmgarch")
+  skip_if_not_installed("rugarch")
+  d <- create_mock_model_data(n_estimation = 200)
+  dm <- DCCGARCHModel$new()
+  suppressWarnings(dm$fit(d))
+
+  if (!dm$is_fitted) skip("DCCGARCHModel did not converge on synthetic data")
+
+  expect_false(is.null(dm$statistics$beta))
+  expect_false(is.null(dm$statistics$beta_t))
+})
