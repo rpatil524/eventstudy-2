@@ -903,6 +903,11 @@ FamaFrench5FactorModel <- R6Class("FamaFrench5FactorModel",
                                          predicted <- predict(private$.fitted_model, newdata = data_tbl)
                                          data_tbl %>%
                                            dplyr::mutate(abnormal_returns = excess_return - predicted)
+                                       } else if (private$.degenerate_handled) {
+                                         # fit() already emitted a contract-formatted warning; suppress
+                                         # the redundant warning to honour the one-warning guarantee.
+                                         data_tbl %>%
+                                           dplyr::mutate(abnormal_returns = NA_real_)
                                        } else {
                                          warning(self$model_name, " is not fitted.")
                                          data_tbl %>%
@@ -952,6 +957,11 @@ Carhart4FactorModel <- R6Class("Carhart4FactorModel",
                                       predicted <- predict(private$.fitted_model, newdata = data_tbl)
                                       data_tbl %>%
                                         dplyr::mutate(abnormal_returns = excess_return - predicted)
+                                    } else if (private$.degenerate_handled) {
+                                      # fit() already emitted a contract-formatted warning; suppress
+                                      # the redundant warning to honour the one-warning guarantee.
+                                      data_tbl %>%
+                                        dplyr::mutate(abnormal_returns = NA_real_)
                                     } else {
                                       warning(self$model_name, " is not fitted.")
                                       data_tbl %>%
