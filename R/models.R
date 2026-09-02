@@ -133,6 +133,15 @@ MarketModel <- R6Class("MarketModel",
                          #' @field hac_lag Integer or NULL. Lag truncation for Newey-West.
                          #'   NULL uses the automatic bandwidth selection.
                          hac_lag = NULL,
+                         #' @field degenerate_mode Resolved degenerate-input mode. Set by
+                         #'   .initialize_and_fit_model() before fit() is called.
+                         degenerate_mode = NULL,
+                         #' @field event_id Event identifier threaded from the outer data_tbl row.
+                         #'   Used in degenerate-input error/warning messages.
+                         event_id = NULL,
+                         #' @field firm_symbol Firm identifier threaded from the outer data_tbl row.
+                         #'   Used in degenerate-input error/warning messages.
+                         firm_symbol = NULL,
                          #' @description
                          #' Create a new MarketModel.
                          #'
@@ -158,22 +167,65 @@ MarketModel <- R6Class("MarketModel",
                          #'
                          #' @param data_tbl Data frame or tibble containing the data to fit.
                          fit = function(data_tbl) {
-                           data_tbl %>%
-                             filter(estimation_window == 1) -> estimation_tbl
+                           estimation_tbl <- data_tbl %>%
+                             dplyr::filter(estimation_window == 1)
 
-                           # safe execution
-                           safe_mm = purrr::safely(.f=.estimate_mm_model)
-                           res = safe_mm(self$formula, estimation_tbl)
+                           # Resolve mode once per fit call
+                           mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                           # --- Contract guard: insufficient estimation observations ---
+                           n_valid <- sum(!is.na(estimation_tbl$firm_returns) &
+                                           !is.na(estimation_tbl$index_returns))
+                           if (n_valid < 2) {
+                             .handle_degenerate(
+                               mode        = mode,
+                               condition   = paste0("insufficient estimation observations (", n_valid, " valid, need 2)"),
+                               component   = self$model_name,
+                               event_id    = self$event_id,
+                               firm_symbol = self$firm_symbol,
+                               private_env = private
+                             )
+                             # Explicit flag — required at every call site per contract
+                             # (in strict mode stop() fires above so this is never reached)
+                             private$.is_fitted <- FALSE
+                             return(invisible(self))
+                           }
+
+                           # --- Contract guard: zero or near-zero variance in index returns ---
+                           if (stats::sd(estimation_tbl$index_returns, na.rm = TRUE) < .Machine$double.eps) {
+                             .handle_degenerate(
+                               mode        = mode,
+                               condition   = "zero or near-zero variance in index_returns",
+                               component   = self$model_name,
+                               event_id    = self$event_id,
+                               firm_symbol = self$firm_symbol,
+                               private_env = private
+                             )
+                             private$.is_fitted <- FALSE
+                             return(invisible(self))
+                           }
+
+                           # --- Safe OLS execution ---
+                           safe_mm <- purrr::safely(.f = .estimate_mm_model)
+                           res <- safe_mm(self$formula, estimation_tbl)
                            if (is.null(res$error)) {
-                             private$.fitted_model = res$result
-                             private$.is_fitted = TRUE
+                             private$.fitted_model <- res$result
+                             private$.is_fitted <- TRUE
 
                              # Calculate statistics
                              private$calculate_statistics(data_tbl)
                            } else {
-                             private$.is_fitted = FALSE
-                             private$.error = res$error
-                             warning("Model fitting failed: ", conditionMessage(res$error))
+                             # lm() failure is a degenerate condition (e.g. rank deficiency)
+                             .handle_degenerate(
+                               mode        = mode,
+                               condition   = conditionMessage(res$error),
+                               component   = self$model_name,
+                               event_id    = self$event_id,
+                               firm_symbol = self$firm_symbol,
+                               private_env = private
+                             )
+                             private$.is_fitted <- FALSE
+                             private$.error <- res$error
                            }
                          },
                          #' @description
