@@ -161,11 +161,18 @@ test_that("CONTRACT-04: lenient mode on insufficient obs sets is_fitted FALSE + 
 
   expect_false(m$is_fitted)
   expect_length(warnings_collected, 1L)
-  # abnormal_returns() on an unfitted model emits its own "not fitted" warning;
-  # suppress it since we already verified the fit() warning count.
-  suppressWarnings({
-    ar_tbl <- m$abnormal_returns(d)
-  })
+  # After a contract-handled degenerate fit(), abnormal_returns() must NOT
+  # emit any additional warning — the contract guarantees exactly one total
+  # warning across the full fit() + abnormal_returns() call pair.
+  extra_warnings <- character(0)
+  withCallingHandlers(
+    ar_tbl <- m$abnormal_returns(d),
+    warning = function(w) {
+      extra_warnings <<- c(extra_warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_length(extra_warnings, 0L)
   expect_true(all(is.na(ar_tbl$abnormal_returns)))
 })
 
@@ -192,12 +199,18 @@ test_that("CONTRACT-04: lenient mode on zero-variance sets is_fitted FALSE + exa
 
   expect_false(m$is_fitted)
   expect_length(warnings_collected, 1L)
-  # abnormal_returns() on an unfitted model emits its own "not fitted" warning;
-  # that is expected behaviour — suppress it here since we already verified
-  # the fit() warning count above.
-  suppressWarnings({
-    ar_tbl <- m$abnormal_returns(d)
-  })
+  # After a contract-handled degenerate fit(), abnormal_returns() must NOT
+  # emit any additional warning — the contract guarantees exactly one total
+  # warning across the full fit() + abnormal_returns() call pair.
+  extra_warnings <- character(0)
+  withCallingHandlers(
+    ar_tbl <- m$abnormal_returns(d),
+    warning = function(w) {
+      extra_warnings <<- c(extra_warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_length(extra_warnings, 0L)
   expect_true(all(is.na(ar_tbl$abnormal_returns)))
 })
 
@@ -242,14 +255,19 @@ test_that("CONTRACT-04 (pipeline): run_event_study emits exactly ONE warning per
     }
   )
 
-  # Filter to degenerate-handler warnings naming FIRM_B.
-  # The handler always formats as "[firm=<symbol>]"; this distinguishes the
-  # contract warning from the generic "not fitted" warning that abnormal_returns()
-  # emits via dplyr (which also echoes group context but uses "firm_symbol = FIRM_B").
-  firm_b_degen_warnings <- all_warnings[grepl("[firm=FIRM_B]", all_warnings, fixed = TRUE)]
+  # Verify exactly ONE contract-formatted warning names FIRM_B.
+  # The contract handler formats as "[firm=<symbol>]".
+  firm_b_contract_warnings <- all_warnings[grepl("[firm=FIRM_B]", all_warnings, fixed = TRUE)]
+  expect_length(firm_b_contract_warnings, 1L)
 
-  # CONTRACT-04: exactly one degenerate-contract warning for that firm across the pipeline
-  expect_length(firm_b_degen_warnings, 1L)
+  # Strengthen: the TOTAL warning count across the entire pipeline for FIRM_B
+  # must also be exactly 1 — i.e. abnormal_returns() must NOT emit a second
+  # "not fitted" warning for a degenerate event that fit() already warned about.
+  # Any warning containing "FIRM_B" (regardless of format) counts.
+  firm_b_all_warnings <- all_warnings[grepl("FIRM_B", all_warnings, fixed = TRUE)]
+  # Contract guarantees exactly one warning per degenerate (event_id, firm_symbol)
+  # across the full fit_model() + calculate_statistics() pipeline call.
+  expect_length(firm_b_all_warnings, 1L)
 })
 
 

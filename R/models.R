@@ -66,6 +66,10 @@ ModelBase <- R6Class("ModelBase",
                        .is_fitted = FALSE,
                        .fitted_model = NULL,
                        .error = NULL,
+                       # Set TRUE by .handle_degenerate() in lenient mode so
+                       # abnormal_returns() can suppress its redundant "not fitted"
+                       # warning (contract guarantees exactly one warning per event).
+                       .degenerate_handled = FALSE,
                        #' Statistics object contains different model specific KPIs
                        #' that describes the fitted model.
                        .statistics = list(sigma=NULL,
@@ -250,7 +254,15 @@ MarketModel <- R6Class("MarketModel",
                              beta = private$.statistics$beta
                              data_tbl %>%
                                mutate(abnormal_returns = firm_returns - (alpha + beta * index_returns))
+                           } else if (private$.degenerate_handled) {
+                             # fit() already emitted a contract-formatted warning; suppress
+                             # the redundant "not fitted" warning to honour the contract's
+                             # guarantee of exactly one warning per degenerate event.
+                             data_tbl %>%
+                               mutate(abnormal_returns = NA_real_)
                            } else {
+                             # Legitimate "not fitted" case: user called abnormal_returns()
+                             # before fit(), or fit() failed for a non-contract reason.
                              warning("MarketModel is not fitted. Returning NA abnormal returns.")
                              data_tbl %>%
                                mutate(abnormal_returns = NA_real_)

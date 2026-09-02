@@ -78,6 +78,10 @@ NULL
     warning(msg, call. = FALSE)
     if (!is.null(private_env)) {
       private_env$.is_fitted <- FALSE
+      # Mark that a contract warning has already been emitted for this model
+      # instance so abnormal_returns() does not emit a second "not fitted"
+      # warning (contract guarantees exactly one warning per degenerate event).
+      private_env$.degenerate_handled <- TRUE
     }
     invisible(FALSE)
   }
