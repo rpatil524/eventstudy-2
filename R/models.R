@@ -148,15 +148,7 @@ MarketModel <- R6Class("MarketModel",
                          #' @field hac_lag Integer or NULL. Lag truncation for Newey-West.
                          #'   NULL uses the automatic bandwidth selection.
                          hac_lag = NULL,
-                         #' @field degenerate_mode Resolved degenerate-input mode. Set by
-                         #'   .initialize_and_fit_model() before fit() is called.
-                         degenerate_mode = NULL,
-                         #' @field event_id Event identifier threaded from the outer data_tbl row.
-                         #'   Used in degenerate-input error/warning messages.
-                         event_id = NULL,
-                         #' @field firm_symbol Firm identifier threaded from the outer data_tbl row.
-                         #'   Used in degenerate-input error/warning messages.
-                         firm_symbol = NULL,
+                         # degenerate_mode, event_id, firm_symbol — inherited from ModelBase.
                          #' @description
                          #' Create a new MarketModel.
                          #'
