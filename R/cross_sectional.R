@@ -52,27 +52,76 @@ cross_sectional_regression <- function(task, formula, data,
   rhs <- as.character(formula)[length(as.character(formula))]
   reg_formula <- stats::as.formula(paste("car ~", rhs))
 
-  # Fit OLS
-  fit <- stats::lm(reg_formula, data = merged)
+  # Fit OLS — wrap in tryCatch so an lm() error (e.g., singular formula)
+  # returns NULL + warning instead of crashing the caller.
+  fit <- tryCatch(
+    stats::lm(reg_formula, data = merged),
+    error = function(e) {
+      warning("cross_sectional_regression: lm() failed — ",
+              conditionMessage(e), call. = FALSE)
+      NULL
+    }
+  )
+  if (is.null(fit)) return(NULL)
   fit_summary <- summary(fit)
+
+  # Rank-deficiency produces NA coefficients for aliased columns; vcovHC on
+  # a rank-deficient matrix calls solve() which throws a singular error.  Warn
+  # the caller before attempting the sandwich path so the message is always
+  # emitted regardless of whether sandwich is installed.
+  rank_deficient <- fit$rank < length(stats::coef(fit))
+  if (rank_deficient) {
+    warning(
+      "cross_sectional_regression: design matrix is rank-deficient; ",
+      "aliased columns dropped by lm(). ",
+      "Robust SEs from vcovHC may be unreliable on near-singular designs.",
+      call. = FALSE
+    )
+  }
 
   # Robust standard errors
   if (robust && requireNamespace("sandwich", quietly = TRUE)) {
-    vcov_hc <- sandwich::vcovHC(fit, type = "HC1")
-    se <- sqrt(diag(vcov_hc))
+    # Wrap vcovHC — on a perfectly singular design solve() throws here.
+    vcov_hc <- tryCatch(
+      sandwich::vcovHC(fit, type = "HC1"),
+      error = function(e) {
+        warning("cross_sectional_regression: vcovHC() failed (singular design) — ",
+                "returning NA standard errors.", call. = FALSE)
+        NULL
+      }
+    )
+    all_coefs <- stats::coef(fit)   # length = all terms including aliased (NA) ones
+    all_names <- names(all_coefs)
+    if (!is.null(vcov_hc)) {
+      # vcovHC drops aliased (NA) coefficients, so its row/col names are a
+      # subset of all_names.  Build a full-length SE vector with NA in the
+      # aliased positions so the data.frame rows align correctly.
+      se_fitted <- sqrt(diag(vcov_hc))
+      se <- setNames(rep(NA_real_, length(all_names)), all_names)
+      se[names(se_fitted)] <- se_fitted
+    } else {
+      se <- rep(NA_real_, length(all_names))
+    }
     coef_tbl <- data.frame(
-      estimate  = stats::coef(fit),
+      estimate  = all_coefs,
       std.error = se,
-      statistic = stats::coef(fit) / se,
-      p.value   = 2 * stats::pt(abs(stats::coef(fit) / se),
+      statistic = all_coefs / se,
+      p.value   = 2 * stats::pt(abs(all_coefs / se),
                                   df = fit$df.residual, lower.tail = FALSE),
-      row.names = names(stats::coef(fit))
+      row.names = all_names
     )
   } else {
     coef_tbl <- as.data.frame(fit_summary$coefficients)
     names(coef_tbl) <- c("estimate", "std.error", "statistic", "p.value")
     if (robust) {
-      message("Package 'sandwich' not available. Using OLS standard errors.")
+      # Upgrade from message() to warning() and name the lost capability and
+      # the OLS fallback that is being used instead (EXTERNAL-03 pipeline half).
+      warning(
+        "Package 'sandwich' not available: cluster/robust SEs unavailable. ",
+        "Falling back to OLS standard errors. ",
+        "Install 'sandwich' for heteroskedasticity-consistent SEs.",
+        call. = FALSE
+      )
     }
   }
 
