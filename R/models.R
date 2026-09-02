@@ -1075,6 +1075,7 @@ GARCHModel <- R6Class("GARCHModel",
                                  private$calculate_statistics(data_tbl),
                                  error = function(e) {
                                    private$.is_fitted <- FALSE
+                                   private$.degenerate_handled <- TRUE  # suppress second warning in abnormal_returns()
                                    warning("GARCH model statistics computation failed: ",
                                            conditionMessage(e),
                                            ". Returning NA abnormal returns.", call. = FALSE)

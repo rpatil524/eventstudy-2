@@ -592,6 +592,81 @@ test_that("DCCGARCHModel: calculate_statistics failure resets is_fitted=FALSE + 
 })
 
 
+# --- WR-01 regression: calculate_statistics failure → exactly ONE warning total ---
+
+test_that("GARCHModel: calculate_statistics failure → exactly ONE warning (fit+abnormal_returns combined)", {
+  # WR-01: After a post-convergence calculate_statistics failure, the handler
+  # set is_fitted=FALSE but did NOT set .degenerate_handled=TRUE.  When
+  # abnormal_returns() was subsequently called, the else-branch fired a second
+  # "not fitted" warning — violating the one-warning contract.
+  # Fix: set .degenerate_handled=TRUE in the tryCatch handler.
+  skip_if_not_installed("rugarch")
+  d <- create_mock_model_data(n_estimation = 200)
+
+  local_mocked_bindings(
+    sigma = function(...) stop("simulated sigma failure for WR-01"),
+    .package = "rugarch"
+  )
+
+  m <- GARCHModel$new()
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_false(m$is_fitted)
+  expect_equal(length(ws), 1L,
+               label = "fit() must emit exactly one warning on calculate_statistics failure")
+
+  # abnormal_returns() must NOT emit a second warning
+  ws2 <- character(0)
+  withCallingHandlers({
+    result <- m$abnormal_returns(d)
+  }, warning = function(w) {
+    ws2[[length(ws2) + 1]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_true(all(is.na(result$abnormal_returns)))
+  expect_equal(length(ws2), 0L,
+               label = "abnormal_returns() must NOT emit a second warning (one-warning contract)")
+})
+
+
+test_that("DCCGARCHModel: calculate_statistics failure → exactly ONE warning (fit+abnormal_returns combined)", {
+  # WR-01 regression for DCCGARCHModel — same contract as GARCHModel above.
+  skip_if_not_installed("rmgarch")
+  skip_if_not_installed("rugarch")
+  d <- create_mock_model_data(n_estimation = 200)
+
+  local_mocked_bindings(
+    rcov = function(...) stop("simulated rcov failure for WR-01"),
+    .package = "rmgarch"
+  )
+
+  dm <- DCCGARCHModel$new()
+  ws <- character(0)
+  withCallingHandlers(dm$fit(d), warning = function(w) {
+    ws[[length(ws) + 1]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_false(dm$is_fitted)
+  expect_equal(length(ws), 1L,
+               label = "fit() must emit exactly one warning on calculate_statistics failure")
+
+  # abnormal_returns() must NOT emit a second warning
+  ws2 <- character(0)
+  withCallingHandlers({
+    result <- dm$abnormal_returns(d)
+  }, warning = function(w) {
+    ws2[[length(ws2) + 1]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_true(all(is.na(result$abnormal_returns)))
+  expect_equal(length(ws2), 0L,
+               label = "abnormal_returns() must NOT emit a second warning (one-warning contract)")
+})
+
+
 test_that("DCCGARCHModel: valid fit (no mock) still produces finite statistics", {
   skip_if_not_installed("rmgarch")
   skip_if_not_installed("rugarch")
