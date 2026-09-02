@@ -147,7 +147,13 @@ PatellZTest <- R6Class("PatellZTest",
                                              n_valid_events = sum(!is.na(abnormal_returns)),
                                              n_pos          = sum(abnormal_returns >= 0, na.rm = TRUE),
                                              n_neg          = sum(abnormal_returns < 0, na.rm = TRUE),
-                                             aar_z          = sum_sar / Q_total,
+                                             # STATS-04: n_events == 1 yields a statistically invalid
+                                             # z-score (the Patell approximation requires N >= 2 for
+                                             # the variance to be estimable). Return NA instead of a
+                                             # finite-but-invalid number.
+                                             aar_z          = ifelse(n_valid_events <= 1,
+                                                                     NA_real_,
+                                                                     sum_sar / Q_total),
                                              .groups = "drop") %>%
                             dplyr::select(-sum_sar)
 
@@ -162,7 +168,9 @@ PatellZTest <- R6Class("PatellZTest",
 
                           aar_caar_stats = aar_caar_stats %>%
                             dplyr::mutate(caar = cumsum(dplyr::coalesce(aar, 0))) %>%
-                            dplyr::left_join(sd_caar, by = "relative_index")
+                            dplyr::left_join(sd_caar, by = "relative_index") %>%
+                            # STATS-04: propagate n_events==1 guard to caar_z as well.
+                            dplyr::mutate(caar_z = ifelse(n_valid_events <= 1, NA_real_, caar_z))
 
                           aar_caar_stats$car_window = stringr::str_c("[", aar_caar_stats$relative_index[1], ", ", aar_caar_stats$relative_index, "]")
                           aar_caar_stats
@@ -203,7 +211,10 @@ SignTest <- R6Class("SignTest",
                           ) %>%
                           dplyr::mutate(
                             # Sign test: (n_pos - 0.5*N) / (0.5*sqrt(N))
-                            sign_z = ifelse(n_valid_events > 0,
+                            # STATS-04: n_events == 1 produces a finite-but-statistically-invalid
+                            # z (the sign test needs at least 2 observations to be meaningful).
+                            # Guard: require n_valid_events >= 2, not just > 0.
+                            sign_z = ifelse(n_valid_events >= 2,
                                             (n_pos - 0.5 * n_valid_events) / (0.5 * sqrt(n_valid_events)),
                                             NA_real_),
                             caar   = cumsum(dplyr::coalesce(aar, 0))

@@ -90,3 +90,124 @@ test_that("CARTTest car_t_dist scale grows with sqrt(event_window_length)", {
                  info = paste("Day", i, ": dist scale should be sqrt(L)*sigma"))
   }
 })
+
+
+# --- STATS-01 regression tests: sigma==0 → NA (never Inf/NaN) ---
+
+# Minimal stub model with a controllable sigma value.
+make_sigma_stub_model <- function(sigma_val) {
+  structure(
+    list(
+      statistics = list(
+        sigma             = sigma_val,
+        degree_of_freedom = 100,
+        residuals         = NULL,
+        forecast_error_corrected_sigma = rep(sigma_val, 11)
+      )
+    ),
+    class = "stub_model"
+  )
+}
+
+# Event-window data with known, non-degenerate abnormal returns.
+make_event_data <- function(n_ev = 11) {
+  set.seed(77)
+  tibble::tibble(
+    relative_index    = seq(0, n_ev - 1),
+    firm_returns      = rnorm(n_ev, 0.001, 0.02),
+    index_returns     = rnorm(n_ev, 0.0003, 0.015),
+    abnormal_returns  = rnorm(n_ev, 0.001, 0.015),
+    event_window      = 1L,
+    estimation_window = 0L
+  )
+}
+
+
+test_that("STATS-01: ARTTest returns NA (not Inf/NaN) when sigma == 0", {
+  # Degenerate path: sigma exactly 0
+  mod0 <- make_sigma_stub_model(0)
+  d    <- make_event_data()
+  result <- ARTTest$new()$compute(d, mod0)
+
+  expect_true(all(is.na(result$ar_t)),
+              "ar_t must be NA when sigma == 0")
+  expect_false(any(is.infinite(result$ar_t)),
+               "ar_t must not be Inf when sigma == 0")
+  expect_false(any(is.nan(result$ar_t)),
+               "ar_t must not be NaN when sigma == 0")
+})
+
+
+test_that("STATS-01: ARTTest returns finite t-stats on valid sigma (regression)", {
+  # Valid path: normal fit must still yield finite ar_t
+  data <- create_mock_model_data()
+  mm   <- MarketModel$new()
+  mm$fit(data)
+  data <- mm$abnormal_returns(data)
+
+  result <- ARTTest$new()$compute(data, mm)
+  expect_true(all(is.finite(result$ar_t)),
+              "ar_t must be finite on valid (non-degenerate) input")
+})
+
+
+test_that("STATS-01: CARTTest returns NA (not Inf/NaN) in car_t when sigma == 0", {
+  mod0   <- make_sigma_stub_model(0)
+  d      <- make_event_data()
+  result <- CARTTest$new()$compute(d, mod0)
+
+  expect_true(all(is.na(result$car_t)),
+              "car_t must be NA when sigma == 0")
+  expect_false(any(is.infinite(result$car_t)),
+               "car_t must not be Inf when sigma == 0")
+  expect_false(any(is.nan(result$car_t)),
+               "car_t must not be NaN when sigma == 0")
+})
+
+
+test_that("STATS-01: CARTTest returns finite car_t on valid sigma (regression)", {
+  data <- create_mock_model_data()
+  mm   <- MarketModel$new()
+  mm$fit(data)
+  data <- mm$abnormal_returns(data)
+
+  result <- CARTTest$new()$compute(data, mm)
+  expect_true(all(is.finite(result$car_t)),
+              "car_t must be finite on valid (non-degenerate) input")
+})
+
+
+test_that("STATS-01: BHARTTest returns NA (not Inf/NaN) in bhar_t when sigma == 0", {
+  mod0   <- make_sigma_stub_model(0)
+  d      <- make_event_data()
+  result <- BHARTTest$new()$compute(d, mod0)
+
+  expect_true(all(is.na(result$bhar_t)),
+              "bhar_t must be NA when sigma == 0")
+  expect_false(any(is.infinite(result$bhar_t)),
+               "bhar_t must not be Inf when sigma == 0")
+  expect_false(any(is.nan(result$bhar_t)),
+               "bhar_t must not be NaN when sigma == 0")
+})
+
+
+test_that("STATS-01: BHARTTest returns finite bhar_t on valid sigma (regression)", {
+  data       <- create_mock_model_data()
+  bhar_model <- BHARModel$new()
+  bhar_model$fit(data)
+  data       <- bhar_model$abnormal_returns(data)
+
+  result <- BHARTTest$new()$compute(data, bhar_model)
+  expect_true(all(is.finite(result$bhar_t)),
+              "bhar_t must be finite on valid (non-degenerate) input")
+})
+
+
+test_that("STATS-01: ARTTest returns NA when sigma is NA (not just zero)", {
+  mod_na <- make_sigma_stub_model(NA_real_)
+  d      <- make_event_data()
+  result <- ARTTest$new()$compute(d, mod_na)
+
+  expect_true(all(is.na(result$ar_t)),
+              "ar_t must be NA when model sigma is NA")
+})

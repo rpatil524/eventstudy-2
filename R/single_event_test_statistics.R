@@ -66,10 +66,15 @@ ARTTest <- R6Class("ARTTest",
                        sigma = statistics$sigma %||% NA_real_
                        degree_of_freedom = max(statistics$degree_of_freedom %||% 1, 1)
 
+                       # Guard: sigma == 0 or NA → ar_t is NA (not Inf/NaN).
+                       # The %||% above handles NULL; this handles zero/near-zero.
+                       sigma_degenerate <- is.na(sigma) || sigma < .Machine$double.eps
+
                        res = data_tbl %>%
                          dplyr::filter(event_window == 1) %>%
                          dplyr::select(relative_index, abnormal_returns) %>%
-                         dplyr::mutate(ar_t      = abnormal_returns / sigma,
+                         dplyr::mutate(ar_t      = if (sigma_degenerate) NA_real_
+                                                    else abnormal_returns / sigma,
                                        ar_t_dist = distributional::dist_student_t(degree_of_freedom))
                        res
                      }
@@ -107,14 +112,23 @@ CARTTest <- R6Class("CARTTest",
                         sigma = statistics$sigma %||% NA_real_
                         degree_of_freedom = max(statistics$degree_of_freedom %||% 1, 1)
 
+                        # Guard: sigma == 0 or NA → car_t is NA (not Inf/NaN).
+                        # cumsum(abnormal_returns) NA cascade on degenerate model
+                        # is intentional and correct — do not coalesce it here.
+                        # The distributional sigma uses pmax(...) to prevent its
+                        # own crash; car_t itself is guarded separately.
+                        sigma_degenerate <- is.na(sigma) || sigma < .Machine$double.eps
+
                         res = data_tbl %>%
                           dplyr::filter(event_window == 1) %>%
                           dplyr::select(relative_index, abnormal_returns) %>%
                           dplyr::mutate(event_window_length = 1:dplyr::n(),
                                         car_window          = "",
                                         car                 = cumsum(abnormal_returns),
-                                        corrected_car       = car / sigma,
-                                        car_t               = car / (sqrt(event_window_length) * sigma),
+                                        corrected_car       = if (sigma_degenerate) NA_real_
+                                                               else car / sigma,
+                                        car_t               = if (sigma_degenerate) NA_real_
+                                                               else car / (sqrt(event_window_length) * sigma),
                                         car_t_dist          = distributional::dist_student_t(
                                           df    = degree_of_freedom,
                                           mu    = car,
@@ -180,6 +194,10 @@ BHARTTest <- R6Class("BHARTTest",
                           # Under simple approximation, sigma of BHAR grows with sqrt(n)
                           bhar_se <- sigma * sqrt(n)
 
+                          # Guard: sigma == 0 or NA → bhar_se is 0/NA → bhar_t
+                          # would be Inf/NaN. Return NA_real_ instead.
+                          bhar_se_degenerate <- is.na(bhar_se) | bhar_se < .Machine$double.eps
+
                           res <- event_data %>%
                             dplyr::select(relative_index) %>%
                             dplyr::mutate(
@@ -187,7 +205,7 @@ BHARTTest <- R6Class("BHARTTest",
                               bhar_window = stringr::str_c("[", relative_index[1], ", ",
                                                            relative_index, "]"),
                               bhar_se = bhar_se,
-                              bhar_t = bhar / bhar_se
+                              bhar_t = ifelse(bhar_se_degenerate, NA_real_, bhar / bhar_se)
                             )
                           res
                         }
