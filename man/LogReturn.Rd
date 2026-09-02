@@ -5,69 +5,69 @@
 \title{R6 class for log return calculation}
 \description{
 R6 class for log return calculation
-
-R6 class for log return calculation
 }
 \section{Super class}{
-\code{\link[EventStudy:ReturnCalculation]{EventStudy::ReturnCalculation}} -> \code{LogReturn}
+\code{\link[EventStudy:ReturnCalculation]{ReturnCalculation}} -> \code{LogReturn}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{name}}{Name of the log return calculation.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{name}}{Name of the log return calculation.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-LogReturn-calculate_return}{\code{LogReturn$calculate_return()}}
-\item \href{#method-LogReturn-clone}{\code{LogReturn$clone()}}
-}
+  \itemize{
+    \item \href{#method-LogReturn-calculate_return}{\code{LogReturn$calculate_return()}}
+    \item \href{#method-LogReturn-clone}{\code{LogReturn$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogReturn-calculate_return"></a>}}
 \if{latex}{\out{\hypertarget{method-LogReturn-calculate_return}{}}}
-\subsection{Method \code{calculate_return()}}{
-Calculates the return for a
+\subsection{\code{LogReturn$calculate_return()}}{
+  Calculates the return for a
 single stock.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LogReturn$calculate_return(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LogReturn$calculate_return(
   tbl,
   in_column = "adjusted",
   out_column = "adjusted_return"
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{tbl}}{The dataframe with the stock price.}
-
-\item{\code{in_column}}{The column name of the price
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{tbl}}{The dataframe with the stock price.}
+      \item{\code{in_column}}{The column name of the price
 infromation.}
-
-\item{\code{out_column}}{The column name were the
+      \item{\code{out_column}}{The column name were the
 return will be saved.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LogReturn-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-LogReturn-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LogReturn$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{LogReturn$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LogReturn$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

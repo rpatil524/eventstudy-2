@@ -4,11 +4,6 @@
 \alias{PatellZTest}
 \title{Patell or Standardized Residual Test (PatellZTest)}
 \description{
-Patell or Standardized Residual Test (PatellZTest)
-
-Patell or Standardized Residual Test (PatellZTest)
-}
-\details{
 The Patell or Standardized Residual Test is a statistical tool employed in event
 studies to evaluate the null hypothesis that the average abnormal return at
 the event date is zero. The test statistics is approximately distributed as
@@ -17,64 +12,65 @@ N(0, 1).
 See also \url{https://eventstudy.de/statistics/aar_caar_statistics.html}
 }
 \section{Super class}{
-\code{\link[EventStudy:TestStatisticBase]{EventStudy::TestStatisticBase}} -> \code{PatellZTest}
+\code{\link[EventStudy:TestStatisticBase]{TestStatisticBase}} -> \code{PatellZTest}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{name}}{Short code of the test statistic.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{name}}{Short code of the test statistic.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-PatellZTest-compute}{\code{PatellZTest$compute()}}
-\item \href{#method-PatellZTest-clone}{\code{PatellZTest$clone()}}
+  \itemize{
+    \item \href{#method-PatellZTest-compute}{\code{PatellZTest$compute()}}
+    \item \href{#method-PatellZTest-clone}{\code{PatellZTest$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>EventStudy::TestStatisticBase$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>TestStatisticBase$initialize()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PatellZTest-compute"></a>}}
 \if{latex}{\out{\hypertarget{method-PatellZTest-compute}{}}}
-\subsection{Method \code{compute()}}{
-Computes the Patell Z test statistics for multiple events.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PatellZTest$compute(data_tbl, model)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{The data for a multiple event with
+\subsection{\code{PatellZTest$compute()}}{
+  Computes the Patell Z test statistics for multiple events.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PatellZTest$compute(data_tbl, model)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{The data for a multiple event with
 calculated abnormal returns.}
+      \item{\code{model}}{The fitted model.}
+    }
+    \if{html}{\out{</div>}}
+  }
+}
 
-\item{\code{model}}{The fitted model.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PatellZTest-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-PatellZTest-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PatellZTest$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{PatellZTest$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PatellZTest$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

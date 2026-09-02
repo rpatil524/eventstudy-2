@@ -8,44 +8,44 @@ Contains a set of multi event test statistics as, e.g., AAR and CAAR
 cross-sectional t test. These are the default test statistics.
 }
 \section{Super class}{
-\code{\link[EventStudy:StatisticsSetBase]{EventStudy::StatisticsSetBase}} -> \code{MultiEventStatisticsSet}
+\code{\link[EventStudy:StatisticsSetBase]{StatisticsSetBase}} -> \code{MultiEventStatisticsSet}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{tests}}{Container with the statistical tests.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{tests}}{Container with the statistical tests.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-MultiEventStatisticsSet-clone}{\code{MultiEventStatisticsSet$clone()}}
+  \itemize{
+    \item \href{#method-MultiEventStatisticsSet-clone}{\code{MultiEventStatisticsSet$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="EventStudy" data-topic="StatisticsSetBase" data-id="add_test"><a href='../../EventStudy/html/StatisticsSetBase.html#method-StatisticsSetBase-add_test'><code>EventStudy::StatisticsSetBase$add_test()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="EventStudy" data-topic="StatisticsSetBase" data-id="initialize"><a href='../../EventStudy/html/StatisticsSetBase.html#method-StatisticsSetBase-initialize'><code>EventStudy::StatisticsSetBase$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="EventStudy" data-topic="StatisticsSetBase" data-id="add_test"><a href='../../EventStudy/html/StatisticsSetBase.html#method-StatisticsSetBase-add_test'><code>StatisticsSetBase$add_test()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="EventStudy" data-topic="StatisticsSetBase" data-id="initialize"><a href='../../EventStudy/html/StatisticsSetBase.html#method-StatisticsSetBase-initialize'><code>StatisticsSetBase$initialize()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-MultiEventStatisticsSet-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-MultiEventStatisticsSet-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MultiEventStatisticsSet$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{MultiEventStatisticsSet$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MultiEventStatisticsSet$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

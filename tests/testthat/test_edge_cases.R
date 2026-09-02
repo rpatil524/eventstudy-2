@@ -179,14 +179,16 @@ test_that("MarketModel with zero-variance firm returns produces near-zero sigma"
 })
 
 
-test_that("MarketModel with zero-variance index returns crashes in calculate_statistics", {
+test_that("MarketModel with zero-variance index returns emits one warning and sets is_fitted FALSE", {
   data = create_mock_model_data()
-  # Constant index returns → lm drops the predictor
+  # Constant index returns → zero variance guard fires (CONTRACT-04)
   data$index_returns = 0.0005
 
   mm = MarketModel$new()
-  # Same bug as above: calculate_statistics[2,4] subscript out of bounds
-  expect_error(mm$fit(data))
+  # The degenerate-input contract (Wave 1) replaced the old crash with a
+  # controlled lenient-mode warning + is_fitted = FALSE instead of an error.
+  expect_warning(mm$fit(data), "zero or near-zero variance")
+  expect_false(mm$is_fitted)
 })
 
 

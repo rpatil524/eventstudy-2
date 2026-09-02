@@ -42,3 +42,37 @@ test_that("ParameterSet rejects invalid objects", {
     "not of type"
   )
 })
+
+
+# ---------------------------------------------------------------------------
+# degenerate_handling field validation (CONTRACT-02 / STRIDE T-01-02)
+# ---------------------------------------------------------------------------
+
+test_that("ParameterSet degenerate_handling defaults to NULL", {
+  ps <- ParameterSet$new()
+  expect_null(ps$degenerate_handling)
+})
+
+test_that("ParameterSet degenerate_handling accepts 'strict'", {
+  ps <- ParameterSet$new(degenerate_handling = "strict")
+  expect_equal(ps$degenerate_handling, "strict")
+})
+
+test_that("ParameterSet degenerate_handling accepts 'lenient'", {
+  ps <- ParameterSet$new(degenerate_handling = "lenient")
+  expect_equal(ps$degenerate_handling, "lenient")
+})
+
+test_that("ParameterSet degenerate_handling rejects wrong-case 'Lenient' via match.arg", {
+  expect_error(
+    ParameterSet$new(degenerate_handling = "Lenient"),
+    "arg"
+  )
+})
+
+test_that("ParameterSet degenerate_handling rejects unknown value 'bogus' via match.arg", {
+  expect_error(
+    ParameterSet$new(degenerate_handling = "bogus"),
+    "arg"
+  )
+})

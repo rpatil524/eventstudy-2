@@ -4,74 +4,70 @@
 \alias{GeneralizedSignTest}
 \title{Generalized Sign Test (Cowan 1992)}
 \description{
-Generalized Sign Test (Cowan 1992)
-
-Generalized Sign Test (Cowan 1992)
-}
-\details{
 Adjusts the sign test for the expected proportion of positive abnormal
 returns estimated from the estimation window, rather than assuming 0.5.
 This accounts for asymmetry in the return distribution.
 }
 \section{Super class}{
-\code{\link[EventStudy:TestStatisticBase]{EventStudy::TestStatisticBase}} -> \code{GeneralizedSignTest}
+\code{\link[EventStudy:TestStatisticBase]{TestStatisticBase}} -> \code{GeneralizedSignTest}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{name}}{Short code of the test statistic.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{name}}{Short code of the test statistic.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-GeneralizedSignTest-compute}{\code{GeneralizedSignTest$compute()}}
-\item \href{#method-GeneralizedSignTest-clone}{\code{GeneralizedSignTest$clone()}}
+  \itemize{
+    \item \href{#method-GeneralizedSignTest-compute}{\code{GeneralizedSignTest$compute()}}
+    \item \href{#method-GeneralizedSignTest-clone}{\code{GeneralizedSignTest$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>EventStudy::TestStatisticBase$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>TestStatisticBase$initialize()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GeneralizedSignTest-compute"></a>}}
 \if{latex}{\out{\hypertarget{method-GeneralizedSignTest-compute}{}}}
-\subsection{Method \code{compute()}}{
-Computes the generalized sign test for multiple events.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{GeneralizedSignTest$compute(data_tbl, model)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{The data for a multiple event with
+\subsection{\code{GeneralizedSignTest$compute()}}{
+  Computes the generalized sign test for multiple events.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{GeneralizedSignTest$compute(data_tbl, model)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{The data for a multiple event with
 calculated abnormal returns.}
+      \item{\code{model}}{The fitted model (unused).}
+    }
+    \if{html}{\out{</div>}}
+  }
+}
 
-\item{\code{model}}{The fitted model (unused).}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-GeneralizedSignTest-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-GeneralizedSignTest-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{GeneralizedSignTest$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{GeneralizedSignTest$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{GeneralizedSignTest$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

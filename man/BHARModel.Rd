@@ -4,11 +4,6 @@
 \alias{BHARModel}
 \title{Buy-and-Hold Abnormal Returns (BHAR) Model}
 \description{
-Buy-and-Hold Abnormal Returns (BHAR) Model
-
-Buy-and-Hold Abnormal Returns (BHAR) Model
-}
-\details{
 Implements Buy-and-Hold Abnormal Returns for long-horizon event studies.
 BHAR compounds returns over the event window instead of summing:
 \deqn{BHAR_i = \prod(1 + R_{i,t}) - \prod(1 + R_{benchmark,t})}
@@ -18,72 +13,78 @@ appropriate for long-horizon studies (months/years) where compounding
 effects matter.
 }
 \section{Super class}{
-\code{\link[EventStudy:ModelBase]{EventStudy::ModelBase}} -> \code{BHARModel}
+\code{\link[EventStudy:ModelBase]{ModelBase}} -> \code{BHARModel}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{model_name}}{Name of the model.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{model_name}}{Name of the model.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BHARModel-fit}{\code{BHARModel$fit()}}
-\item \href{#method-BHARModel-abnormal_returns}{\code{BHARModel$abnormal_returns()}}
-\item \href{#method-BHARModel-clone}{\code{BHARModel$clone()}}
-}
+  \itemize{
+    \item \href{#method-BHARModel-fit}{\code{BHARModel$fit()}}
+    \item \href{#method-BHARModel-abnormal_returns}{\code{BHARModel$abnormal_returns()}}
+    \item \href{#method-BHARModel-clone}{\code{BHARModel$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BHARModel-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-BHARModel-fit}{}}}
-\subsection{Method \code{fit()}}{
-Fit the BHAR model. Computes estimation window statistics.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BHARModel$fit(data_tbl)}\if{html}{\out{</div>}}
+\subsection{\code{BHARModel$fit()}}{
+  Fit the BHAR model. Computes estimation window statistics.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BHARModel$fit(data_tbl)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{Data frame or tibble.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{Data frame or tibble.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BHARModel-abnormal_returns"></a>}}
 \if{latex}{\out{\hypertarget{method-BHARModel-abnormal_returns}{}}}
-\subsection{Method \code{abnormal_returns()}}{
-Calculate abnormal returns using buy-and-hold compounding.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BHARModel$abnormal_returns(data_tbl)}\if{html}{\out{</div>}}
+\subsection{\code{BHARModel$abnormal_returns()}}{
+  Calculate abnormal returns using buy-and-hold compounding.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BHARModel$abnormal_returns(data_tbl)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{Data frame or tibble.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{Data frame or tibble.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BHARModel-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BHARModel-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BHARModel$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BHARModel$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BHARModel$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

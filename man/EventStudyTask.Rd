@@ -4,11 +4,6 @@
 \alias{EventStudyTask}
 \title{Initialization of an Event Study task.}
 \description{
-Initialization of an Event Study task.
-
-Initialization of an Event Study task.
-}
-\details{
 Event Study Task
 
 The Event Study task contains all necessary data for performing an event
@@ -16,212 +11,224 @@ study. Furthermore, all calculations are saved in the internal dataframe
 named data_tbl.
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{data_tbl}}{All calculations are saved in
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{data_tbl}}{All calculations are saved in
 this dataframe. The dataframe is a nested
 object with each row is one event, identified
 by the event id, the group, and the firm
 symbol.}
 
-\item{\code{aar_caar_tbl}}{Placeholder for AAR and
+    \item{\code{aar_caar_tbl}}{Placeholder for AAR and
 CAAR test statistics.}
 
-\item{\code{.keys}}{event identifier. Do not change.}
+    \item{\code{.keys}}{event identifier. Do not change.}
 
-\item{\code{.index}}{The time column name}
+    \item{\code{.index}}{The time column name}
 
-\item{\code{.target}}{The price column name.}
+    \item{\code{.target}}{The price column name.}
 
-\item{\code{.request_file_columns}}{The necessary
+    \item{\code{.request_file_columns}}{The necessary
 column names of the request dataframe.}
 
-\item{\code{factor_tbl}}{Optional factor data for multi-factor models
+    \item{\code{factor_tbl}}{Optional factor data for multi-factor models
 (Fama-French, Carhart). Must contain a \code{date} column.}
-}
-\if{html}{\out{</div>}}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{symbols}}{Read-only field to get the firm symbols.}
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{symbols}}{Read-only field to get the firm symbols.}
 
-\item{\code{symbol_data}}{Read-only field to get the firm symbol data.}
+    \item{\code{symbol_data}}{Read-only field to get the firm symbol data.}
 
-\item{\code{group_level_data}}{Read-only field to get the group data.}
-}
-\if{html}{\out{</div>}}
+    \item{\code{group_level_data}}{Read-only field to get the group data.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-EventStudyTask-new}{\code{EventStudyTask$new()}}
-\item \href{#method-EventStudyTask-print}{\code{EventStudyTask$print()}}
-\item \href{#method-EventStudyTask-summary}{\code{EventStudyTask$summary()}}
-\item \href{#method-EventStudyTask-get_ar}{\code{EventStudyTask$get_ar()}}
-\item \href{#method-EventStudyTask-get_car}{\code{EventStudyTask$get_car()}}
-\item \href{#method-EventStudyTask-get_aar}{\code{EventStudyTask$get_aar()}}
-\item \href{#method-EventStudyTask-get_model_stats}{\code{EventStudyTask$get_model_stats()}}
-\item \href{#method-EventStudyTask-clone}{\code{EventStudyTask$clone()}}
-}
+  \itemize{
+    \item \href{#method-EventStudyTask-initialize}{\code{EventStudyTask$new()}}
+    \item \href{#method-EventStudyTask-print}{\code{EventStudyTask$print()}}
+    \item \href{#method-EventStudyTask-summary}{\code{EventStudyTask$summary()}}
+    \item \href{#method-EventStudyTask-get_ar}{\code{EventStudyTask$get_ar()}}
+    \item \href{#method-EventStudyTask-get_car}{\code{EventStudyTask$get_car()}}
+    \item \href{#method-EventStudyTask-get_aar}{\code{EventStudyTask$get_aar()}}
+    \item \href{#method-EventStudyTask-get_model_stats}{\code{EventStudyTask$get_model_stats()}}
+    \item \href{#method-EventStudyTask-clone}{\code{EventStudyTask$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-EventStudyTask-new"></a>}}
-\if{latex}{\out{\hypertarget{method-EventStudyTask-new}{}}}
-\subsection{Method \code{new()}}{
-Create a new EventStudyTask from stock data, reference
+\if{html}{\out{<a id="method-EventStudyTask-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-EventStudyTask-initialize}{}}}
+\subsection{\code{EventStudyTask$new()}}{
+  Create a new EventStudyTask from stock data, reference
 market data, and an event request specification.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$new(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$new(
   firm_stock_data_tbl,
   reference_tbl,
   request_tbl,
   factor_tbl = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{firm_stock_data_tbl}}{Dataframe with firm
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{firm_stock_data_tbl}}{Dataframe with firm
 stock data. This dataframe must contain the
 stock (col: symbol) the date (col: date)
 and the price (col: adjusted) column.}
-
-\item{\code{reference_tbl}}{Dataframe with firm
+      \item{\code{reference_tbl}}{Dataframe with firm
 reference data.}
-
-\item{\code{request_tbl}}{The request dataframe for
+      \item{\code{request_tbl}}{The request dataframe for
 each event.}
-
-\item{\code{factor_tbl}}{Optional dataframe with factor data
+      \item{\code{factor_tbl}}{Optional dataframe with factor data
 (e.g., Fama-French factors). Must contain a \code{date}
 column plus factor columns.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-EventStudyTask-print"></a>}}
 \if{latex}{\out{\hypertarget{method-EventStudyTask-print}{}}}
-\subsection{Method \code{print()}}{
-Print a summary of the EventStudyTask.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$print(...)}\if{html}{\out{</div>}}
+\subsection{\code{EventStudyTask$print()}}{
+  Print a summary of the EventStudyTask.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$print(...)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-EventStudyTask-summary"></a>}}
 \if{latex}{\out{\hypertarget{method-EventStudyTask-summary}{}}}
-\subsection{Method \code{summary()}}{
-Summarize the event study results.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$summary()}\if{html}{\out{</div>}}
+\subsection{\code{EventStudyTask$summary()}}{
+  Summarize the event study results.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$summary()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with summary information about the event study results.
+  }
 }
 
-\subsection{Returns}{
-A list with summary information about the event study results.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-EventStudyTask-get_ar"></a>}}
 \if{latex}{\out{\hypertarget{method-EventStudyTask-get_ar}{}}}
-\subsection{Method \code{get_ar()}}{
-Extract abnormal returns for a single event.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$get_ar(event_id = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{EventStudyTask$get_ar()}}{
+  Extract abnormal returns for a single event.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$get_ar(event_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{event_id}}{The event identifier.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A tibble with abnormal returns for the event window.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{event_id}}{The event identifier.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A tibble with abnormal returns for the event window.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-EventStudyTask-get_car"></a>}}
 \if{latex}{\out{\hypertarget{method-EventStudyTask-get_car}{}}}
-\subsection{Method \code{get_car()}}{
-Extract cumulative abnormal returns for a single event.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$get_car(event_id = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{EventStudyTask$get_car()}}{
+  Extract cumulative abnormal returns for a single event.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$get_car(event_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{event_id}}{The event identifier.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A tibble with cumulative abnormal returns for the event window.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{event_id}}{The event identifier.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A tibble with cumulative abnormal returns for the event window.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-EventStudyTask-get_aar"></a>}}
 \if{latex}{\out{\hypertarget{method-EventStudyTask-get_aar}{}}}
-\subsection{Method \code{get_aar()}}{
-Extract average abnormal returns across events.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$get_aar(group = NULL, stat_name = "CSectT")}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{group}}{Optional group name to filter by.}
-
-\item{\code{stat_name}}{Name of the multi-event test statistic
+\subsection{\code{EventStudyTask$get_aar()}}{
+  Extract average abnormal returns across events.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$get_aar(group = NULL, stat_name = "CSectT")}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{group}}{Optional group name to filter by.}
+      \item{\code{stat_name}}{Name of the multi-event test statistic
 to extract. Defaults to "CSectT".}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A tibble with AAR/CAAR results.
+  }
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A tibble with AAR/CAAR results.
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-EventStudyTask-get_model_stats"></a>}}
 \if{latex}{\out{\hypertarget{method-EventStudyTask-get_model_stats}{}}}
-\subsection{Method \code{get_model_stats()}}{
-Extract model statistics for a single event.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$get_model_stats(event_id = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{EventStudyTask$get_model_stats()}}{
+  Extract model statistics for a single event.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$get_model_stats(event_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{event_id}}{The event identifier.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with model statistics.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{event_id}}{The event identifier.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A list with model statistics.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-EventStudyTask-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-EventStudyTask-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{EventStudyTask$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{EventStudyTask$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{EventStudyTask$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
