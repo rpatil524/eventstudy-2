@@ -100,4 +100,4 @@ Decimal phases appear between their surrounding integers in numeric order.
 | 1. Contract Foundation | 2/2 | Complete    | 2026-09-02 |
 | 2. Model and Stats Sweep | 4/4 | Complete    | 2026-09-02 |
 | 3. Pipeline and External Hardening | 2/2 | Complete    | 2026-09-02 |
-| 4. Regression Net and Check Gate | 2/2 | Complete   | 2026-09-02 |
+| 4. Regression Net and Check Gate | 2/2 | Complete    | 2026-09-02 |

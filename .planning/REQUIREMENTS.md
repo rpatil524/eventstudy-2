@@ -56,10 +56,10 @@ Defensively wrap external-package-bound areas so upstream failure degrades grace
 
 Lock behavior with a durable regression net and a clean check.
 
-- [ ] **TEST-01**: Every bug fixed in this milestone has a regression test that fails before the fix and passes after
-- [ ] **TEST-02**: A contract test matrix exercises degenerate-input behavior across all covered components in both strict and lenient modes
-- [ ] **TEST-03**: The full existing test suite (400+ tests) remains green
-- [ ] **TEST-04**: `R CMD check` passes with no new NOTEs or WARNINGs introduced by this milestone
+- [x] **TEST-01**: Every bug fixed in this milestone has a regression test that fails before the fix and passes after
+- [x] **TEST-02**: A contract test matrix exercises degenerate-input behavior across all covered components in both strict and lenient modes
+- [x] **TEST-03**: The full existing test suite (400+ tests) remains green
+- [x] **TEST-04**: `R CMD check` passes with no new NOTEs or WARNINGs introduced by this milestone
 
 ## v2 Requirements
 
@@ -116,10 +116,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXTERNAL-02 | Phase 3 | Complete |
 | EXTERNAL-03 | Phase 3 | Complete |
 | EXTERNAL-04 | Phase 3 | Complete |
-| TEST-01 | Phase 4 | Pending |
-| TEST-02 | Phase 4 | Pending |
-| TEST-03 | Phase 4 | Pending |
-| TEST-04 | Phase 4 | Pending |
+| TEST-01 | Phase 4 | Complete |
+| TEST-02 | Phase 4 | Complete |
+| TEST-03 | Phase 4 | Complete |
+| TEST-04 | Phase 4 | Complete |
 
 **Coverage:**
 
