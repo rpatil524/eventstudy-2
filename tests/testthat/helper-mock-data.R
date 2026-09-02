@@ -248,3 +248,57 @@ create_degenerate_volatility_model_data_zero_var <- function(n_event = 11) {
   d$firm_returns[est_rows] <- 0.001
   d
 }
+
+
+#' Create factor model data for testing LinearFactorModel / FF3 / FF5 / Carhart4
+#'
+#' Returns a flat estimation + event-window tibble with all columns that the
+#' factor model formulas read: firm_returns, index_returns (base columns kept
+#' for compatibility), excess_return, market_excess, smb, hml, mom, rmw, cma,
+#' risk_free_rate, plus the window-tracking columns used by fit().
+#'
+#' @param n_estimation Integer. Estimation window rows (default 120).
+#' @param n_event Integer. Event window rows (default 11).
+create_mock_factor_model_data <- function(n_estimation = 120, n_event = 11) {
+  set.seed(55)
+  n_total <- n_estimation + n_event
+
+  # Common factor returns (small magnitude, mimicking Fama-French data)
+  market_excess  <- rnorm(n_total, mean = 0.0003, sd = 0.015)
+  smb            <- rnorm(n_total, mean = 0.0001, sd = 0.005)
+  hml            <- rnorm(n_total, mean = 0.0001, sd = 0.005)
+  mom            <- rnorm(n_total, mean = 0.0000, sd = 0.005)
+  rmw            <- rnorm(n_total, mean = 0.0001, sd = 0.004)
+  cma            <- rnorm(n_total, mean = 0.0001, sd = 0.004)
+  risk_free_rate <- rep(0.0001, n_total)
+
+  # Firm returns as a function of factors + idiosyncratic noise
+  firm_returns   <- risk_free_rate +
+    0.9 * market_excess +
+    0.3 * smb +
+    0.2 * hml +
+    0.1 * mom +
+    rnorm(n_total, sd = 0.008)
+
+  # Excess returns (firm minus risk-free) — the LHS used by factor models
+  excess_return  <- firm_returns - risk_free_rate
+  # index_returns kept for compatibility (same as market_excess + risk_free)
+  index_returns  <- market_excess + risk_free_rate
+
+  tibble::tibble(
+    firm_returns   = firm_returns,
+    index_returns  = index_returns,
+    excess_return  = excess_return,
+    market_excess  = market_excess,
+    smb            = smb,
+    hml            = hml,
+    mom            = mom,
+    rmw            = rmw,
+    cma            = cma,
+    risk_free_rate = risk_free_rate,
+    estimation_window = c(rep(1L, n_estimation), rep(0L, n_event)),
+    event_window      = c(rep(0L, n_estimation), rep(1L, n_event)),
+    relative_index    = c(seq(-n_estimation, -1L), seq(0L, n_event - 1L)),
+    event_date        = c(rep(0L, n_estimation), 1L, rep(0L, n_event - 1L))
+  )
+}

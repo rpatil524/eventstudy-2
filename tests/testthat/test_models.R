@@ -247,6 +247,346 @@ test_that("Factor models error on missing columns", {
 })
 
 
+# --- Degenerate-input contract: FamaFrench3FactorModel ---
+
+# Helper: make insufficient-obs degenerate factor data (NA all but 1 estimation row)
+.make_ff3_insufficient <- function() {
+  d <- create_mock_factor_model_data()
+  est <- which(d$estimation_window == 1)
+  for (col in c("excess_return", "market_excess", "smb", "hml")) {
+    d[[col]][est[-1]] <- NA_real_
+  }
+  d
+}
+
+# Helper: make "zero complete-cases" degenerate factor data.
+# For factor models, single-factor zero-variance is absorbed by lm() (collinear
+# term dropped). The contract guard triggers on insufficient complete cases.
+# This variant NAs ALL estimation rows to produce n_valid = 0.
+.make_ff3_zero_variance <- function() {
+  d <- create_mock_factor_model_data()
+  est <- which(d$estimation_window == 1)
+  # NA all required FF3 columns in every estimation row → n_valid = 0
+  for (col in c("excess_return", "market_excess", "smb", "hml")) {
+    d[[col]][est] <- NA_real_
+  }
+  d
+}
+
+test_that("FamaFrench3FactorModel: lenient mode — insufficient obs returns all-NA ARs with one warning", {
+  d <- .make_ff3_insufficient()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  ws <- character(0)
+  withCallingHandlers(
+    m$fit(d),
+    warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_false(m$is_fitted)
+  expect_equal(length(ws), 1L, info = "lenient mode must emit exactly one warning")
+  expect_true(grepl("EVT_FF3", ws[1]), info = "warning must name event_id")
+  expect_true(grepl("FIRM_FF3", ws[1]), info = "warning must name firm_symbol")
+
+  # abnormal_returns must return all-NA without a second warning
+  ws2 <- character(0)
+  withCallingHandlers(
+    ar <- m$abnormal_returns(d),
+    warning = function(w) {
+      ws2[[length(ws2) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(length(ws2), 0L, info = ".degenerate_handled branch must suppress second warning")
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+test_that("FamaFrench3FactorModel: strict mode — insufficient obs errors with event_id + firm_symbol", {
+  d <- .make_ff3_insufficient()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  err <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_true(is.character(err), info = "strict mode must stop()")
+  expect_true(grepl("EVT_FF3", err),   info = "error must contain event_id")
+  expect_true(grepl("FIRM_FF3", err),  info = "error must contain firm_symbol")
+})
+
+test_that("FamaFrench3FactorModel: lenient mode — zero-variance (full rank deficiency) returns all-NA ARs", {
+  # When all required columns are constant in the estimation window, lm() will
+  # fail with a rank-deficiency error, triggering the lm-failure .handle_degenerate path.
+  d <- .make_ff3_zero_variance()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  ws <- character(0)
+  withCallingHandlers(
+    m$fit(d),
+    warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  # Model should be unfitted (either via insufficient-obs guard or lm failure)
+  expect_false(m$is_fitted)
+  expect_true(all(is.na(m$abnormal_returns(d)$abnormal_returns)))
+})
+
+test_that("FamaFrench3FactorModel: strict mode — zero-variance errors with event_id + firm_symbol", {
+  d <- .make_ff3_zero_variance()
+  m <- FamaFrench3FactorModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_FF3"
+  m$firm_symbol <- "FIRM_FF3"
+
+  err <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_true(is.character(err), info = "strict mode must stop()")
+  expect_true(grepl("EVT_FF3", err),   info = "error must contain event_id")
+  expect_true(grepl("FIRM_FF3", err),  info = "error must contain firm_symbol")
+})
+
+
+# --- Degenerate-input contract: FamaFrench5FactorModel ---
+
+# Shared degenerate factory for FF5 (NA all required columns except 1 row)
+.make_ff5_insufficient <- function() {
+  d <- create_mock_factor_model_data()
+  est <- which(d$estimation_window == 1)
+  for (col in c("excess_return", "market_excess", "smb", "hml", "rmw", "cma")) {
+    d[[col]][est[-1]] <- NA_real_
+  }
+  d
+}
+
+test_that("FamaFrench5FactorModel: lenient mode — insufficient obs returns all-NA ARs with one warning", {
+  d <- .make_ff5_insufficient()
+  m <- FamaFrench5FactorModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_FF5"
+  m$firm_symbol <- "FIRM_FF5"
+
+  ws <- character(0)
+  withCallingHandlers(
+    m$fit(d),
+    warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_false(m$is_fitted)
+  expect_equal(length(ws), 1L, info = "lenient mode must emit exactly one warning")
+  expect_true(grepl("EVT_FF5", ws[1]), info = "warning must name event_id")
+  expect_true(grepl("FIRM_FF5", ws[1]), info = "warning must name firm_symbol")
+
+  ws2 <- character(0)
+  withCallingHandlers(
+    ar <- m$abnormal_returns(d),
+    warning = function(w) {
+      ws2[[length(ws2) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(length(ws2), 0L, info = ".degenerate_handled branch must suppress second warning")
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+test_that("FamaFrench5FactorModel: strict mode — insufficient obs errors with event_id + firm_symbol", {
+  d <- .make_ff5_insufficient()
+  m <- FamaFrench5FactorModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_FF5"
+  m$firm_symbol <- "FIRM_FF5"
+
+  err <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_true(is.character(err), info = "strict mode must stop()")
+  expect_true(grepl("EVT_FF5", err),  info = "error must contain event_id")
+  expect_true(grepl("FIRM_FF5", err), info = "error must contain firm_symbol")
+})
+
+
+# --- Degenerate-input contract: Carhart4FactorModel ---
+
+# Shared degenerate factory for Carhart4 (NA all required columns except 1 row)
+.make_c4_insufficient <- function() {
+  d <- create_mock_factor_model_data()
+  est <- which(d$estimation_window == 1)
+  for (col in c("excess_return", "market_excess", "smb", "hml", "mom")) {
+    d[[col]][est[-1]] <- NA_real_
+  }
+  d
+}
+
+test_that("Carhart4FactorModel: lenient mode — insufficient obs returns all-NA ARs with one warning", {
+  d <- .make_c4_insufficient()
+  m <- Carhart4FactorModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_C4"
+  m$firm_symbol <- "FIRM_C4"
+
+  ws <- character(0)
+  withCallingHandlers(
+    m$fit(d),
+    warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_false(m$is_fitted)
+  expect_equal(length(ws), 1L, info = "lenient mode must emit exactly one warning")
+  expect_true(grepl("EVT_C4", ws[1]), info = "warning must name event_id")
+  expect_true(grepl("FIRM_C4", ws[1]), info = "warning must name firm_symbol")
+
+  ws2 <- character(0)
+  withCallingHandlers(
+    ar <- m$abnormal_returns(d),
+    warning = function(w) {
+      ws2[[length(ws2) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(length(ws2), 0L, info = ".degenerate_handled branch must suppress second warning")
+  expect_true(all(is.na(ar$abnormal_returns)))
+})
+
+test_that("Carhart4FactorModel: strict mode — insufficient obs errors with event_id + firm_symbol", {
+  d <- .make_c4_insufficient()
+  m <- Carhart4FactorModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_C4"
+  m$firm_symbol <- "FIRM_C4"
+
+  err <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_true(is.character(err), info = "strict mode must stop()")
+  expect_true(grepl("EVT_C4", err),  info = "error must contain event_id")
+  expect_true(grepl("FIRM_C4", err), info = "error must contain firm_symbol")
+})
+
+
+# --- One-warning-per-degenerate invariant across all four factor models ---
+
+test_that("All four factor models: fit+abnormal_returns emits exactly one warning on degenerate input", {
+  # This test proves the one-warning-per-(event_id,firm_symbol) contract holds
+  # across the entire fit() -> abnormal_returns() call chain for every factor model.
+  models <- list(
+    list(ctor = LinearFactorModel$new(), setup = function(m) {
+      m$formula <- stats::as.formula("firm_returns ~ index_returns")
+      m$required_columns <- c("firm_returns", "index_returns")
+      m
+    }),
+    list(ctor = FamaFrench3FactorModel$new(), setup = function(m) m),
+    list(ctor = FamaFrench5FactorModel$new(), setup = function(m) m),
+    list(ctor = Carhart4FactorModel$new(),    setup = function(m) m)
+  )
+  d_base <- create_mock_factor_model_data()
+  est <- which(d_base$estimation_window == 1)
+
+  for (entry in models) {
+    m <- entry$setup(entry$ctor)
+    m$degenerate_mode <- "lenient"
+    m$event_id    <- "EVT_ALL"
+    m$firm_symbol <- "FIRM_ALL"
+    # NA all required columns in all estimation rows
+    for (col in m$required_columns) {
+      d_base[[col]][est] <- NA_real_
+    }
+
+    ws_total <- character(0)
+    withCallingHandlers(
+      { m$fit(d_base); m$abnormal_returns(d_base) },
+      warning = function(w) {
+        ws_total[[length(ws_total) + 1L]] <<- conditionMessage(w)
+        invokeRestart("muffleWarning")
+      }
+    )
+    expect_equal(length(ws_total), 1L,
+      info = paste(m$model_name, "fit()+abnormal_returns() must emit exactly one warning"))
+
+    # Reset d_base for next iteration
+    d_base <- create_mock_factor_model_data()
+    est <- which(d_base$estimation_window == 1)
+  }
+})
+
+
+# --- CONTRACT-05: Factor-model valid-input baseline invariance (Plan 02-02) ---
+
+test_that("LinearFactorModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_linearfactor_baseline.rds"))
+  m <- LinearFactorModel$new()
+  m$formula <- stats::as.formula("firm_returns ~ index_returns")
+  m$required_columns <- c("firm_returns", "index_returns")
+  d <- create_mock_factor_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma,              bl$sigma, tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom,  bl$df,    tolerance = 1e-8)
+  expect_equal(m$statistics$alpha,              bl$alpha, tolerance = 1e-8)
+  expect_equal(m$statistics$beta,               bl$beta,  tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[1:5]
+  expect_equal(ar, bl$ar, tolerance = 1e-8)
+})
+
+test_that("FamaFrench3FactorModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_ff3_baseline.rds"))
+  m <- FamaFrench3FactorModel$new()
+  d <- create_mock_factor_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma,             bl$sigma,    tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df,       tolerance = 1e-8)
+  expect_equal(m$statistics$alpha,             bl$alpha,    tolerance = 1e-8)
+  expect_equal(m$statistics$market_excess,     bl$beta_mkt, tolerance = 1e-8)
+  expect_equal(m$statistics$smb,               bl$beta_smb, tolerance = 1e-8)
+  expect_equal(m$statistics$hml,               bl$beta_hml, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[1:5]
+  expect_equal(ar, bl$ar, tolerance = 1e-8)
+})
+
+test_that("FamaFrench5FactorModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_ff5_baseline.rds"))
+  m <- FamaFrench5FactorModel$new()
+  d <- create_mock_factor_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma,             bl$sigma,    tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df,       tolerance = 1e-8)
+  expect_equal(m$statistics$alpha,             bl$alpha,    tolerance = 1e-8)
+  expect_equal(m$statistics$market_excess,     bl$beta_mkt, tolerance = 1e-8)
+  expect_equal(m$statistics$smb,               bl$beta_smb, tolerance = 1e-8)
+  expect_equal(m$statistics$hml,               bl$beta_hml, tolerance = 1e-8)
+  expect_equal(m$statistics$rmw,               bl$beta_rmw, tolerance = 1e-8)
+  expect_equal(m$statistics$cma,               bl$beta_cma, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[1:5]
+  expect_equal(ar, bl$ar, tolerance = 1e-8)
+})
+
+test_that("Carhart4FactorModel: valid-input baseline invariance (CONTRACT-05)", {
+  bl <- readRDS(test_path("fixtures", "contract05_carhart4_baseline.rds"))
+  m <- Carhart4FactorModel$new()
+  d <- create_mock_factor_model_data()
+  m$fit(d)
+  expect_true(m$is_fitted)
+  expect_equal(m$statistics$sigma,             bl$sigma,    tolerance = 1e-8)
+  expect_equal(m$statistics$degree_of_freedom, bl$df,       tolerance = 1e-8)
+  expect_equal(m$statistics$alpha,             bl$alpha,    tolerance = 1e-8)
+  expect_equal(m$statistics$market_excess,     bl$beta_mkt, tolerance = 1e-8)
+  expect_equal(m$statistics$smb,               bl$beta_smb, tolerance = 1e-8)
+  expect_equal(m$statistics$hml,               bl$beta_hml, tolerance = 1e-8)
+  expect_equal(m$statistics$mom,               bl$beta_mom, tolerance = 1e-8)
+  ar <- m$abnormal_returns(d)$abnormal_returns[1:5]
+  expect_equal(ar, bl$ar, tolerance = 1e-8)
+})
+
+
 # --- GARCH Model tests ---
 
 test_that("GARCHModel requires rugarch package", {
