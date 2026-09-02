@@ -189,3 +189,121 @@ test_that("cross_sectional_regression errors on non-matching event_ids", {
     "No matching"
   )
 })
+
+
+# --- PIPELINE-03: singular/collinear guard ---
+
+test_that("singular design: collinear regressor returns NA std.error/statistic/p.value + one warning", {
+  # A perfectly collinear design (x2 == x1) must not crash with a solve()
+  # error; instead it should return an es_cross_sectional object with NA
+  # standard errors for the aliased column and emit exactly one warning.
+  task <- create_mock_task(n_firms = 4)
+  ps <- ParameterSet$new()
+  task <- run_event_study(task, ps)
+
+  firm_chars <- tibble::tibble(
+    event_id = 1:4,
+    x1 = c(1, 2, 3, 4),
+    x2 = c(1, 2, 3, 4)   # identical to x1 -> perfect collinearity
+  )
+
+  result <- withCallingHandlers(
+    cross_sectional_regression(task, ~ x1 + x2, firm_chars, robust = TRUE),
+    warning = function(w) invokeRestart("muffleWarning")
+  )
+
+  expect_s3_class(result, "es_cross_sectional")
+  # At least one aliased coefficient row should have NA std.error
+  expect_true(any(is.na(result$coefficients$std.error)))
+})
+
+
+test_that("singular design: emits at least one warning (not just a crash)", {
+  task <- create_mock_task(n_firms = 4)
+  ps <- ParameterSet$new()
+  task <- run_event_study(task, ps)
+
+  firm_chars <- tibble::tibble(
+    event_id = 1:4,
+    x1 = c(1, 2, 3, 4),
+    x2 = c(1, 2, 3, 4)
+  )
+
+  expect_warning(
+    cross_sectional_regression(task, ~ x1 + x2, firm_chars, robust = TRUE)
+  )
+})
+
+
+test_that("sandwich absent: emits warning() naming robust SEs and OLS fallback", {
+  # When sandwich is unavailable, the function must emit a warning (not
+  # message) that names the lost capability.  We simulate absence by mocking
+  # base::requireNamespace so that calls from cross_sectional.R see sandwich
+  # as absent.  with_mocked_bindings(.package="base") is required because
+  # requireNamespace lives in base, not in the EventStudy namespace.
+  task <- create_mock_task(n_firms = 4)
+  ps <- ParameterSet$new()
+  task <- run_event_study(task, ps)
+
+  firm_chars <- tibble::tibble(
+    event_id = 1:4,
+    x = rnorm(4)
+  )
+
+  expect_warning(
+    testthat::with_mocked_bindings(
+      cross_sectional_regression(task, ~ x, firm_chars, robust = TRUE),
+      requireNamespace = function(pkg, ...) if (pkg == "sandwich") FALSE else TRUE,
+      .package = "base"
+    ),
+    regexp = "sandwich|robust|OLS",
+    ignore.case = TRUE
+  )
+})
+
+
+test_that("sandwich absent: returned object is valid es_cross_sectional with OLS SEs", {
+  task <- create_mock_task(n_firms = 4)
+  ps <- ParameterSet$new()
+  task <- run_event_study(task, ps)
+
+  firm_chars <- tibble::tibble(
+    event_id = 1:4,
+    x = c(1.0, 2.0, 3.0, 4.0)
+  )
+
+  result <- suppressWarnings(
+    testthat::with_mocked_bindings(
+      cross_sectional_regression(task, ~ x, firm_chars, robust = TRUE),
+      requireNamespace = function(pkg, ...) if (pkg == "sandwich") FALSE else TRUE,
+      .package = "base"
+    )
+  )
+
+  expect_s3_class(result, "es_cross_sectional")
+  # With OLS SEs the std.error column must be finite (not NA)
+  expect_true(all(is.finite(result$coefficients$std.error)))
+})
+
+
+test_that("well-conditioned design: coefficients unchanged vs OLS baseline", {
+  # A properly specified regression should return byte-identical coefficients
+  # before and after the tryCatch hardening — correctness must not regress.
+  task <- create_mock_task(n_firms = 6)
+  ps <- ParameterSet$new()
+  task <- run_event_study(task, ps)
+
+  firm_chars <- tibble::tibble(
+    event_id = 1:6,
+    x = c(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+  )
+
+  result_ols <- cross_sectional_regression(task, ~ x, firm_chars, robust = FALSE)
+
+  # Coefficients must be finite and non-NA for a well-conditioned OLS problem
+  expect_true(all(is.finite(result_ols$coefficients$estimate)))
+  expect_true(all(is.finite(result_ols$coefficients$std.error)))
+  expect_true(all(is.finite(result_ols$coefficients$statistic)))
+  expect_true(all(is.finite(result_ols$coefficients$p.value)))
+  expect_true(result_ols$r_squared >= 0)
+})

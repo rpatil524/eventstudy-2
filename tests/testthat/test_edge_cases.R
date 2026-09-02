@@ -418,12 +418,15 @@ test_that("cross_sectional_regression with all-NA abnormal returns gives NA CARs
     x = c(1.0, 2.0)
   )
 
-  # All-NA ARs should produce NA CARs (not 0)
-  # The regression will fail due to no non-NA cases
-  expect_error(
-    cross_sectional_regression(task, ~ x, firm_chars, robust = FALSE),
-    "0 \\(non-NA\\) cases|missing"
+  # All-NA ARs produce all-NA CARs.  lm() on all-NA response fails and the
+  # tryCatch wrapping in cross_sectional_regression() now emits a warning and
+  # returns NULL — so the call must warn, not stop().
+  expect_warning(
+    result <- cross_sectional_regression(task, ~ x, firm_chars, robust = FALSE),
+    regexp = "lm|non-NA|missing|failed",
+    ignore.case = TRUE
   )
+  expect_null(result)
 })
 
 
@@ -768,10 +771,11 @@ test_that("ComparisonPeriodMeanAdjustedModel handles NA in estimation returns", 
 
 # --- Regression: Event date validation ---
 
-test_that(".append_windows errors when event date not found in data", {
-  # Bug: When the event date didn't match any date in the data,
-  # event_index was empty and relative_index became wrong silently.
-  # Fix: Now throws an informative error.
+test_that(".append_windows warns (lenient) when event date not found in data", {
+  # Previously .append_windows() threw an unconditional stop() when the event
+  # date was missing.  The contract now routes through .handle_degenerate() so
+  # in lenient mode (the default) it emits a warning instead of crashing, and
+  # returns all-zero windows so the model layer degrades cleanly.
   data <- tibble::tibble(
     date = c("01.01.2020", "02.01.2020", "03.01.2020"),
     firm_returns = c(0.01, 0.02, -0.01),
@@ -786,7 +790,7 @@ test_that(".append_windows errors when event date not found in data", {
     estimation_window_length = 1
   )
 
-  expect_error(
+  expect_warning(
     EventStudy:::.append_windows(data, request),
     "not found"
   )

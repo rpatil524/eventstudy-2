@@ -18,6 +18,11 @@ prepare_event_study <- function(task, parameter_set) {
     stop("The parameter_set must be a ParameterSet!")
   }
 
+  # Resolve degenerate mode once here so the closure captures a stable value
+  # rather than re-resolving per row (consistent with the Phase 1 pattern in
+  # fit_model(), which also resolves mode before the row-indexed map).
+  mode <- .resolve_degenerate_mode(parameter_set$degenerate_handling)
+
   # Calculate returns
   task$data_tbl = task$data_tbl %>%
     mutate(data = purrr::map(.x=data,
@@ -25,11 +30,21 @@ prepare_event_study <- function(task, parameter_set) {
                              return_calculation=parameter_set$return_calculation,
                              in_column=task$.target))
 
-  # Append estimation window
-  task$data_tbl = task$data_tbl %>%
-    mutate(data = purrr::map2(.x=data,
-                              .y=request,
-                              .f=.append_windows))
+  # Append estimation window using an explicit row-indexed map so that
+  # mode, event_id, and firm_symbol can be threaded into .append_windows()
+  # without NSE ambiguity (per D-01 from Phase 1: no pmap-inside-mutate).
+  task$data_tbl$data <- purrr::map(
+    seq_len(nrow(task$data_tbl)),
+    function(i) {
+      .append_windows(
+        task$data_tbl$data[[i]],
+        task$data_tbl$request[[i]],
+        mode        = mode,
+        event_id    = task$data_tbl$event_id[[i]],
+        firm_symbol = task$data_tbl$firm_symbol[[i]]
+      )
+    }
+  )
 
   # Join factor data if provided (for Fama-French, Carhart models)
   if (!is.null(task$factor_tbl)) {
@@ -87,9 +102,13 @@ prepare_event_study <- function(task, parameter_set) {
 #'
 #' @param data_tbl A dataframe of a single stock index with reference market data.
 #' @param request The specification of the Event Study for the given stock.
+#' @param mode Degenerate-handling mode: "lenient" (default) or "strict".
+#' @param event_id Event identifier, passed to .handle_degenerate for informative messages.
+#' @param firm_symbol Firm identifier, passed to .handle_degenerate for informative messages.
 #'
 #' @noRd
-.append_windows = function(data_tbl, request) {
+.append_windows = function(data_tbl, request, mode = "lenient",
+                             event_id = NULL, firm_symbol = NULL) {
   # Add event date & temporary index
   data_tbl = data_tbl %>%
     mutate(event_date = ifelse(date == request$event_date, 1, 0)) %>%
@@ -107,9 +126,29 @@ prepare_event_study <- function(task, parameter_set) {
     .[['tmp_index']]
 
   if (length(event_index) != 1) {
-    stop("Event date '", request$event_date,
-         "' not found in data (or found multiple times). ",
-         "Check that the event date exists in the firm's trading data.")
+    # Route through the shared contract dispatch point so strict/lenient
+    # behavior is controlled by the caller, not hard-coded here.
+    .handle_degenerate(
+      mode        = mode,
+      condition   = paste0("event date '", request$event_date,
+                           "' not found in trading data (or found multiple times)"),
+      component   = "prepare_event_study",
+      event_id    = event_id,
+      firm_symbol = firm_symbol
+      # no private_env: this is a free function, not an R6 method
+    )
+    # Return data with all-zero windows so the model layer's n_valid guard
+    # fires cleanly (filter(estimation_window == 1) yields 0 rows) rather
+    # than crashing on a missing column or unexpected shape.
+    return(
+      data_tbl %>%
+        dplyr::mutate(
+          relative_index    = NA_real_,
+          event_window      = 0L,
+          estimation_window = 0L
+        ) %>%
+        dplyr::select(-tmp_index)
+    )
   }
 
   data_tbl = data_tbl %>%
