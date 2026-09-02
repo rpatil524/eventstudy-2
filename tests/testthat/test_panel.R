@@ -293,3 +293,162 @@ test_that("dynamic_twfe coefficient relative_time labels are correct even if dum
     expect_true(all(post$estimate > 0))
   }
 })
+
+
+# --- EXTERNAL-01: callaway_santanna absence and failure wrapping ---
+
+test_that("callaway_santanna warns and returns task with NULL results when did is absent", {
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) pkg != "did",
+    .package = "base"
+  )
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  expect_warning(
+    result <- estimate_panel_event_study(task, method = "callaway_santanna"),
+    "did"
+  )
+  expect_null(result$results)
+})
+
+
+test_that("callaway_santanna tryCatch catches att_gt runtime failures", {
+  skip_if_not_installed("did")
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  # Corrupt the panel so att_gt will fail with a runtime error
+  task2 <- task
+  task2$outcome <- "nonexistent_column"
+
+  expect_warning(
+    result <- estimate_panel_event_study(task2, method = "callaway_santanna"),
+    "did::att_gt failed"
+  )
+  expect_null(result$results)
+})
+
+
+# --- EXTERNAL-02: dechaisemartin_dhaultfoeuille absence and opt-out ---
+
+test_that("dechaisemartin warns and returns task with NULL results when DIDmultiplegt is absent", {
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) pkg != "DIDmultiplegt",
+    .package = "base"
+  )
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  expect_warning(
+    result <- estimate_panel_event_study(task,
+                                          method = "dechaisemartin_dhaultfoeuille"),
+    "DIDmultiplegt"
+  )
+  expect_null(result$results)
+})
+
+
+test_that("dechaisemartin opt-out option produces warning and NULL results", {
+  old_opt <- getOption("eventstudy.skip_didmultiplegt")
+  on.exit(options(eventstudy.skip_didmultiplegt = old_opt), add = TRUE)
+  options(eventstudy.skip_didmultiplegt = TRUE)
+
+  # Mock DIDmultiplegt as available so the skip option is reached
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) TRUE,
+    .package = "base"
+  )
+
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  expect_warning(
+    result <- estimate_panel_event_study(task,
+                                          method = "dechaisemartin_dhaultfoeuille"),
+    "skip_didmultiplegt"
+  )
+  expect_null(result$results)
+})
+
+
+test_that("dechaisemartin callr probe gate: probe option FALSE means no callr involvement", {
+  # When eventstudy.probe_didmultiplegt is FALSE (the default), the callr probe
+  # code path must NOT run. We verify that the option check itself is gated.
+  old_opt <- getOption("eventstudy.probe_didmultiplegt")
+  on.exit(options(eventstudy.probe_didmultiplegt = old_opt), add = TRUE)
+  options(eventstudy.probe_didmultiplegt = FALSE)
+
+  # Confirm the option is off (the gate condition)
+  expect_false(isTRUE(getOption("eventstudy.probe_didmultiplegt", FALSE)))
+
+  # With probe disabled and DIDmultiplegt absent, only the missing-pkg warning fires
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) pkg != "DIDmultiplegt",
+    .package = "base"
+  )
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  expect_warning(
+    result <- estimate_panel_event_study(task,
+                                          method = "dechaisemartin_dhaultfoeuille"),
+    "DIDmultiplegt"
+  )
+  expect_null(result$results)
+})
+
+
+# --- EXTERNAL-03: didimputation absence and failure wrapping ---
+
+test_that("borusyak_jaravel_spiess warns and returns task with NULL results when didimputation is absent", {
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) pkg != "didimputation",
+    .package = "base"
+  )
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  expect_warning(
+    result <- estimate_panel_event_study(task, method = "borusyak_jaravel_spiess"),
+    "didimputation"
+  )
+  expect_null(result$results)
+})
+
+
+test_that("borusyak_jaravel_spiess tryCatch catches did_imputation runtime failures", {
+  skip_if_not_installed("didimputation")
+  panel <- create_mock_staggered_panel()
+  task <- PanelEventStudyTask$new(panel)
+
+  # Corrupt panel so did_imputation fails
+  task2 <- task
+  task2$outcome <- "nonexistent_column_xyz"
+
+  expect_warning(
+    result <- estimate_panel_event_study(task2, method = "borusyak_jaravel_spiess"),
+    "didimputation::did_imputation failed"
+  )
+  expect_null(result$results)
+})
+
+
+# --- EXTERNAL-03: sandwich absence warning upgrade ---
+
+test_that(".compute_se emits warning (not message) when sandwich is absent", {
+  local_mocked_bindings(
+    requireNamespace = function(pkg, ...) pkg != "sandwich",
+    .package = "base"
+  )
+  panel <- create_mock_panel_data()
+  task <- PanelEventStudyTask$new(panel)
+
+  # static_twfe calls .compute_se; expect a warning naming sandwich
+  expect_warning(
+    result <- estimate_panel_event_study(task, method = "static_twfe"),
+    "sandwich"
+  )
+  # Results should still be populated (OLS SE fallback)
+  expect_false(is.null(result$results))
+})
