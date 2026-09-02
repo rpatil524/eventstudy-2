@@ -27,13 +27,13 @@ The package must never produce a silently incorrect statistical result. On degen
 - ✓ testthat suite (~27 files, 400+ tests) with mock-data helpers and a dedicated `test_edge_cases.R` — existing
 - ✓ **Documented degenerate-input contract** (`?degenerate-input-contract`, `R/contract.R`) covering insufficient obs, zero variance, single-event groups, NA propagation — Phase 1 (CONTRACT-01)
 - ✓ **Configurable strict vs lenient handling** — `ParameterSet$degenerate_handling` field + `EventStudy.degenerate_handling` option, resolver `.resolve_degenerate_mode()` (default lenient); strict names the offending event_id/firm_symbol, lenient sets `is_fitted=FALSE` + NA + exactly one warning; proven on MarketModel — Phase 1 (CONTRACT-02..05)
+- ✓ **Contract applied to every return model** — all 13 models route degenerate conditions through `.handle_degenerate()` with finite-only df; zero-variance guards correctly scoped to OLS/variance-dependent models (arithmetic models MAM/CPM/BHAR treat zero-variance as valid input); GARCH/DCC got pre-call guards — Phase 2 (MODELS-01..04)
+- ✓ **Contract applied to every test statistic** — no Inf/NaN leakage (ART/CAR/BHAR sigma==0→NA); event_id joins verified (no many-to-many inflation); NA-safe CAR/CAAR chains; correct single-event denominators (Patell/Sign n_events==1→NA, Q_total excludes degenerate events) — Phase 2 (STATS-01..04)
 
 ### Active
 
 <!-- This milestone's scope. Hardening the above without changing its statistical intent. -->
 
-- [ ] **Apply the contract to every return model** — consistent guards for <2 estimation obs, zero variance (`sd < .Machine$double.eps`), correct finite-only degree-of-freedom counting (Phase 2; wire remaining ~12 models onto `.handle_degenerate()` — review finding WR-01)
-- [ ] **Apply the contract to every test statistic** — no Inf/NaN leakage; correct NA-safe cumsum/CAR chains (`coalesce`), correct denominators for single-event and firms-in-multiple-events cases
 - [ ] **Harden prepare/window logic and export/tidy** — NA-safe guards before `if()`, missing-date and empty-window handling, consistent `na.rm`
 - [ ] **Defensively wrap external-package areas** — panel DiD, GARCH/DCC-GARCH, synthetic control: `tryCatch` with informative errors, version/availability guards, subprocess isolation where needed (e.g. DIDmultiplegt), warn-not-crash on upstream failure
 - [ ] **Systematic bug sweep of remaining fragile areas** — audit the areas CONCERNS.md flags, fix what's found
@@ -70,6 +70,7 @@ The package must never produce a silently incorrect statistical result. On degen
 |----------|-----------|---------|
 | Configurable strict vs lenient degenerate-input handling | Serves both fail-fast interactive use and NA-tolerant batch runs across many events | ✓ Phase 1 — ParameterSet field + `EventStudy.degenerate_handling` option, default lenient; proven on MarketModel |
 | Mode threaded via model fields set in `.initialize_and_fit_model()` (not a `fit()` arg) | ParameterSet is not reachable inside per-event `fit()`; assigning `degenerate_mode`/`event_id`/`firm_symbol` on the cloned model + `purrr::map(seq_len(nrow()))` avoids an API change and untested NSE | ✓ Phase 1 — pattern for Phase 2 to replicate |
+| Zero-variance guard scoped to variance-dependent models only | Arithmetic models (MarketAdjusted/ComparisonPeriodMean/BHAR) produce well-defined abnormal returns on constant-return inputs; a blanket zero-variance guard wrongly returned NA for valid data — the degenerate handling for these lives at the test-statistic layer (sigma==0→NA) | ✓ Phase 2 (review CR-01) |
 | Harden everything incl. external-package areas | User wants full coverage; externals get defensive wrapping rather than reimplementation | — Pending |
 | Acceptance bar = regression test per fix + contract matrix + green R CMD check | Converts recurring audit churn into a durable net; measurable and CRAN-aligned | — Pending |
 | Layer the work: contract → bug sweep → correctness guarantees | Foundation first (uniform policy), then the sweep, then the acceptance bar | — Pending |
@@ -93,4 +94,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-02 after Phase 1*
+*Last updated: 2026-09-02 after Phase 2*

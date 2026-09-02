@@ -14,7 +14,7 @@ This milestone converts the EventStudy package from reactive edge-case whack-a-m
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Contract Foundation** - Define the degenerate-input contract and configurable strict/lenient mode; prove it on a reference model (completed 2026-09-02)
-- [ ] **Phase 2: Model and Stats Sweep** - Apply the contract uniformly across all 13 return models and all test statistics
+- [x] **Phase 2: Model and Stats Sweep** - Apply the contract uniformly across all 13 return models and all test statistics (completed 2026-09-02)
 - [ ] **Phase 3: Pipeline and External Hardening** - Harden prepare/export paths and defensively wrap all external-package-bound areas
 - [ ] **Phase 4: Regression Net and Check Gate** - Write regression tests per fix, contract test matrix, verify R CMD check clean
 
@@ -51,7 +51,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Running multi-event statistics (Patell Z, BMP, KP) on a dataset where a firm appears in more than one event produces correct denominators and counts — no many-to-many inflation of test statistics
   5. CAR/CAAR chains computed by CSectTTest and export methods tolerate a firm dropping out mid-window (its NA gap does not silently corrupt subsequent cumulative values for that firm)
 
-**Plans**: 4/4 plans executed
+**Plans**: 4/4 plans complete
 
 - [x] 02-01-PLAN.md — Simple/adjusted/mean + BHAR/Volume/Volatility onto contract; shared .finite_residual_df helper + new degenerate factories (wave 1)
 - [x] 02-02-PLAN.md — Factor family: fix LinearFactorModel$fit() once, .degenerate_handled branch on all 4 abnormal_returns overrides (wave 2)
@@ -92,6 +92,6 @@ Decimal phases appear between their surrounding integers in numeric order.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Contract Foundation | 2/2 | Complete    | 2026-09-02 |
-| 2. Model and Stats Sweep | 4/4 | In Progress|  |
+| 2. Model and Stats Sweep | 4/4 | Complete    | 2026-09-02 |
 | 3. Pipeline and External Hardening | 0/TBD | Not started | - |
 | 4. Regression Net and Check Gate | 0/TBD | Not started | - |

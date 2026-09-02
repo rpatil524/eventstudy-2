@@ -21,19 +21,19 @@ The uniform degenerate-input policy and its configuration surface.
 
 Apply the contract uniformly across all return models.
 
-- [ ] **MODELS-01**: Every return model guards insufficient estimation observations before fitting and follows the contract (MarketModel, MarketAdjusted, ComparisonPeriodMean, FF3, FF5, Carhart4, BHAR, Volume, Volatility, RollingWindow, GARCH, DCC-GARCH, Custom)
-- [ ] **MODELS-02**: Every return model guards zero/near-zero variance (`sd < .Machine$double.eps`) before division, returning NA rather than Inf/NaN
-- [ ] **MODELS-03**: Degree-of-freedom counting uses only finite residuals across all models
-- [ ] **MODELS-04**: Forecast-error correction is applied consistently for event-window test statistics where the model supports it
+- [x] **MODELS-01**: Every return model guards insufficient estimation observations before fitting and follows the contract (MarketModel, MarketAdjusted, ComparisonPeriodMean, FF3, FF5, Carhart4, BHAR, Volume, Volatility, RollingWindow, GARCH, DCC-GARCH, Custom)
+- [x] **MODELS-02**: Every return model guards zero/near-zero variance (`sd < .Machine$double.eps`) before division, returning NA rather than Inf/NaN
+- [x] **MODELS-03**: Degree-of-freedom counting uses only finite residuals across all models
+- [x] **MODELS-04**: Forecast-error correction is applied consistently for event-window test statistics where the model supports it
 
 ### Stats
 
 Apply the contract across single- and multi-event test statistics.
 
-- [ ] **STATS-01**: Single-event statistics (AR t, CAR t, BHAR) never leak Inf/NaN on degenerate input; they follow the contract
-- [ ] **STATS-02**: Multi-event statistics (AAR/CAAR, CSect t, Patell Z, BMP, Kolari-Pynnönen, Sign, Calendar-Time Portfolio) use correct, verified join keys (event_id) with no many-to-many inflation
-- [ ] **STATS-03**: CAR/cumsum chains are NA-safe (coalesce) so a firm dropping in/out mid-window cannot silently corrupt CARs
-- [ ] **STATS-04**: Single-event-group and firms-appearing-in-multiple-events cases produce correct denominators and counts
+- [x] **STATS-01**: Single-event statistics (AR t, CAR t, BHAR) never leak Inf/NaN on degenerate input; they follow the contract
+- [x] **STATS-02**: Multi-event statistics (AAR/CAAR, CSect t, Patell Z, BMP, Kolari-Pynnönen, Sign, Calendar-Time Portfolio) use correct, verified join keys (event_id) with no many-to-many inflation
+- [x] **STATS-03**: CAR/cumsum chains are NA-safe (coalesce) so a firm dropping in/out mid-window cannot silently corrupt CARs
+- [x] **STATS-04**: Single-event-group and firms-appearing-in-multiple-events cases produce correct denominators and counts
 
 ### Pipeline
 
@@ -101,14 +101,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONTRACT-03 | Phase 1 | Complete |
 | CONTRACT-04 | Phase 1 | Complete |
 | CONTRACT-05 | Phase 1 | Complete |
-| MODELS-01 | Phase 2 | Pending |
-| MODELS-02 | Phase 2 | Pending |
-| MODELS-03 | Phase 2 | Pending |
-| MODELS-04 | Phase 2 | Pending |
-| STATS-01 | Phase 2 | Pending |
-| STATS-02 | Phase 2 | Pending |
-| STATS-03 | Phase 2 | Pending |
-| STATS-04 | Phase 2 | Pending |
+| MODELS-01 | Phase 2 | Complete |
+| MODELS-02 | Phase 2 | Complete |
+| MODELS-03 | Phase 2 | Complete |
+| MODELS-04 | Phase 2 | Complete |
+| STATS-01 | Phase 2 | Complete |
+| STATS-02 | Phase 2 | Complete |
+| STATS-03 | Phase 2 | Complete |
+| STATS-04 | Phase 2 | Complete |
 | PIPELINE-01 | Phase 3 | Pending |
 | PIPELINE-02 | Phase 3 | Pending |
 | PIPELINE-03 | Phase 3 | Pending |
