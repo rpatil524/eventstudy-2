@@ -198,36 +198,53 @@ test_that("MarketModel with zero-variance index returns emits one warning and se
 
 
 test_that("ComparisonPeriodMeanAdjustedModel with constant estimation returns", {
-  # Phase 2 contract: zero-variance in firm_returns triggers the degenerate guard.
-  # Previously this fitted with sigma=0 (which propagated Inf downstream).
-  # Now the model correctly does not fit and returns NA abnormal returns.
+  # CR-01 / WR-05 contract (Phase 2 robustness hardening):
+  # ComparisonPeriodMeanAdjustedModel is an arithmetic model — it subtracts the
+  # estimation-window mean from event-window returns. It does NOT need variance
+  # in estimation returns to produce well-defined abnormal returns. Zero-variance
+  # (all estimation returns identical) is a valid input: sigma=0, is_fitted=TRUE,
+  # ARs = firm_returns - mean = 0 for event rows where firm_return == constant.
   data = create_mock_model_data()
   # All estimation window firm returns identical -> sd(firm_returns) == 0
   data$firm_returns[data$estimation_window == 1] = 0.001
 
   cpmam = ComparisonPeriodMeanAdjustedModel$new()
-  suppressWarnings(cpmam$fit(data))
+  cpmam$fit(data)
 
-  expect_false(cpmam$is_fitted)
+  # Arithmetic model: zero diff-variance does NOT prevent fitting
+  expect_true(cpmam$is_fitted)
+  expect_equal(cpmam$statistics$sigma, 0, tolerance = 1e-10)
   ar <- cpmam$abnormal_returns(data)
-  expect_true(all(is.na(ar$abnormal_returns)))
+  # Event rows where firm_returns are NOT the constant 0.001 will have non-zero ARs;
+  # but all ARs must be finite (no NA from guard, no Inf from sigma=0)
+  expect_false(any(is.nan(ar$abnormal_returns)))
+  expect_false(any(is.infinite(ar$abnormal_returns)))
 })
 
 
 test_that("MarketAdjustedModel with constant estimation residuals", {
-  # Phase 2 contract: zero-variance in (firm - index) triggers the degenerate guard.
-  # Previously this fitted with sigma=0 (which propagated Inf downstream).
-  # Now the model correctly does not fit and returns NA abnormal returns.
+  # CR-01 contract (Phase 2 robustness hardening):
+  # MarketAdjustedModel is an arithmetic model — it subtracts index_returns from
+  # firm_returns. It does NOT need variance in (firm - index) residuals to produce
+  # well-defined abnormal returns. When firm_returns == index_returns, sigma=0,
+  # is_fitted=TRUE, and all ARs = 0 (not NA).
   data = create_mock_model_data()
   # Make firm_returns = index_returns exactly -> sd(firm - index) == 0
   data$firm_returns = data$index_returns
 
   mam = MarketAdjustedModel$new()
-  suppressWarnings(mam$fit(data))
+  mam$fit(data)
 
-  expect_false(mam$is_fitted)
+  # Arithmetic model: zero diff-variance does NOT prevent fitting
+  expect_true(mam$is_fitted)
+  expect_equal(mam$statistics$sigma, 0, tolerance = 1e-10)
   ar <- mam$abnormal_returns(data)
-  expect_true(all(is.na(ar$abnormal_returns)))
+  # firm - index = 0 everywhere, so all event-window ARs should be exactly 0
+  event_ar <- ar$abnormal_returns[data$event_window == 1]
+  expect_true(all(abs(event_ar) < 1e-10))
+  # No NAs or infinities — sigma=0 must not propagate Inf
+  expect_false(any(is.nan(ar$abnormal_returns)))
+  expect_false(any(is.infinite(ar$abnormal_returns)))
 })
 
 

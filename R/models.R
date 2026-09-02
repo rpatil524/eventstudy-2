@@ -376,20 +376,14 @@ MarketAdjustedModel <- R6Class("MarketAdjustedModel",
                                      return(invisible(self))
                                    }
 
-                                   # --- Contract guard: zero or near-zero variance in residuals ---
-                                   if (stats::sd(estimation_tbl$firm_returns - estimation_tbl$index_returns,
-                                                  na.rm = TRUE) < .Machine$double.eps) {
-                                     .handle_degenerate(
-                                       mode        = mode,
-                                       condition   = "zero or near-zero variance in firm_returns - index_returns",
-                                       component   = self$model_name,
-                                       event_id    = self$event_id,
-                                       firm_symbol = self$firm_symbol,
-                                       private_env = private
-                                     )
-                                     private$.is_fitted <- FALSE
-                                     return(invisible(self))
-                                   }
+                                   # NOTE: No zero-variance guard here. MarketAdjustedModel is purely
+                                   # arithmetic (firm_returns - index_returns) and does NOT need the
+                                   # residual series to have non-zero variance to produce valid abnormal
+                                   # returns. A stock that perfectly tracks the index yields
+                                   # abnormal_returns = 0 everywhere — the correct economic answer.
+                                   # sigma == 0 is handled at the test-statistic layer (ART/CART sigma
+                                   # guards produce NA t-stats in that case). Removing the false-degenerate
+                                   # guard here restores correct "never silently wrong" behavior (CR-01).
 
                                    private$.is_fitted = TRUE
 
@@ -433,9 +427,13 @@ MarketAdjustedModel <- R6Class("MarketAdjustedModel",
                                    private$.statistics$degree_of_freedom = sum(!is.na(residuals)) - 1
 
                                    # Constant-mean forecast error correction (no regression parameters estimated)
+                                   # Use finite-pair count (not nrow) so NA rows don't inflate denominator
+                                   # and understate the correction factor — WR-03 / MODELS-04 fix.
                                    event_window_tbl = data_tbl %>% filter(event_window == 1)
                                    n_event = nrow(event_window_tbl)
-                                   correction = sigma * sqrt(1 + 1 / nrow(estimation_tbl))
+                                   n_valid_fec <- max(sum(!is.na(estimation_tbl$firm_returns) &
+                                                            !is.na(estimation_tbl$index_returns)), 1L)
+                                   correction = sigma * sqrt(1 + 1 / n_valid_fec)
                                    private$.statistics$forecast_error_corrected_sigma = rep(correction, n_event)
                                    private$.statistics$forecast_error_corrected_sigma_car = rep(0, n_event)
                                  }
@@ -487,19 +485,13 @@ ComparisonPeriodMeanAdjustedModel <- R6Class("ComparisonPeriodMeanAdjustedModel"
                                                    return(invisible(self))
                                                  }
 
-                                                 # --- Contract guard: zero or near-zero variance in firm_returns ---
-                                                 if (stats::sd(est_returns, na.rm = TRUE) < .Machine$double.eps) {
-                                                   .handle_degenerate(
-                                                     mode        = mode,
-                                                     condition   = "zero or near-zero variance in firm_returns (estimation window)",
-                                                     component   = self$model_name,
-                                                     event_id    = self$event_id,
-                                                     firm_symbol = self$firm_symbol,
-                                                     private_env = private
-                                                   )
-                                                   private$.is_fitted <- FALSE
-                                                   return(invisible(self))
-                                                 }
+                                                 # NOTE: No zero-variance guard here. ComparisonPeriodMeanAdjustedModel
+                                                 # computes abnormal returns as firm_returns minus the estimation-window
+                                                 # mean. A constant-returns fund (all estimation returns identical) still
+                                                 # produces a well-defined mean and thus well-defined abnormal returns.
+                                                 # sigma == 0 propagates to the test-statistic layer where ART/CART sigma
+                                                 # guards already handle it by returning NA t-stats. Removing this guard
+                                                 # restores correct "never silently wrong" behavior (WR-05 / CR-01 family).
 
                                                  reference_mean <- mean(est_returns, na.rm = TRUE)
 
@@ -546,9 +538,12 @@ ComparisonPeriodMeanAdjustedModel <- R6Class("ComparisonPeriodMeanAdjustedModel"
                                                  private$.statistics$degree_of_freedom = sum(!is.na(residuals)) - 1
 
                                                  # Constant-mean forecast error correction (no regression)
+                                                 # Use finite value count (not nrow) so NA rows don't inflate
+                                                 # denominator — WR-03 / MODELS-04 fix.
                                                  event_window_tbl = data_tbl %>% filter(event_window == 1)
                                                  n_event = nrow(event_window_tbl)
-                                                 correction = sigma * sqrt(1 + 1 / nrow(estimation_tbl))
+                                                 n_valid_fec <- max(sum(!is.na(estimation_tbl$firm_returns)), 1L)
+                                                 correction = sigma * sqrt(1 + 1 / n_valid_fec)
                                                  private$.statistics$forecast_error_corrected_sigma = rep(correction, n_event)
                                                  private$.statistics$forecast_error_corrected_sigma_car = rep(0, n_event)
                                                }
@@ -1198,20 +1193,13 @@ BHARModel <- R6Class("BHARModel",
                             return(invisible(self))
                           }
 
-                          # --- Contract guard: zero or near-zero variance in firm_returns - index_returns ---
-                          if (stats::sd(estimation_tbl$firm_returns - estimation_tbl$index_returns,
-                                         na.rm = TRUE) < .Machine$double.eps) {
-                            .handle_degenerate(
-                              mode        = mode,
-                              condition   = "zero or near-zero variance in firm_returns - index_returns",
-                              component   = self$model_name,
-                              event_id    = self$event_id,
-                              firm_symbol = self$firm_symbol,
-                              private_env = private
-                            )
-                            private$.is_fitted <- FALSE
-                            return(invisible(self))
-                          }
+                          # NOTE: No zero-variance guard here. BHARModel computes buy-and-hold
+                          # abnormal returns via compounding and does NOT require the estimation-
+                          # window diff series to have non-zero variance. A stock that tracks the
+                          # index perfectly yields BHAR = 0 — the correct economic answer.
+                          # sigma == 0 propagates to the ART/CART/BHARTTest sigma guards which
+                          # already return NA t-stats. Removing this guard restores correct
+                          # "never silently wrong" behavior (CR-02 Part A).
 
                           private$.is_fitted <- TRUE
                           private$calculate_statistics(data_tbl)
@@ -1270,9 +1258,14 @@ BHARModel <- R6Class("BHARModel",
                           private$.statistics$degree_of_freedom <- .finite_residual_df(bhar_residuals_finite, n_params = 1L)
 
                           # Constant-mean forecast error correction (no regression)
+                          # Use finite pair count (not nrow) consistent with GARCH/DCC-GARCH
+                          # MODELS-04 fix: nrow would include NA rows, inflating df and
+                          # understating the correction factor (CR-02 Part B).
                           event_window_tbl <- data_tbl %>% dplyr::filter(event_window == 1)
                           n_event <- nrow(event_window_tbl)
-                          correction <- sigma * sqrt(1 + 1 / nrow(estimation_tbl))
+                          n_valid_fec <- max(sum(!is.na(estimation_tbl$firm_returns) &
+                                                   !is.na(estimation_tbl$index_returns)), 1L)
+                          correction <- sigma * sqrt(1 + 1 / n_valid_fec)
                           private$.statistics$forecast_error_corrected_sigma <- rep(correction, n_event)
                           private$.statistics$forecast_error_corrected_sigma_car <- rep(0, n_event)
                         }

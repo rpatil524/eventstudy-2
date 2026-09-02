@@ -962,124 +962,142 @@ test_that(".finite_residual_df returns finite-only count minus n_params, floored
 # ---- MarketAdjustedModel degenerate contract ----
 
 test_that("MarketAdjustedModel: lenient mode — insufficient obs returns is_fitted=FALSE + one warning + all-NA ARs", {
-  for (cond in c("insuff", "zerovar")) {
-    m <- MarketAdjustedModel$new()
-    m$degenerate_mode <- "lenient"
-    m$event_id    <- "EVT_MA"
-    m$firm_symbol <- "FIRM_MA"
-    d <- create_mock_model_data()
-    est <- which(d$estimation_window == 1)
-    if (cond == "insuff") {
-      d$firm_returns[est[-1]]  <- NA_real_
-      d$index_returns[est[-1]] <- NA_real_
-    } else {
-      # zero-variance: firm == index in estimation window
-      d$firm_returns[est] <- d$index_returns[est]
+  m <- MarketAdjustedModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_MA"
+  m$firm_symbol <- "FIRM_MA"
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  d$firm_returns[est[-1]]  <- NA_real_
+  d$index_returns[est[-1]] <- NA_real_
+  ws <- character(0)
+  withCallingHandlers(
+    m$fit(d),
+    warning = function(w) {
+      ws[[length(ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
     }
-    ws <- character(0)
-    withCallingHandlers(
-      m$fit(d),
-      warning = function(w) {
-        ws[[length(ws) + 1L]] <<- conditionMessage(w)
-        invokeRestart("muffleWarning")
-      }
-    )
-    expect_false(m$is_fitted,
-                 info = paste0("is_fitted should be FALSE for cond=", cond))
-    expect_equal(length(ws), 1L,
-                 info = paste0("exactly one warning for cond=", cond))
-    ar <- m$abnormal_returns(d)
-    expect_true(all(is.na(ar$abnormal_returns)),
-                info = paste0("all-NA ARs for cond=", cond))
-    # Second call to abnormal_returns should NOT emit an additional warning
-    extra_ws <- character(0)
-    withCallingHandlers(
-      m$abnormal_returns(d),
-      warning = function(w) {
-        extra_ws[[length(extra_ws) + 1L]] <<- conditionMessage(w)
-        invokeRestart("muffleWarning")
-      }
-    )
-    expect_equal(length(extra_ws), 0L,
-                 info = paste0("no second warning from abnormal_returns for cond=", cond))
-  }
+  )
+  expect_false(m$is_fitted, info = "is_fitted should be FALSE for insuff")
+  expect_equal(length(ws), 1L, info = "exactly one warning for insuff")
+  ar <- m$abnormal_returns(d)
+  expect_true(all(is.na(ar$abnormal_returns)), info = "all-NA ARs for insuff")
+  extra_ws <- character(0)
+  withCallingHandlers(
+    m$abnormal_returns(d),
+    warning = function(w) {
+      extra_ws[[length(extra_ws) + 1L]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(length(extra_ws), 0L, info = "no second warning from abnormal_returns")
 })
 
-test_that("MarketAdjustedModel: strict mode — insufficient obs and zero-variance raise named error", {
-  for (cond in c("insuff", "zerovar")) {
-    m <- MarketAdjustedModel$new()
-    m$degenerate_mode <- "strict"
-    m$event_id    <- "EVT_MA"
-    m$firm_symbol <- "FIRM_MA"
-    d <- create_mock_model_data()
-    est <- which(d$estimation_window == 1)
-    if (cond == "insuff") {
-      d$firm_returns[est[-1]]  <- NA_real_
-      d$index_returns[est[-1]] <- NA_real_
-    } else {
-      d$firm_returns[est] <- d$index_returns[est]
-    }
-    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
-    expect_type(err_msg, "character")
-    expect_match(err_msg, "MarketAdjustedModel",
-                 info = paste0("error names model for cond=", cond))
-    expect_match(err_msg, "EVT_MA",
-                 info = paste0("error names event_id for cond=", cond))
-    expect_match(err_msg, "FIRM_MA",
-                 info = paste0("error names firm_symbol for cond=", cond))
-  }
+test_that("MarketAdjustedModel: strict mode — insufficient obs raises named error", {
+  m <- MarketAdjustedModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_MA"
+  m$firm_symbol <- "FIRM_MA"
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  d$firm_returns[est[-1]]  <- NA_real_
+  d$index_returns[est[-1]] <- NA_real_
+  err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_type(err_msg, "character")
+  expect_match(err_msg, "MarketAdjustedModel", info = "error names model")
+  expect_match(err_msg, "EVT_MA",              info = "error names event_id")
+  expect_match(err_msg, "FIRM_MA",             info = "error names firm_symbol")
+})
+
+# --- CR-01 regression test: MarketAdjustedModel must NOT false-degenerate on zero-variance diff ---
+test_that("CR-01: MarketAdjustedModel — stock tracking index (zero diff-variance) yields is_fitted=TRUE and ~0 ARs", {
+  # A firm that perfectly tracks the index has firm_returns == index_returns in the
+  # estimation window. The old false-degenerate guard would have fired here, producing
+  # NA abnormal returns instead of the correct 0. After CR-01 fix, the model fits and
+  # returns abnormal_returns == 0 for those rows (with sigma == 0 so t-stats are NA).
+  m <- MarketAdjustedModel$new()
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  # Make firm_returns == index_returns in the estimation window
+  d$firm_returns[est] <- d$index_returns[est]
+
+  # Should fit WITHOUT warning
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_true(m$is_fitted, info = "must be fitted when firm perfectly tracks index")
+  expect_equal(length(ws), 0L, info = "no warning for valid zero-diff input")
+
+  # Abnormal returns in estimation window should be ~0
+  ar <- m$abnormal_returns(d)
+  expect_true("abnormal_returns" %in% names(ar))
+  est_ar <- ar$abnormal_returns[ar$estimation_window == 1]
+  expect_true(all(abs(est_ar) < 1e-12), info = "estimation-window ARs must be ~0 when firm tracks index")
 })
 
 
 # ---- ComparisonPeriodMeanAdjustedModel degenerate contract ----
 
-test_that("ComparisonPeriodMeanAdjustedModel: lenient mode — degenerate returns is_fitted=FALSE + one warning + all-NA ARs", {
-  # insuff: too few valid firm_returns in estimation window
-  # zerovar: all firm_returns are constant (sd == 0)
-  for (cond in c("insuff", "zerovar")) {
-    m <- ComparisonPeriodMeanAdjustedModel$new()
-    m$degenerate_mode <- "lenient"
-    m$event_id    <- "EVT_CPM"
-    m$firm_symbol <- "FIRM_CPM"
-    d <- create_mock_model_data()
-    est <- which(d$estimation_window == 1)
-    if (cond == "insuff") {
-      d$firm_returns[est[-1]] <- NA_real_
-    } else {
-      # CPM checks sd(firm_returns) so set all estimation firm_returns to a constant
-      d$firm_returns[est] <- 0.001
-    }
-    ws <- character(0)
-    withCallingHandlers(m$fit(d), warning = function(w) {
-      ws[[length(ws) + 1L]] <<- conditionMessage(w)
-      invokeRestart("muffleWarning")
-    })
-    expect_false(m$is_fitted, info = paste0("cond=", cond))
-    expect_equal(length(ws), 1L, info = paste0("exactly one warning cond=", cond))
-    ar <- m$abnormal_returns(d)
-    expect_true(all(is.na(ar$abnormal_returns)), info = paste0("cond=", cond))
-  }
+test_that("ComparisonPeriodMeanAdjustedModel: lenient mode — insufficient obs returns is_fitted=FALSE + one warning + all-NA ARs", {
+  m <- ComparisonPeriodMeanAdjustedModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_CPM"
+  m$firm_symbol <- "FIRM_CPM"
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  d$firm_returns[est[-1]] <- NA_real_
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_false(m$is_fitted, info = "insuff: is_fitted=FALSE")
+  expect_equal(length(ws), 1L, info = "insuff: exactly one warning")
+  ar <- m$abnormal_returns(d)
+  expect_true(all(is.na(ar$abnormal_returns)), info = "insuff: all-NA ARs")
 })
 
-test_that("ComparisonPeriodMeanAdjustedModel: strict mode — raises named error", {
-  for (cond in c("insuff", "zerovar")) {
-    m <- ComparisonPeriodMeanAdjustedModel$new()
-    m$degenerate_mode <- "strict"
-    m$event_id    <- "EVT_CPM"
-    m$firm_symbol <- "FIRM_CPM"
-    d <- create_mock_model_data()
-    est <- which(d$estimation_window == 1)
-    if (cond == "insuff") {
-      d$firm_returns[est[-1]] <- NA_real_
-    } else {
-      d$firm_returns[est] <- 0.001
-    }
-    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
-    expect_type(err_msg, "character")
-    expect_match(err_msg, "ComparisonPeriodMeanAdjustedModel")
-    expect_match(err_msg, "EVT_CPM")
-    expect_match(err_msg, "FIRM_CPM")
-  }
+test_that("ComparisonPeriodMeanAdjustedModel: strict mode — insufficient obs raises named error", {
+  m <- ComparisonPeriodMeanAdjustedModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_CPM"
+  m$firm_symbol <- "FIRM_CPM"
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  d$firm_returns[est[-1]] <- NA_real_
+  err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_type(err_msg, "character")
+  expect_match(err_msg, "ComparisonPeriodMeanAdjustedModel")
+  expect_match(err_msg, "EVT_CPM")
+  expect_match(err_msg, "FIRM_CPM")
+})
+
+# --- WR-05 regression test: ComparisonPeriodMeanAdjustedModel must NOT false-degenerate on constant returns ---
+test_that("WR-05: ComparisonPeriodMeanAdjustedModel — constant estimation returns yields is_fitted=TRUE and defined ARs", {
+  # A constant-returns fund (all estimation returns identical) has a well-defined mean
+  # and produces valid abnormal returns = firm_returns - mean. The old false-degenerate
+  # guard would have fired here. After WR-05 fix, the model fits and returns correct ARs;
+  # sigma==0 propagates to the t-stat layer which returns NA t-stats (correct behavior).
+  m <- ComparisonPeriodMeanAdjustedModel$new()
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  constant_val <- 0.001
+  d$firm_returns[est] <- constant_val
+
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_true(m$is_fitted, info = "must be fitted for constant estimation returns")
+  expect_equal(length(ws), 0L, info = "no warning for valid constant-returns input")
+
+  # Abnormal returns in estimation window should be ~0 (constant - constant = 0)
+  ar <- m$abnormal_returns(d)
+  est_ar <- ar$abnormal_returns[ar$estimation_window == 1]
+  expect_true(all(abs(est_ar) < 1e-12), info = "estimation-window ARs must be 0 for constant returns")
 })
 
 
@@ -1107,52 +1125,94 @@ test_that("CustomModel: degenerate input — abnormal_returns returns NA without
 
 # ---- BHARModel degenerate contract ----
 
-test_that("BHARModel: lenient mode — degenerate returns is_fitted=FALSE + one warning + all-NA ARs", {
-  for (cond in c("insuff", "zerovar")) {
-    m <- BHARModel$new()
-    m$degenerate_mode <- "lenient"
-    m$event_id    <- "EVT_BHAR"
-    m$firm_symbol <- "FIRM_BHAR"
-    d <- create_mock_model_data()
-    est <- which(d$estimation_window == 1)
-    if (cond == "insuff") {
-      d$firm_returns[est[-1]]  <- NA_real_
-      d$index_returns[est[-1]] <- NA_real_
-    } else {
-      d$firm_returns[est] <- d$index_returns[est]  # zero variance in diff
-    }
-    ws <- character(0)
-    withCallingHandlers(m$fit(d), warning = function(w) {
-      ws[[length(ws) + 1L]] <<- conditionMessage(w)
-      invokeRestart("muffleWarning")
-    })
-    expect_false(m$is_fitted, info = paste0("cond=", cond))
-    expect_equal(length(ws), 1L, info = paste0("one warning cond=", cond))
-    ar <- m$abnormal_returns(d)
-    expect_true(all(is.na(ar$abnormal_returns)), info = paste0("all-NA cond=", cond))
-  }
+test_that("BHARModel: lenient mode — insufficient obs returns is_fitted=FALSE + one warning + all-NA ARs", {
+  m <- BHARModel$new()
+  m$degenerate_mode <- "lenient"
+  m$event_id    <- "EVT_BHAR"
+  m$firm_symbol <- "FIRM_BHAR"
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  d$firm_returns[est[-1]]  <- NA_real_
+  d$index_returns[est[-1]] <- NA_real_
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_false(m$is_fitted, info = "insuff: is_fitted=FALSE")
+  expect_equal(length(ws), 1L, info = "insuff: one warning")
+  ar <- m$abnormal_returns(d)
+  expect_true(all(is.na(ar$abnormal_returns)), info = "insuff: all-NA ARs")
 })
 
-test_that("BHARModel: strict mode — raises named error", {
-  for (cond in c("insuff", "zerovar")) {
-    m <- BHARModel$new()
-    m$degenerate_mode <- "strict"
-    m$event_id    <- "EVT_BHAR"
-    m$firm_symbol <- "FIRM_BHAR"
-    d <- create_mock_model_data()
-    est <- which(d$estimation_window == 1)
-    if (cond == "insuff") {
-      d$firm_returns[est[-1]]  <- NA_real_
-      d$index_returns[est[-1]] <- NA_real_
-    } else {
-      d$firm_returns[est] <- d$index_returns[est]
-    }
-    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
-    expect_type(err_msg, "character")
-    expect_match(err_msg, "BHARModel")
-    expect_match(err_msg, "EVT_BHAR")
-    expect_match(err_msg, "FIRM_BHAR")
-  }
+test_that("BHARModel: strict mode — insufficient obs raises named error", {
+  m <- BHARModel$new()
+  m$degenerate_mode <- "strict"
+  m$event_id    <- "EVT_BHAR"
+  m$firm_symbol <- "FIRM_BHAR"
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  d$firm_returns[est[-1]]  <- NA_real_
+  d$index_returns[est[-1]] <- NA_real_
+  err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+  expect_type(err_msg, "character")
+  expect_match(err_msg, "BHARModel")
+  expect_match(err_msg, "EVT_BHAR")
+  expect_match(err_msg, "FIRM_BHAR")
+})
+
+# --- CR-02 regression tests ---
+test_that("CR-02A: BHARModel — stock tracking index (zero diff-variance) yields is_fitted=TRUE and ~0 event-window BHAR", {
+  # A firm that perfectly tracks the index has firm_returns == index_returns in the
+  # estimation window. The old false-degenerate guard would have fired here, producing
+  # NA instead of the correct BHAR ~0. After CR-02 fix, the model fits and produces
+  # valid compounded abnormal returns (which are ~0 when both series are identical).
+  m <- BHARModel$new()
+  d <- create_mock_model_data()
+  est <- which(d$estimation_window == 1)
+  # Make firm_returns == index_returns in estimation window (zero diff-variance)
+  d$firm_returns[est] <- d$index_returns[est]
+
+  ws <- character(0)
+  withCallingHandlers(m$fit(d), warning = function(w) {
+    ws[[length(ws) + 1L]] <<- conditionMessage(w)
+    invokeRestart("muffleWarning")
+  })
+  expect_true(m$is_fitted, info = "must be fitted when firm perfectly tracks index")
+  expect_equal(length(ws), 0L, info = "no warning for valid zero-diff input")
+
+  # Event-window abnormal returns should be compounded; non-equal event-window returns
+  # will produce non-zero BHAR, but the key is no NA and no error
+  ar <- m$abnormal_returns(d)
+  expect_true("abnormal_returns" %in% names(ar))
+  # Estimation-window BHAR: since firm == index in estimation, compounded BHAR there = 0
+  est_ar <- ar$abnormal_returns[ar$estimation_window == 1]
+  expect_true(all(abs(est_ar) < 1e-10), info = "estimation-window BHAR ~0 when firm tracks index")
+})
+
+test_that("CR-02B: BHARModel FEC uses finite pair count not nrow (NA-heavy estimation window)", {
+  # With NA rows in the estimation window, nrow inflates the FEC denominator,
+  # understating correction and yielding t-statistics that are too large.
+  # After CR-02B fix, the correction uses the finite pair count so df is correct.
+  m <- BHARModel$new()
+  d <- create_mock_model_data(n_estimation = 50, n_event = 11)
+  est <- which(d$estimation_window == 1)
+  # NA out 10 rows — finite pair count is 40, not 50
+  d$firm_returns[est[1:10]]  <- NA_real_
+  d$index_returns[est[1:10]] <- NA_real_
+  m$fit(d)
+  expect_true(m$is_fitted)
+  # FEC with finite count: sigma * sqrt(1 + 1/40)
+  # FEC with nrow:         sigma * sqrt(1 + 1/50)  [old, wrong]
+  sigma <- m$statistics$sigma
+  fec_val <- m$statistics$forecast_error_corrected_sigma[1]
+  expected_fec_finite <- sigma * sqrt(1 + 1 / 40)
+  expected_fec_nrow   <- sigma * sqrt(1 + 1 / 50)
+  # Must match finite-pair formula, NOT nrow formula
+  expect_equal(fec_val, expected_fec_finite, tolerance = 1e-10,
+               info = "FEC must use finite pair count (n=40), not nrow (n=50)")
+  expect_false(isTRUE(all.equal(fec_val, expected_fec_nrow, tolerance = 1e-10)),
+               info = "FEC must NOT equal nrow-based formula (n=50)")
 })
 
 test_that("BHARModel: df reflects only finite residuals (MODELS-03)", {
@@ -1353,4 +1413,50 @@ test_that("VolatilityModel: valid-input baseline invariance (CONTRACT-05)", {
   expect_equal(m$statistics$degree_of_freedom, bl$df, tolerance = 1e-8)
   ar <- m$abnormal_returns(d)$abnormal_returns[which(d$event_window == 1)][1:5]
   expect_equal(ar, bl$ar5, tolerance = 1e-8)
+})
+
+
+# ============================================================
+# WR-03: FEC finite-pair-count regression tests (Plan 02-02)
+#
+# When the estimation window contains NA rows, nrow() inflates the FEC
+# denominator, understating the correction factor and producing t-statistics
+# that are too large (false positives). These tests verify the fix.
+# ============================================================
+
+test_that("WR-03: MarketAdjustedModel FEC uses finite pair count not nrow (NA-heavy window)", {
+  m <- MarketAdjustedModel$new()
+  d <- create_mock_model_data(n_estimation = 50, n_event = 5)
+  est <- which(d$estimation_window == 1)
+  # NA out 10 rows: finite pairs = 40, nrow = 50
+  d$firm_returns[est[1:10]]  <- NA_real_
+  d$index_returns[est[1:10]] <- NA_real_
+  m$fit(d)
+  expect_true(m$is_fitted)
+  sigma <- m$statistics$sigma
+  fec_val <- m$statistics$forecast_error_corrected_sigma[1]
+  expected_finite <- sigma * sqrt(1 + 1 / 40)
+  expected_nrow   <- sigma * sqrt(1 + 1 / 50)
+  expect_equal(fec_val, expected_finite, tolerance = 1e-10,
+               info = "FEC must use finite pair count (n=40), not nrow (n=50)")
+  expect_false(isTRUE(all.equal(fec_val, expected_nrow, tolerance = 1e-10)),
+               info = "FEC must NOT equal nrow-based formula")
+})
+
+test_that("WR-03: ComparisonPeriodMeanAdjustedModel FEC uses finite value count not nrow (NA-heavy window)", {
+  m <- ComparisonPeriodMeanAdjustedModel$new()
+  d <- create_mock_model_data(n_estimation = 50, n_event = 5)
+  est <- which(d$estimation_window == 1)
+  # NA out 15 rows: finite firm_returns = 35, nrow = 50
+  d$firm_returns[est[1:15]] <- NA_real_
+  m$fit(d)
+  expect_true(m$is_fitted)
+  sigma <- m$statistics$sigma
+  fec_val <- m$statistics$forecast_error_corrected_sigma[1]
+  expected_finite <- sigma * sqrt(1 + 1 / 35)
+  expected_nrow   <- sigma * sqrt(1 + 1 / 50)
+  expect_equal(fec_val, expected_finite, tolerance = 1e-10,
+               info = "CPM FEC must use finite value count (n=35), not nrow (n=50)")
+  expect_false(isTRUE(all.equal(fec_val, expected_nrow, tolerance = 1e-10)),
+               info = "CPM FEC must NOT equal nrow-based formula")
 })
