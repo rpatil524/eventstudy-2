@@ -31,7 +31,9 @@ utils::globalVariables(c(
   "excess_return", "market_excess", "fec_sigma", "day_index",
   "sum_sar", "expected_return", "kp_t", "ckp_t",
   "loss_market_cap", "caltime_t", "ccaltime_t",
-  "k", "model_k"
+  "k", "model_k",
+  # Phase 4 (04-02): bootstrap n_car NSE column in bootstrap_test()
+  "n_car"
 ))
 
 #' @title EventStudy: Event Study Analysis in R

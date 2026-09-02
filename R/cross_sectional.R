@@ -52,12 +52,12 @@ cross_sectional_regression <- function(task, formula, data,
   rhs <- as.character(formula)[length(as.character(formula))]
   reg_formula <- stats::as.formula(paste("car ~", rhs))
 
-  # Fit OLS — wrap in tryCatch so an lm() error (e.g., singular formula)
+  # Fit OLS -- wrap in tryCatch so an lm() error (e.g., singular formula)
   # returns NULL + warning instead of crashing the caller.
   fit <- tryCatch(
     stats::lm(reg_formula, data = merged),
     error = function(e) {
-      warning("cross_sectional_regression: lm() failed — ",
+      warning("cross_sectional_regression: lm() failed -- ",
               conditionMessage(e), call. = FALSE)
       NULL
     }
@@ -81,11 +81,11 @@ cross_sectional_regression <- function(task, formula, data,
 
   # Robust standard errors
   if (robust && requireNamespace("sandwich", quietly = TRUE)) {
-    # Wrap vcovHC — on a perfectly singular design solve() throws here.
+    # Wrap vcovHC -- on a perfectly singular design solve() throws here.
     vcov_hc <- tryCatch(
       sandwich::vcovHC(fit, type = "HC1"),
       error = function(e) {
-        warning("cross_sectional_regression: vcovHC() failed (singular design) — ",
+        warning("cross_sectional_regression: vcovHC() failed (singular design) -- ",
                 "returning NA standard errors.", call. = FALSE)
         NULL
       }
