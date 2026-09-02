@@ -51,7 +51,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Running multi-event statistics (Patell Z, BMP, KP) on a dataset where a firm appears in more than one event produces correct denominators and counts — no many-to-many inflation of test statistics
   5. CAR/CAAR chains computed by CSectTTest and export methods tolerate a firm dropping out mid-window (its NA gap does not silently corrupt subsequent cumulative values for that firm)
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+- [ ] 02-01-PLAN.md — Simple/adjusted/mean + BHAR/Volume/Volatility onto contract; shared .finite_residual_df helper + new degenerate factories (wave 1)
+- [ ] 02-02-PLAN.md — Factor family: fix LinearFactorModel$fit() once, .degenerate_handled branch on all 4 abnormal_returns overrides (wave 2)
+- [ ] 02-03-PLAN.md — Time-varying/external: RollingWindow + GARCH/DCC pre-call guards only (failure wrapping stays Phase 3) (wave 3)
+- [ ] 02-04-PLAN.md — Test statistics: sigma==0 + n_events==1 guards; verify-and-lock joins/cumsum with regression tests (wave 1)
 
 ### Phase 3: Pipeline and External Hardening
 
@@ -87,6 +92,6 @@ Decimal phases appear between their surrounding integers in numeric order.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Contract Foundation | 2/2 | Complete    | 2026-09-02 |
-| 2. Model and Stats Sweep | 0/TBD | Not started | - |
+| 2. Model and Stats Sweep | 0/4 | Not started | - |
 | 3. Pipeline and External Hardening | 0/TBD | Not started | - |
 | 4. Regression Net and Check Gate | 0/TBD | Not started | - |
