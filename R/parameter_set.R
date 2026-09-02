@@ -61,9 +61,11 @@ ParameterSet = R6::R6Class(classname = "ParameterSet",
                                  self$multi_event_statistics = multi_event_statistics
                                }
 
-                               # Validate degenerate_handling — NULL means "use option/default"
+                               # Validate and normalise degenerate_handling — NULL means
+                               # "use option/default". Store the match.arg()-normalised value
+                               # so partial matches like "str" are stored as "strict".
                                if (!is.null(degenerate_handling)) {
-                                 match.arg(degenerate_handling, c("lenient", "strict"))
+                                 degenerate_handling <- match.arg(degenerate_handling, c("lenient", "strict"))
                                }
                                self$degenerate_handling <- degenerate_handling
                              },
