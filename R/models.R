@@ -1003,6 +1003,49 @@ GARCHModel <- R6Class("GARCHModel",
                            estimation_tbl <- data_tbl %>%
                              dplyr::filter(estimation_window == 1)
 
+                           # --- PRE-CALL contract guards (Phase 2) ---
+                           # Inserted BEFORE rugarch::ugarchspec().
+                           # The existing purrr::safely(ugarchfit) / convergence / warning
+                           # failure-handling below is Phase 3 and left untouched.
+
+                           # Resolve degenerate mode once per fit call
+                           mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                           # Guard 1: insufficient finite observation pairs
+                           n_valid <- sum(!is.na(estimation_tbl$firm_returns) &
+                                           !is.na(estimation_tbl$index_returns))
+                           if (n_valid < 2) {
+                             .handle_degenerate(
+                               mode        = mode,
+                               condition   = paste0("insufficient estimation observations (",
+                                                    n_valid, " valid, need 2)"),
+                               component   = self$model_name,
+                               event_id    = self$event_id,
+                               firm_symbol = self$firm_symbol,
+                               private_env = private
+                             )
+                             private$.is_fitted <- FALSE
+                             return(invisible(self))
+                           }
+
+                           # Guard 2: zero or near-zero variance in index_returns
+                           # (index_returns is the external regressor in the GARCH mean equation;
+                           # zero variance makes the mean equation degenerate)
+                           if (stats::sd(estimation_tbl$index_returns, na.rm = TRUE) <
+                               .Machine$double.eps) {
+                             .handle_degenerate(
+                               mode        = mode,
+                               condition   = "zero or near-zero variance in index_returns",
+                               component   = self$model_name,
+                               event_id    = self$event_id,
+                               firm_symbol = self$firm_symbol,
+                               private_env = private
+                             )
+                             private$.is_fitted <- FALSE
+                             return(invisible(self))
+                           }
+                           # --- end PRE-CALL guards ---
+
                            spec <- rugarch::ugarchspec(
                              variance.model = list(
                                model = "sGARCH",
@@ -1049,22 +1092,25 @@ GARCHModel <- R6Class("GARCHModel",
                          #'
                          #' @param data_tbl Data frame or tibble.
                          abnormal_returns = function(data_tbl) {
-                           if (!private$.is_fitted) {
-                             warning("GARCHModel is not fitted. Returning NA abnormal returns.")
-                             return(data_tbl %>% dplyr::mutate(abnormal_returns = NA_real_))
+                           if (private$.is_fitted) {
+                             garch_fit <- private$.fitted_model
+                             coefs <- rugarch::coef(garch_fit)
+                             mu <- coefs["mu"]
+                             mxreg1 <- coefs["mxreg1"]
+                             data_tbl %>%
+                               dplyr::mutate(
+                                 expected_return = mu + mxreg1 * index_returns,
+                                 abnormal_returns = firm_returns - expected_return
+                               ) %>%
+                               dplyr::select(-expected_return)
+                           } else if (private$.degenerate_handled) {
+                             # fit() already emitted one contract-formatted warning;
+                             # return NA silently to honour the one-warning guarantee.
+                             data_tbl %>% dplyr::mutate(abnormal_returns = NA_real_)
+                           } else {
+                             warning(self$model_name, " is not fitted. Returning NA abnormal returns.")
+                             data_tbl %>% dplyr::mutate(abnormal_returns = NA_real_)
                            }
-
-                           garch_fit <- private$.fitted_model
-                           coefs <- rugarch::coef(garch_fit)
-                           mu <- coefs["mu"]
-                           mxreg1 <- coefs["mxreg1"]
-
-                           data_tbl %>%
-                             dplyr::mutate(
-                               expected_return = mu + mxreg1 * index_returns,
-                               abnormal_returns = firm_returns - expected_return
-                             ) %>%
-                             dplyr::select(-expected_return)
                          }
                        ),
                        private = list(
@@ -1093,11 +1139,14 @@ GARCHModel <- R6Class("GARCHModel",
                            private$first_order_autocorrelation(residuals)
 
                            # Forecast error correction (using average sigma)
+                           # Use n_valid (finite obs) not nrow — MODELS-04 FEC fix
                            estimation_tbl <- data_tbl %>% dplyr::filter(estimation_window == 1)
                            event_window_tbl <- data_tbl %>% dplyr::filter(event_window == 1)
+                           n_valid_fec <- sum(!is.na(estimation_tbl$firm_returns) &
+                                               !is.na(estimation_tbl$index_returns))
                            private$calculate_forecast_error_correction(
                              avg_sigma,
-                             nrow(estimation_tbl),
+                             n_valid_fec,
                              estimation_tbl$index_returns,
                              event_window_tbl$index_returns
                            )
