@@ -20,7 +20,7 @@ the specific reason for the degeneracy.
 \strong{Configuration:}
 \itemize{
   \item Via \code{ParameterSet}: \code{ParameterSet$new(degenerate_handling = "strict")}
-  \item Via package option: \code{options(eventstudy.degenerate_handling = "strict")}
+  \item Via package option: \code{options(EventStudy.degenerate_handling = "strict")}
 }
 The ParameterSet field takes precedence over the package option; if
 neither is set, the default \code{"lenient"} mode is used.

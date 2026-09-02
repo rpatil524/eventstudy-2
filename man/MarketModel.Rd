@@ -27,15 +27,6 @@ idiosyncratic component.
 
     \item{\code{hac_lag}}{Integer or NULL. Lag truncation for Newey-West.
 NULL uses the automatic bandwidth selection.}
-
-    \item{\code{degenerate_mode}}{Resolved degenerate-input mode. Set by
-.initialize_and_fit_model() before fit() is called.}
-
-    \item{\code{event_id}}{Event identifier threaded from the outer data_tbl row.
-Used in degenerate-input error/warning messages.}
-
-    \item{\code{firm_symbol}}{Firm identifier threaded from the outer data_tbl row.
-Used in degenerate-input error/warning messages.}
   }
   \if{html}{\out{</div>}}
 }
