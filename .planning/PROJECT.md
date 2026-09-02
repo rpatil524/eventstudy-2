@@ -25,14 +25,14 @@ The package must never produce a silently incorrect statistical result. On degen
 - ✓ Bootstrap inference, cross-sectional regression, diagnostics, power simulation — existing
 - ✓ CSV/Excel/LaTeX export and broom-compatible tidy() — existing
 - ✓ testthat suite (~27 files, 400+ tests) with mock-data helpers and a dedicated `test_edge_cases.R` — existing
+- ✓ **Documented degenerate-input contract** (`?degenerate-input-contract`, `R/contract.R`) covering insufficient obs, zero variance, single-event groups, NA propagation — Phase 1 (CONTRACT-01)
+- ✓ **Configurable strict vs lenient handling** — `ParameterSet$degenerate_handling` field + `EventStudy.degenerate_handling` option, resolver `.resolve_degenerate_mode()` (default lenient); strict names the offending event_id/firm_symbol, lenient sets `is_fitted=FALSE` + NA + exactly one warning; proven on MarketModel — Phase 1 (CONTRACT-02..05)
 
 ### Active
 
 <!-- This milestone's scope. Hardening the above without changing its statistical intent. -->
 
-- [ ] **Define and document a degenerate-input contract** — a single, predictable policy for insufficient observations, zero variance, single-event groups, and NA propagation, applied uniformly across all covered components
-- [ ] **Configurable strict vs lenient handling** — strict raises a descriptive error naming the offending event/firm; lenient sets `is_fitted = FALSE`, propagates NA, and emits exactly one clear warning
-- [ ] **Apply the contract to every return model** — consistent guards for <2 estimation obs, zero variance (`sd < .Machine$double.eps`), correct finite-only degree-of-freedom counting
+- [ ] **Apply the contract to every return model** — consistent guards for <2 estimation obs, zero variance (`sd < .Machine$double.eps`), correct finite-only degree-of-freedom counting (Phase 2; wire remaining ~12 models onto `.handle_degenerate()` — review finding WR-01)
 - [ ] **Apply the contract to every test statistic** — no Inf/NaN leakage; correct NA-safe cumsum/CAR chains (`coalesce`), correct denominators for single-event and firms-in-multiple-events cases
 - [ ] **Harden prepare/window logic and export/tidy** — NA-safe guards before `if()`, missing-date and empty-window handling, consistent `na.rm`
 - [ ] **Defensively wrap external-package areas** — panel DiD, GARCH/DCC-GARCH, synthetic control: `tryCatch` with informative errors, version/availability guards, subprocess isolation where needed (e.g. DIDmultiplegt), warn-not-crash on upstream failure
@@ -68,7 +68,8 @@ The package must never produce a silently incorrect statistical result. On degen
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Configurable strict vs lenient degenerate-input handling | Serves both fail-fast interactive use and NA-tolerant batch runs across many events | — Pending |
+| Configurable strict vs lenient degenerate-input handling | Serves both fail-fast interactive use and NA-tolerant batch runs across many events | ✓ Phase 1 — ParameterSet field + `EventStudy.degenerate_handling` option, default lenient; proven on MarketModel |
+| Mode threaded via model fields set in `.initialize_and_fit_model()` (not a `fit()` arg) | ParameterSet is not reachable inside per-event `fit()`; assigning `degenerate_mode`/`event_id`/`firm_symbol` on the cloned model + `purrr::map(seq_len(nrow()))` avoids an API change and untested NSE | ✓ Phase 1 — pattern for Phase 2 to replicate |
 | Harden everything incl. external-package areas | User wants full coverage; externals get defensive wrapping rather than reimplementation | — Pending |
 | Acceptance bar = regression test per fix + contract matrix + green R CMD check | Converts recurring audit churn into a durable net; measurable and CRAN-aligned | — Pending |
 | Layer the work: contract → bug sweep → correctness guarantees | Foundation first (uniform policy), then the sweep, then the acceptance bar | — Pending |
@@ -92,4 +93,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-02 after initialization*
+*Last updated: 2026-09-02 after Phase 1*

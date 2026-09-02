@@ -11,11 +11,11 @@ Requirements for this hardening milestone. Each maps to roadmap phases.
 
 The uniform degenerate-input policy and its configuration surface.
 
-- [ ] **CONTRACT-01**: A single documented degenerate-input contract defines expected behavior for insufficient observations (<2 estimation obs), zero variance, single-event groups, and NA propagation
-- [ ] **CONTRACT-02**: A configurable mode switch selects strict vs lenient handling (via ParameterSet field and/or package option), with a documented default
-- [ ] **CONTRACT-03**: In strict mode, degenerate input raises a descriptive error naming the offending event_id and/or firm_symbol
-- [ ] **CONTRACT-04**: In lenient mode, degenerate input sets `is_fitted = FALSE`, propagates NA through downstream statistics, and emits exactly one clear warning (no duplicate warnings per event)
-- [ ] **CONTRACT-05**: Behavior on valid (non-degenerate) input is unchanged from current release — the contract adds guards, not new results
+- [x] **CONTRACT-01**: A single documented degenerate-input contract defines expected behavior for insufficient observations (<2 estimation obs), zero variance, single-event groups, and NA propagation
+- [x] **CONTRACT-02**: A configurable mode switch selects strict vs lenient handling (via ParameterSet field and/or package option), with a documented default
+- [x] **CONTRACT-03**: In strict mode, degenerate input raises a descriptive error naming the offending event_id and/or firm_symbol
+- [x] **CONTRACT-04**: In lenient mode, degenerate input sets `is_fitted = FALSE`, propagates NA through downstream statistics, and emits exactly one clear warning (no duplicate warnings per event)
+- [x] **CONTRACT-05**: Behavior on valid (non-degenerate) input is unchanged from current release — the contract adds guards, not new results
 
 ### Models
 
@@ -96,11 +96,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONTRACT-01 | Phase 1 | Pending |
-| CONTRACT-02 | Phase 1 | Pending |
-| CONTRACT-03 | Phase 1 | Pending |
-| CONTRACT-04 | Phase 1 | Pending |
-| CONTRACT-05 | Phase 1 | Pending |
+| CONTRACT-01 | Phase 1 | Complete |
+| CONTRACT-02 | Phase 1 | Complete |
+| CONTRACT-03 | Phase 1 | Complete |
+| CONTRACT-04 | Phase 1 | Complete |
+| CONTRACT-05 | Phase 1 | Complete |
 | MODELS-01 | Phase 2 | Pending |
 | MODELS-02 | Phase 2 | Pending |
 | MODELS-03 | Phase 2 | Pending |
@@ -122,6 +122,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-04 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 24 total
 - Mapped to phases: 24
 - Unmapped: 0 ✓

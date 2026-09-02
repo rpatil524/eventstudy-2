@@ -1,0 +1,33 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": null,
+  "phases": [
+    {
+      "number": "1",
+      "name": "Contract Foundation",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "Model and Stats Sweep",
+      "status": "pending"
+    },
+    {
+      "number": "3",
+      "name": "Pipeline and External Hardening",
+      "status": "pending"
+    },
+    {
+      "number": "4",
+      "name": "Regression Net and Check Gate",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step (plan phase 2)",
+    "reason": "Phase 2 of 4 — needs a plan"
+  },
+  "updated_at": "2026-09-02T08:48:33.140Z"
+}
