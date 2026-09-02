@@ -540,3 +540,144 @@ test_that("PatellZTest does not inflate n_events when firms recur (GH #7)", {
   expect_true(all(result$n_valid_events == 6))
   expect_true(all(is.finite(result$aar_z)))
 })
+
+
+# --- STATS-02 regression test: CSectTTest does not inflate when firms recur ---
+
+test_that("STATS-02: CSectTTest does not inflate n_events when firms recur", {
+  # 6 events, only 2 distinct firms: F1 appears in events E1,E3,E5 and F2 in E2,E4,E6.
+  # A many-to-many join on firm_symbol would triple-count each firm → n_events == 18.
+  # The correct join on event_id yields n_events == 6 (one row per event per day).
+  md = create_shared_firm_data(n_events = 6)
+  result = CSectTTest$new()$compute(md$data, md$model)
+
+  expect_true(all(result$n_events == 6),
+              "CSectTTest n_events must equal the number of events, not inflated by firm recurrence")
+  expect_true(all(result$n_valid_events == 6))
+  # aar_t must be finite (sd of 6 values is estimable)
+  expect_true(all(is.finite(result$aar_t)))
+})
+
+
+# --- STATS-04 regression tests: n_events == 1 → NA (not finite-but-invalid) ---
+
+# Minimal single-event dataset for n_events == 1 tests.
+make_single_event_data <- function(n_est = 30, n_ev = 5) {
+  set.seed(11)
+  tibble::tibble(
+    event_id          = "E1",
+    firm_symbol       = "F1",
+    relative_index    = c(seq(-n_est, -1), seq(0, n_ev - 1)),
+    abnormal_returns  = rnorm(n_est + n_ev, mean = 0.001, sd = 0.02),
+    event_window      = c(rep(0L, n_est), rep(1L, n_ev)),
+    estimation_window = c(rep(1L, n_est), rep(0L, n_ev)),
+    index_returns     = rnorm(n_est + n_ev, 0.0003, 0.015),
+    firm_returns      = rnorm(n_est + n_ev, 0.001, 0.02),
+    event_date        = c(rep(0L, n_est), 1L, rep(0L, n_ev - 1))
+  )
+}
+
+make_single_event_model_tbl <- function(data) {
+  mm <- MarketModel$new()
+  mm$fit(data)
+  tibble::tibble(
+    event_id    = "E1",
+    firm_symbol = "F1",
+    model       = list(mm)
+  )
+}
+
+
+test_that("STATS-04: PatellZTest aar_z is NA (not finite) when n_events == 1", {
+  d   <- make_single_event_data()
+  mod <- make_single_event_model_tbl(d)
+
+  result <- PatellZTest$new()$compute(d, mod)
+
+  # With only 1 event the Patell z-test is statistically invalid → must be NA
+  expect_true(all(is.na(result$aar_z)),
+              "PatellZTest aar_z must be NA when n_events == 1")
+  expect_false(any(is.finite(result$aar_z)),
+               "PatellZTest aar_z must not be a finite number when n_events == 1")
+})
+
+
+test_that("STATS-04: PatellZTest caar_z is NA (not finite) when n_events == 1", {
+  d   <- make_single_event_data()
+  mod <- make_single_event_model_tbl(d)
+
+  result <- PatellZTest$new()$compute(d, mod)
+
+  expect_true(all(is.na(result$caar_z)),
+              "PatellZTest caar_z must be NA when n_events == 1")
+  expect_false(any(is.finite(result$caar_z)),
+               "PatellZTest caar_z must not be a finite number when n_events == 1")
+})
+
+
+test_that("STATS-04: SignTest sign_z is NA (not finite) when n_events == 1", {
+  d <- make_single_event_data()
+
+  result <- SignTest$new()$compute(d, NULL)
+
+  expect_true(all(is.na(result$sign_z)),
+              "SignTest sign_z must be NA when n_events == 1")
+  expect_false(any(is.finite(result$sign_z)),
+               "SignTest sign_z must not be a finite number when n_events == 1")
+})
+
+
+test_that("STATS-04: BMPTest bmp_t is NA (already correct baseline) when n_events == 1", {
+  d   <- make_single_event_data()
+  mod <- make_single_event_model_tbl(d)
+
+  result <- BMPTest$new()$compute(d, mod)
+
+  # bmp_t = sd of single value → NA (sd(x) = NA for length-1). Locks existing guard.
+  expect_true(all(is.na(result$bmp_t)),
+              "BMPTest bmp_t must be NA when n_events == 1 (sd of single value is NA)")
+})
+
+
+test_that("STATS-04: CSectTTest aar_t is NA (already correct baseline) when n_events == 1", {
+  d <- make_single_event_data()
+
+  result <- CSectTTest$new()$compute(d, NULL)
+
+  # sd(x) for a single value is NA → aar_t guard fires → NA. Locks existing behaviour.
+  expect_true(all(is.na(result$aar_t)),
+              "CSectTTest aar_t must be NA when n_events == 1")
+})
+
+
+test_that("STATS-04: PatellZTest returns finite aar_z / caar_z with >= 2 events (regression)", {
+  # Confirm the guard does not fire for valid multi-event data.
+  md <- create_multi_event_model_data(n_firms = 4)
+  result <- PatellZTest$new()$compute(md$data, md$model)
+
+  expect_true(all(is.finite(result$aar_z)),
+              "PatellZTest aar_z must be finite for n_events >= 2")
+  expect_true(all(is.finite(result$caar_z)),
+              "PatellZTest caar_z must be finite for n_events >= 2")
+})
+
+
+test_that("STATS-04: SignTest returns finite sign_z with >= 2 events (regression)", {
+  # Confirm the guard does not fire for valid multi-event data.
+  set.seed(42)
+  d <- do.call(rbind, lapply(1:4, function(i) {
+    tibble::tibble(
+      event_id          = paste0("E", i),
+      firm_symbol       = paste0("F", i),
+      relative_index    = -5:5,
+      abnormal_returns  = rnorm(11, 0.005, 0.02),
+      event_window      = 1L,
+      estimation_window = 0L
+    )
+  }))
+
+  result <- SignTest$new()$compute(d, NULL)
+
+  expect_true(all(is.finite(result$sign_z)),
+              "SignTest sign_z must be finite for n_events >= 2")
+})
