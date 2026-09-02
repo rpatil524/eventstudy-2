@@ -96,36 +96,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONTRACT-01 | TBD | Pending |
-| CONTRACT-02 | TBD | Pending |
-| CONTRACT-03 | TBD | Pending |
-| CONTRACT-04 | TBD | Pending |
-| CONTRACT-05 | TBD | Pending |
-| MODELS-01 | TBD | Pending |
-| MODELS-02 | TBD | Pending |
-| MODELS-03 | TBD | Pending |
-| MODELS-04 | TBD | Pending |
-| STATS-01 | TBD | Pending |
-| STATS-02 | TBD | Pending |
-| STATS-03 | TBD | Pending |
-| STATS-04 | TBD | Pending |
-| PIPELINE-01 | TBD | Pending |
-| PIPELINE-02 | TBD | Pending |
-| PIPELINE-03 | TBD | Pending |
-| EXTERNAL-01 | TBD | Pending |
-| EXTERNAL-02 | TBD | Pending |
-| EXTERNAL-03 | TBD | Pending |
-| EXTERNAL-04 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
-| TEST-04 | TBD | Pending |
+| CONTRACT-01 | Phase 1 | Pending |
+| CONTRACT-02 | Phase 1 | Pending |
+| CONTRACT-03 | Phase 1 | Pending |
+| CONTRACT-04 | Phase 1 | Pending |
+| CONTRACT-05 | Phase 1 | Pending |
+| MODELS-01 | Phase 2 | Pending |
+| MODELS-02 | Phase 2 | Pending |
+| MODELS-03 | Phase 2 | Pending |
+| MODELS-04 | Phase 2 | Pending |
+| STATS-01 | Phase 2 | Pending |
+| STATS-02 | Phase 2 | Pending |
+| STATS-03 | Phase 2 | Pending |
+| STATS-04 | Phase 2 | Pending |
+| PIPELINE-01 | Phase 3 | Pending |
+| PIPELINE-02 | Phase 3 | Pending |
+| PIPELINE-03 | Phase 3 | Pending |
+| EXTERNAL-01 | Phase 3 | Pending |
+| EXTERNAL-02 | Phase 3 | Pending |
+| EXTERNAL-03 | Phase 3 | Pending |
+| EXTERNAL-04 | Phase 3 | Pending |
+| TEST-01 | Phase 4 | Pending |
+| TEST-02 | Phase 4 | Pending |
+| TEST-03 | Phase 4 | Pending |
+| TEST-04 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 24 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 24 ⚠️
+- Mapped to phases: 24
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-02*
-*Last updated: 2026-09-02 after initial definition*
+*Last updated: 2026-09-02 after roadmap creation*
