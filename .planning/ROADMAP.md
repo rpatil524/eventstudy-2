@@ -29,7 +29,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Running the same component in lenient mode on the same input sets is_fitted = FALSE, returns NA for all downstream statistics, and emits exactly one warning — no duplicate warnings per event
   4. Switching between strict and lenient mode via ParameterSet field (or package option) works without reloading the package
   5. A valid (non-degenerate) input through the same reference component produces identical numerical output before and after the contract implementation
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 01-01-PLAN.md — Implement contract (R/contract.R doc+helpers, ParameterSet field, execute.R threading, MarketModel refactor)
+- [ ] 01-02-PLAN.md — Verification net (contract test suite, degenerate factories, docs/NAMESPACE regen, full suite green)
 
 ### Phase 2: Model and Stats Sweep
 **Goal**: Every return model and every test statistic uniformly follows the Phase 1 contract — no component is left emitting Inf/NaN silently or crashing on degenerate input
