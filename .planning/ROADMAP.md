@@ -88,7 +88,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Running devtools::test() (or testthat::test_dir()) on the full suite passes all 400+ pre-existing tests with no regressions
   4. Running R CMD check produces no new NOTEs or WARNINGs compared to the pre-milestone baseline — the CRAN submission bar is met
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+- [ ] 04-01-PLAN.md — Contract matrix (table-driven test_contract_matrix.R, every component × {strict,lenient} × degenerate input) + fix→test catalog in NEWS.md (TEST-01/02) (wave 1)
+- [ ] 04-02-PLAN.md — Check gate: full suite green + devtools::document() + R CMD check baseline delta, fix new NOTEs/WARNINGs at source (TEST-03/04) (wave 2)
 
 ## Progress
 
@@ -97,4 +100,4 @@ Decimal phases appear between their surrounding integers in numeric order.
 | 1. Contract Foundation | 2/2 | Complete    | 2026-09-02 |
 | 2. Model and Stats Sweep | 4/4 | Complete    | 2026-09-02 |
 | 3. Pipeline and External Hardening | 2/2 | Complete    | 2026-09-02 |
-| 4. Regression Net and Check Gate | 0/TBD | Not started | - |
+| 4. Regression Net and Check Gate | 0/2 | Not started | - |
