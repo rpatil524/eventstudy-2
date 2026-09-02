@@ -150,3 +150,42 @@ create_mock_model_data <- function(n_estimation = 120, n_event = 11) {
     event_date = c(rep(0, n_estimation), 1, rep(0, n_event - 1))
   )
 }
+
+
+#' Create degenerate model data with insufficient estimation observations
+#'
+#' Returns a data set derived from create_mock_model_data() where all but
+#' the first \code{n_valid} estimation-window rows have both firm_returns
+#' and index_returns set to NA_real_, producing a degenerate estimation
+#' window with fewer than 2 valid observations.
+#'
+#' @param n_valid Integer. Number of estimation rows to leave non-NA (default 1).
+#' @param n_event Integer. Number of event-window rows (default 11).
+create_degenerate_model_data_insufficient <- function(n_valid = 1, n_event = 11) {
+  d <- create_mock_model_data(n_estimation = 120, n_event = n_event)
+  # Identify estimation rows
+  est_rows <- which(d$estimation_window == 1)
+  # Set all estimation rows beyond the first n_valid to NA
+  if (length(est_rows) > n_valid) {
+    rows_to_na <- est_rows[(n_valid + 1):length(est_rows)]
+    d$firm_returns[rows_to_na]  <- NA_real_
+    d$index_returns[rows_to_na] <- NA_real_
+  }
+  d
+}
+
+
+#' Create degenerate model data with zero variance in index returns
+#'
+#' Returns a data set derived from create_mock_model_data() where all
+#' estimation-window index_returns are set to a single constant (0.001),
+#' making sd(index_returns) == 0 in the estimation window and OLS undefined.
+#'
+#' @param n_event Integer. Number of event-window rows (default 11).
+create_degenerate_model_data_zero_variance <- function(n_event = 11) {
+  d <- create_mock_model_data(n_estimation = 120, n_event = n_event)
+  # Set all estimation-window index_returns to a constant
+  est_rows <- which(d$estimation_window == 1)
+  d$index_returns[est_rows] <- 0.001
+  d
+}
