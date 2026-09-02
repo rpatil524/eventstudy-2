@@ -247,6 +247,62 @@ DCCGARCHModel <- R6Class("DCCGARCHModel",
                                estimation_tbl <- data_tbl %>%
                                  dplyr::filter(estimation_window == 1)
 
+                               # --- PRE-CALL contract guards (Phase 2) ---
+                               # Inserted BEFORE returns_mat <- cbind(...).
+                               # The existing purrr::safely(dccfit) / rcov / warning
+                               # failure-handling below is Phase 3 and left untouched.
+
+                               # Resolve degenerate mode once per fit call
+                               mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                               # Guard 1: insufficient finite (firm, index) pairs
+                               n_valid <- sum(!is.na(estimation_tbl$firm_returns) &
+                                               !is.na(estimation_tbl$index_returns))
+                               if (n_valid < 2) {
+                                 .handle_degenerate(
+                                   mode        = mode,
+                                   condition   = paste0("insufficient estimation observations (",
+                                                        n_valid, " valid, need 2)"),
+                                   component   = self$model_name,
+                                   event_id    = self$event_id,
+                                   firm_symbol = self$firm_symbol,
+                                   private_env = private
+                                 )
+                                 private$.is_fitted <- FALSE
+                                 return(invisible(self))
+                               }
+
+                               # Guard 2: zero or near-zero variance in either series
+                               # DCC-GARCH requires BOTH series to have variance; zero variance
+                               # in either series makes the univariate GARCH sub-model degenerate.
+                               sd_firm  <- stats::sd(estimation_tbl$firm_returns,  na.rm = TRUE)
+                               sd_index <- stats::sd(estimation_tbl$index_returns, na.rm = TRUE)
+                               if (sd_firm < .Machine$double.eps) {
+                                 .handle_degenerate(
+                                   mode        = mode,
+                                   condition   = "zero or near-zero variance in firm_returns",
+                                   component   = self$model_name,
+                                   event_id    = self$event_id,
+                                   firm_symbol = self$firm_symbol,
+                                   private_env = private
+                                 )
+                                 private$.is_fitted <- FALSE
+                                 return(invisible(self))
+                               }
+                               if (sd_index < .Machine$double.eps) {
+                                 .handle_degenerate(
+                                   mode        = mode,
+                                   condition   = "zero or near-zero variance in index_returns",
+                                   component   = self$model_name,
+                                   event_id    = self$event_id,
+                                   firm_symbol = self$firm_symbol,
+                                   private_env = private
+                                 )
+                                 private$.is_fitted <- FALSE
+                                 return(invisible(self))
+                               }
+                               # --- end PRE-CALL guards ---
+
                                returns_mat <- cbind(estimation_tbl$firm_returns,
                                                      estimation_tbl$index_returns)
 
@@ -300,20 +356,24 @@ DCCGARCHModel <- R6Class("DCCGARCHModel",
                              #'
                              #' @param data_tbl Data frame or tibble.
                              abnormal_returns = function(data_tbl) {
-                               if (!private$.is_fitted) {
-                                 warning("DCCGARCHModel is not fitted. Returning NA.")
-                                 return(data_tbl %>%
-                                          dplyr::mutate(abnormal_returns = NA_real_))
+                               if (private$.is_fitted) {
+                                 alpha_last <- private$.statistics$alpha
+                                 beta_last <- private$.statistics$beta
+                                 data_tbl %>%
+                                   dplyr::mutate(
+                                     abnormal_returns = firm_returns -
+                                       (alpha_last + beta_last * index_returns)
+                                   )
+                               } else if (private$.degenerate_handled) {
+                                 # fit() already emitted one contract-formatted warning;
+                                 # return NA silently to honour the one-warning guarantee.
+                                 data_tbl %>%
+                                   dplyr::mutate(abnormal_returns = NA_real_)
+                               } else {
+                                 warning(self$model_name, " is not fitted. Returning NA abnormal returns.")
+                                 data_tbl %>%
+                                   dplyr::mutate(abnormal_returns = NA_real_)
                                }
-
-                               alpha_last <- private$.statistics$alpha
-                               beta_last <- private$.statistics$beta
-
-                               data_tbl %>%
-                                 dplyr::mutate(
-                                   abnormal_returns = firm_returns -
-                                     (alpha_last + beta_last * index_returns)
-                                 )
                              }
                            ),
                            private = list(
@@ -370,11 +430,14 @@ DCCGARCHModel <- R6Class("DCCGARCHModel",
                                }
 
                                # Forecast error correction
+                               # Use n_valid (finite obs) not nrow — MODELS-04 FEC fix
                                event_window_tbl <- data_tbl %>%
                                  dplyr::filter(event_window == 1)
+                               n_valid_fec <- sum(!is.na(estimation_tbl$firm_returns) &
+                                                    !is.na(estimation_tbl$index_returns))
                                private$calculate_forecast_error_correction(
                                  mean(sigma_t, na.rm = TRUE),
-                                 nrow(estimation_tbl),
+                                 n_valid_fec,
                                  estimation_tbl$index_returns,
                                  event_window_tbl$index_returns
                                )
