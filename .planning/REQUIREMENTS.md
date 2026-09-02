@@ -102,23 +102,51 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 
 ## Traceability
 
-Filled during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIAG-01..07 | TBD | Pending |
-| PROV-01..08 | TBD | Pending |
-| ADV-01..08 | TBD | Pending |
-| KB-01..04 | TBD | Pending |
-| SKILL-01..03 | TBD | Pending |
-| BIZ-01..02 | TBD | Pending |
-| CRAN-01..05 | TBD | Pending |
+| DIAG-01 | Phase 5 | Pending |
+| DIAG-02 | Phase 5 | Pending |
+| DIAG-03 | Phase 5 | Pending |
+| DIAG-04 | Phase 5 | Pending |
+| DIAG-05 | Phase 5 | Pending |
+| DIAG-06 | Phase 5 | Pending |
+| DIAG-07 | Phase 5 | Pending |
+| KB-01 | Phase 5 | Pending |
+| KB-02 | Phase 5 | Pending |
+| KB-03 | Phase 5 | Pending |
+| KB-04 | Phase 5 | Pending |
+| ADV-08 | Phase 5 | Pending |
+| CRAN-01 | Phase 5 | Pending |
+| CRAN-05 | Phase 5 | Pending |
+| PROV-01 | Phase 6 | Pending |
+| PROV-02 | Phase 6 | Pending |
+| PROV-03 | Phase 6 | Pending |
+| PROV-04 | Phase 6 | Pending |
+| PROV-05 | Phase 6 | Pending |
+| PROV-06 | Phase 6 | Pending |
+| PROV-07 | Phase 6 | Pending |
+| PROV-08 | Phase 6 | Pending |
+| CRAN-02 | Phase 6 | Pending |
+| CRAN-03 | Phase 6 | Pending |
+| ADV-01 | Phase 7 | Pending |
+| ADV-02 | Phase 7 | Pending |
+| ADV-03 | Phase 7 | Pending |
+| ADV-04 | Phase 7 | Pending |
+| ADV-05 | Phase 7 | Pending |
+| ADV-06 | Phase 7 | Pending |
+| ADV-07 | Phase 7 | Pending |
+| SKILL-01 | Phase 8 | Pending |
+| SKILL-02 | Phase 8 | Pending |
+| SKILL-03 | Phase 8 | Pending |
+| BIZ-01 | Phase 8 | Pending |
+| BIZ-02 | Phase 8 | Pending |
+| CRAN-04 | Phase 8 | Pending |
 
 **Coverage:**
 - v0.60.0 requirements: 37 total (DIAG 7, PROV 8, ADV 8, KB 4, SKILL 3, BIZ 2, CRAN 5)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 37 ⚠️
+- Mapped to phases: 37 (Phase 5: 14, Phase 6: 10, Phase 7: 7, Phase 8: 6)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-02*
-*Last updated: 2026-09-02 after initial definition*
+*Last updated: 2026-09-02 after roadmap creation (v0.60.0, Phases 5-8)*
