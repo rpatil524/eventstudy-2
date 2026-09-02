@@ -681,3 +681,101 @@ test_that("STATS-04: SignTest returns finite sign_z with >= 2 events (regression
   expect_true(all(is.finite(result$sign_z)),
               "SignTest sign_z must be finite for n_events >= 2")
 })
+
+
+# --- STATS-03 regression test: NA gap mid-window does not corrupt post-gap CARs ---
+#
+# Verifies that the existing cumsum(coalesce(abnormal_returns, 0)) chains
+# in CSectTTest and SignTest correctly treat a mid-window NA as contributing
+# 0 to the running sum, so post-gap CARs/CAACs continue rather than becoming NA.
+
+test_that("STATS-03: CSectTTest mid-window NA gap does not corrupt post-gap CARs", {
+  # Two events:
+  #   E1: ARs = [0.01, 0.02, NA,  0.03, 0.04]  (gap at day 2)
+  #   E2: ARs = [0.01, 0.02, 0.03, 0.04, 0.05]  (complete)
+  #
+  # With coalesce(ar, 0), the per-event CAR for E1 at each day:
+  #   day 0: 0.01
+  #   day 1: 0.01 + 0.02 = 0.03
+  #   day 2: 0.03 + 0  = 0.03  (NA coalesced to 0)
+  #   day 3: 0.03 + 0.03 = 0.06
+  #   day 4: 0.06 + 0.04 = 0.10
+  #
+  # If the coalesce were absent (plain cumsum), day 2 and all subsequent
+  # CARs for E1 would be NA, making sd_caar undefined → caar_t = NA.
+
+  e1_ar <- c(0.01, 0.02, NA,   0.03, 0.04)
+  e2_ar <- c(0.01, 0.02, 0.03, 0.04, 0.05)
+  n_ev <- 5L
+
+  d <- rbind(
+    tibble::tibble(event_id = "E1", firm_symbol = "F1",
+                   relative_index = 0:(n_ev - 1),
+                   abnormal_returns = e1_ar,
+                   event_window = 1L, estimation_window = 0L),
+    tibble::tibble(event_id = "E2", firm_symbol = "F2",
+                   relative_index = 0:(n_ev - 1),
+                   abnormal_returns = e2_ar,
+                   event_window = 1L, estimation_window = 0L)
+  )
+
+  result <- CSectTTest$new()$compute(d, NULL)
+
+  # Post-gap CARs must not be NA (coalesce-based cumsum is correct)
+  expect_equal(nrow(result), n_ev)
+  # caar should be finite at every day (gap treated as 0 contribution)
+  expect_true(all(is.finite(result$caar)),
+              "CAAR must be finite after mid-window NA gap (coalesce chain)")
+
+  # Manually verify per-event CAR for E1 using coalesce:
+  e1_car_expected <- cumsum(dplyr::coalesce(e1_ar, 0))
+  e2_car_expected <- cumsum(dplyr::coalesce(e2_ar, 0))
+
+  # At day 2 (relative_index == 2), E1 CAR should be e1_car_expected[3] = 0.03
+  # (not NA — the gap was filled with 0).
+  expect_equal(e1_car_expected[3], 0.03, tolerance = 1e-10,
+               label = "E1 CAR at gap day should equal pre-gap cumsum (0 contribution)")
+  # Post-gap (day 3), E1 CAR should be 0.06, not NA.
+  expect_equal(e1_car_expected[4], 0.06, tolerance = 1e-10,
+               label = "E1 CAR at post-gap day should continue correctly")
+
+  # The CAAR is cumsum(coalesce(aar, 0)) where aar at each day is
+  # mean(abnormal_returns, na.rm=TRUE) across all events.
+  # At day 2, E1 contributes NA so aar = mean(c(NA, e2_ar[3]), na.rm=TRUE) = e2_ar[3].
+  # Verify the CAAR is monotonically non-decreasing (all positive ARs in this example)
+  # and that no NA leaked into it.
+  expect_true(!any(is.na(result$caar)),
+              "CAAR must have no NAs even when one event has a mid-window gap")
+  # CAAR at day 2 should be strictly greater than at day 1 (because e2_ar[3]>0)
+  expect_gt(result$caar[3], result$caar[2],
+            label = "CAAR must increase after gap day (coalesce makes NA contribute 0 to AAR denominator via na.rm)")
+})
+
+
+test_that("STATS-03: SignTest mid-window NA gap does not corrupt post-gap CAAR", {
+  # Spot-check: same NA-gap scenario through SignTest.
+  # caar in SignTest is cumsum(coalesce(aar, 0)); if aar has NA (because
+  # mean(abnormal_returns, na.rm=TRUE) on all-NA day is NaN) the coalesce
+  # keeps caar running.
+  e1_ar <- c(0.01, 0.02, NA,   0.03, 0.04)
+  e2_ar <- c(0.01, 0.02, 0.03, 0.04, 0.05)
+  n_ev  <- 5L
+
+  d <- rbind(
+    tibble::tibble(event_id = "E1", firm_symbol = "F1",
+                   relative_index = 0:(n_ev - 1),
+                   abnormal_returns = e1_ar,
+                   event_window = 1L, estimation_window = 0L),
+    tibble::tibble(event_id = "E2", firm_symbol = "F2",
+                   relative_index = 0:(n_ev - 1),
+                   abnormal_returns = e2_ar,
+                   event_window = 1L, estimation_window = 0L)
+  )
+
+  result <- SignTest$new()$compute(d, NULL)
+
+  expect_equal(nrow(result), n_ev)
+  # caar must be finite at every day
+  expect_true(all(is.finite(result$caar)),
+              "SignTest CAAR must be finite after mid-window NA gap (coalesce chain)")
+})

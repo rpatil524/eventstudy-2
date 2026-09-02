@@ -28,7 +28,10 @@ test_that("CSectTTest with single event produces NA for sd-based stats", {
 })
 
 
-test_that("SignTest with single event still computes", {
+test_that("SignTest with single event returns NA for sign_z (STATS-04)", {
+  # A sign test with n == 1 is statistically invalid — the z-score is
+  # ±1 regardless of data, providing no information. Per STATS-04, the
+  # guard now requires n_valid_events >= 2; with n == 1 sign_z is NA.
   data = tibble::tibble(
     event_id = "E1",
     firm_symbol = "F1",
@@ -42,8 +45,10 @@ test_that("SignTest with single event still computes", {
   result = sign_test$compute(data, NULL)
 
   expect_equal(nrow(result), 11)
-  # With n=1, sign_z = (n_pos - 0.5) / (0.5 * sqrt(1)) = ±1
-  expect_true(all(is.finite(result$sign_z)))
+  # With n == 1 the statistic is invalid — must be NA, not ±1.
+  expect_true(all(is.na(result$sign_z)))
+  # Non-statistic fields are still computed correctly
+  expect_true(all(is.finite(result$aar)))
 })
 
 
