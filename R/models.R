@@ -356,14 +356,41 @@ MarketAdjustedModel <- R6Class("MarketAdjustedModel",
                                  fit = function(data_tbl) {
                                    estimation_tbl <- data_tbl %>%
                                      dplyr::filter(estimation_window == 1)
+
+                                   # Resolve mode once per fit call
+                                   mode <- .resolve_degenerate_mode(self$degenerate_mode)
+
+                                   # --- Contract guard: insufficient estimation observations ---
                                    n_valid <- sum(!is.na(estimation_tbl$firm_returns) &
                                                     !is.na(estimation_tbl$index_returns))
                                    if (n_valid < 2) {
-                                     warning("MarketAdjustedModel: insufficient estimation data (",
-                                             n_valid, " valid obs). Model not fitted.")
+                                     .handle_degenerate(
+                                       mode        = mode,
+                                       condition   = paste0("insufficient estimation observations (", n_valid, " valid, need 2)"),
+                                       component   = self$model_name,
+                                       event_id    = self$event_id,
+                                       firm_symbol = self$firm_symbol,
+                                       private_env = private
+                                     )
                                      private$.is_fitted <- FALSE
-                                     return(invisible(NULL))
+                                     return(invisible(self))
                                    }
+
+                                   # --- Contract guard: zero or near-zero variance in residuals ---
+                                   if (stats::sd(estimation_tbl$firm_returns - estimation_tbl$index_returns,
+                                                  na.rm = TRUE) < .Machine$double.eps) {
+                                     .handle_degenerate(
+                                       mode        = mode,
+                                       condition   = "zero or near-zero variance in firm_returns - index_returns",
+                                       component   = self$model_name,
+                                       event_id    = self$event_id,
+                                       firm_symbol = self$firm_symbol,
+                                       private_env = private
+                                     )
+                                     private$.is_fitted <- FALSE
+                                     return(invisible(self))
+                                   }
+
                                    private$.is_fitted = TRUE
 
                                    # Calculate statistics
@@ -374,8 +401,19 @@ MarketAdjustedModel <- R6Class("MarketAdjustedModel",
                                  #'
                                  #' @param data_tbl Data frame or tibble containing the data to calculate abnormal returns.
                                  abnormal_returns = function(data_tbl) {
-                                   data_tbl %>%
-                                     mutate(abnormal_returns = firm_returns - index_returns)
+                                   if (private$.is_fitted) {
+                                     data_tbl %>%
+                                       mutate(abnormal_returns = firm_returns - index_returns)
+                                   } else if (private$.degenerate_handled) {
+                                     # fit() already emitted a contract-formatted warning; suppress
+                                     # the redundant warning to honour the one-warning guarantee.
+                                     data_tbl %>%
+                                       mutate(abnormal_returns = NA_real_)
+                                   } else {
+                                     warning("MarketAdjustedModel is not fitted. Returning NA abnormal returns.")
+                                     data_tbl %>%
+                                       mutate(abnormal_returns = NA_real_)
+                                   }
                                  }
                                ),
                                private = list(

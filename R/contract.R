@@ -62,6 +62,15 @@ NULL
 
 
 #' @noRd
+.finite_residual_df <- function(residuals, n_params = 1L) {
+  # Returns the number of finite residuals minus n_params, floored at 1.
+  # Used by models whose df should reflect only finite (non-NA, non-Inf)
+  # residuals rather than the total row count in the estimation window.
+  max(sum(is.finite(residuals)) - as.integer(n_params), 1L)
+}
+
+
+#' @noRd
 .handle_degenerate <- function(mode, condition, component,
                                 event_id = NULL, firm_symbol = NULL,
                                 private_env = NULL) {

@@ -593,3 +593,95 @@ test_that("LinearFactorModel FEC uses hat matrix (X'X)^{-1} for correction", {
   # All FEC values should be >= sigma (since h_t >= 0)
   expect_true(all(fec >= sigma * 0.999))  # small tolerance for floating point
 })
+
+
+# ============================================================
+# Phase 2 — Degenerate-input contract tests (Plan 02-01)
+# ============================================================
+
+# ---- .finite_residual_df helper ----
+
+test_that(".finite_residual_df returns finite-only count minus n_params, floored at 1", {
+  # Basic finite-only counting
+  expect_equal(EventStudy:::.finite_residual_df(c(1, 2, NA, 4)), 2L)
+  # Only 1 finite, floor to 1
+  expect_equal(EventStudy:::.finite_residual_df(c(1, NA, NA)), 1L)
+  # All NA -> floor to 1
+  expect_equal(EventStudy:::.finite_residual_df(c(NA, NA)), 1L)
+  # n_params = 2
+  expect_equal(EventStudy:::.finite_residual_df(c(1, 2, 3, NA), n_params = 2L), 1L)
+  # Inf is not finite
+  expect_equal(EventStudy:::.finite_residual_df(c(1, Inf, 3, NA)), 2L)
+})
+
+
+# ---- MarketAdjustedModel degenerate contract ----
+
+test_that("MarketAdjustedModel: lenient mode — insufficient obs returns is_fitted=FALSE + one warning + all-NA ARs", {
+  for (cond in c("insuff", "zerovar")) {
+    m <- MarketAdjustedModel$new()
+    m$degenerate_mode <- "lenient"
+    m$event_id    <- "EVT_MA"
+    m$firm_symbol <- "FIRM_MA"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]]  <- NA_real_
+      d$index_returns[est[-1]] <- NA_real_
+    } else {
+      # zero-variance: firm == index in estimation window
+      d$firm_returns[est] <- d$index_returns[est]
+    }
+    ws <- character(0)
+    withCallingHandlers(
+      m$fit(d),
+      warning = function(w) {
+        ws[[length(ws) + 1L]] <<- conditionMessage(w)
+        invokeRestart("muffleWarning")
+      }
+    )
+    expect_false(m$is_fitted,
+                 info = paste0("is_fitted should be FALSE for cond=", cond))
+    expect_length(ws, 1L,
+                  label = paste0("exactly one warning for cond=", cond))
+    ar <- m$abnormal_returns(d)
+    expect_true(all(is.na(ar$abnormal_returns)),
+                info = paste0("all-NA ARs for cond=", cond))
+    # Second call to abnormal_returns should NOT emit an additional warning
+    extra_ws <- character(0)
+    withCallingHandlers(
+      m$abnormal_returns(d),
+      warning = function(w) {
+        extra_ws[[length(extra_ws) + 1L]] <<- conditionMessage(w)
+        invokeRestart("muffleWarning")
+      }
+    )
+    expect_length(extra_ws, 0L,
+                  label = paste0("no second warning from abnormal_returns for cond=", cond))
+  }
+})
+
+test_that("MarketAdjustedModel: strict mode — insufficient obs and zero-variance raise named error", {
+  for (cond in c("insuff", "zerovar")) {
+    m <- MarketAdjustedModel$new()
+    m$degenerate_mode <- "strict"
+    m$event_id    <- "EVT_MA"
+    m$firm_symbol <- "FIRM_MA"
+    d <- create_mock_model_data()
+    est <- which(d$estimation_window == 1)
+    if (cond == "insuff") {
+      d$firm_returns[est[-1]]  <- NA_real_
+      d$index_returns[est[-1]] <- NA_real_
+    } else {
+      d$firm_returns[est] <- d$index_returns[est]
+    }
+    err_msg <- tryCatch(m$fit(d), error = function(e) conditionMessage(e))
+    expect_type(err_msg, "character")
+    expect_match(err_msg, "MarketAdjustedModel",
+                 info = paste0("error names model for cond=", cond))
+    expect_match(err_msg, "EVT_MA",
+                 info = paste0("error names event_id for cond=", cond))
+    expect_match(err_msg, "FIRM_MA",
+                 info = paste0("error names firm_symbol for cond=", cond))
+  }
+})
