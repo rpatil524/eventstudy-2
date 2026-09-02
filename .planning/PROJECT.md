@@ -30,13 +30,14 @@ The package must never produce a silently incorrect statistical result. On degen
 - ✓ **Contract applied to every return model** — all 13 models route degenerate conditions through `.handle_degenerate()` with finite-only df; zero-variance guards correctly scoped to OLS/variance-dependent models (arithmetic models MAM/CPM/BHAR treat zero-variance as valid input); GARCH/DCC got pre-call guards — Phase 2 (MODELS-01..04)
 - ✓ **Contract applied to every test statistic** — no Inf/NaN leakage (ART/CAR/BHAR sigma==0→NA); event_id joins verified (no many-to-many inflation); NA-safe CAR/CAAR chains; correct single-event denominators (Patell/Sign n_events==1→NA, Q_total excludes degenerate events) — Phase 2 (STATS-01..04)
 
+- ✓ **Hardened prepare/window logic and export/tidy** — mode-honoring missing-date/empty-window (warning names the event; strict errors); export/tidy tolerate NA abnormal returns (NA propagates, not silently zeroed); cross_sectional collinear → NA coefficients + warning — Phase 3 (PIPELINE-01/02/03)
+- ✓ **Defensively wrapped external-package areas** — panel DiD (did/DIDmultiplegt/didimputation) absence/failure → warning + NULL (never crashes session); DIDmultiplegt opt-in callr probe (no new hard dep); rugarch/rmgarch post-fit failure → is_fitted FALSE + warning; synthetic-control solve.QP + empty-donor-pool guards — Phase 3 (EXTERNAL-01/02/03/04)
+
 ### Active
 
 <!-- This milestone's scope. Hardening the above without changing its statistical intent. -->
 
-- [ ] **Harden prepare/window logic and export/tidy** — NA-safe guards before `if()`, missing-date and empty-window handling, consistent `na.rm`
-- [ ] **Defensively wrap external-package areas** — panel DiD, GARCH/DCC-GARCH, synthetic control: `tryCatch` with informative errors, version/availability guards, subprocess isolation where needed (e.g. DIDmultiplegt), warn-not-crash on upstream failure
-- [ ] **Systematic bug sweep of remaining fragile areas** — audit the areas CONCERNS.md flags, fix what's found
+- [ ] **Systematic bug sweep of remaining fragile areas** — audit the areas CONCERNS.md flags, fix what's found (largely absorbed by Phases 1-3 review passes)
 - [ ] **Regression test for every fix** — each fixed bug gets a test that fails before and passes after
 - [ ] **Contract test matrix** — degenerate-input behavior tested across all covered components in both strict and lenient modes
 - [ ] **Green `R CMD check`** — no new NOTEs or WARNINGs introduced by this milestone
@@ -94,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-02 after Phase 2*
+*Last updated: 2026-09-02 after Phase 3*

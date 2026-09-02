@@ -39,18 +39,18 @@ Apply the contract across single- and multi-event test statistics.
 
 Harden data preparation, windowing, and output.
 
-- [ ] **PIPELINE-01**: Window/preparation logic handles missing event dates and empty estimation/event windows per the contract
-- [ ] **PIPELINE-02**: Export and tidy methods guard NA before `if()` and use NA-safe verbs (replace_na/coalesce), consistently applying `na.rm`
-- [ ] **PIPELINE-03**: Cross-sectional regression degrades safely under collinear/singular design (no crash; NA or warning per contract)
+- [x] **PIPELINE-01**: Window/preparation logic handles missing event dates and empty estimation/event windows per the contract
+- [x] **PIPELINE-02**: Export and tidy methods guard NA before `if()` and use NA-safe verbs (replace_na/coalesce), consistently applying `na.rm`
+- [x] **PIPELINE-03**: Cross-sectional regression degrades safely under collinear/singular design (no crash; NA or warning per contract)
 
 ### External
 
 Defensively wrap external-package-bound areas so upstream failure degrades gracefully.
 
-- [ ] **EXTERNAL-01**: Panel DiD estimators wrap external calls (did, DIDmultiplegt, didimputation) in tryCatch with informative errors and version/availability guards
-- [ ] **EXTERNAL-02**: DIDmultiplegt load is isolated (subprocess check) so a segfault-prone platform warns rather than crashes the session
-- [ ] **EXTERNAL-03**: Missing optional packages (sandwich, rugarch, did) produce a clear warning about reduced capability instead of silently degrading inference
-- [ ] **EXTERNAL-04**: GARCH/DCC-GARCH and synthetic-control numerical paths guard overflow/underflow (softmax max-subtraction, domain checks on sqrt/log, denominator epsilon guards)
+- [x] **EXTERNAL-01**: Panel DiD estimators wrap external calls (did, DIDmultiplegt, didimputation) in tryCatch with informative errors and version/availability guards
+- [x] **EXTERNAL-02**: DIDmultiplegt load is isolated (subprocess check) so a segfault-prone platform warns rather than crashes the session
+- [x] **EXTERNAL-03**: Missing optional packages (sandwich, rugarch, did) produce a clear warning about reduced capability instead of silently degrading inference
+- [x] **EXTERNAL-04**: GARCH/DCC-GARCH and synthetic-control numerical paths guard overflow/underflow (softmax max-subtraction, domain checks on sqrt/log, denominator epsilon guards)
 
 ### Testing
 
@@ -109,13 +109,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STATS-02 | Phase 2 | Complete |
 | STATS-03 | Phase 2 | Complete |
 | STATS-04 | Phase 2 | Complete |
-| PIPELINE-01 | Phase 3 | Pending |
-| PIPELINE-02 | Phase 3 | Pending |
-| PIPELINE-03 | Phase 3 | Pending |
-| EXTERNAL-01 | Phase 3 | Pending |
-| EXTERNAL-02 | Phase 3 | Pending |
-| EXTERNAL-03 | Phase 3 | Pending |
-| EXTERNAL-04 | Phase 3 | Pending |
+| PIPELINE-01 | Phase 3 | Complete |
+| PIPELINE-02 | Phase 3 | Complete |
+| PIPELINE-03 | Phase 3 | Complete |
+| EXTERNAL-01 | Phase 3 | Complete |
+| EXTERNAL-02 | Phase 3 | Complete |
+| EXTERNAL-03 | Phase 3 | Complete |
+| EXTERNAL-04 | Phase 3 | Complete |
 | TEST-01 | Phase 4 | Pending |
 | TEST-02 | Phase 4 | Pending |
 | TEST-03 | Phase 4 | Pending |

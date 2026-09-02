@@ -16,7 +16,7 @@
     {
       "number": "3",
       "name": "Pipeline and External Hardening",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "4",
@@ -26,8 +26,8 @@
   ],
   "next": {
     "command": "/gsd:progress --next",
-    "label": "Advance to the next step (plan phase 3)",
-    "reason": "Phase 3 of 4 — needs a plan"
+    "label": "Advance to the next step (plan phase 4)",
+    "reason": "Phase 4 of 4 — needs a plan"
   },
-  "updated_at": "2026-09-02T12:28:30.956Z"
+  "updated_at": "2026-09-02T13:39:31.097Z"
 }

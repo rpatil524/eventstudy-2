@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Contract Foundation** - Define the degenerate-input contract and configurable strict/lenient mode; prove it on a reference model (completed 2026-09-02)
 - [x] **Phase 2: Model and Stats Sweep** - Apply the contract uniformly across all 13 return models and all test statistics (completed 2026-09-02)
-- [ ] **Phase 3: Pipeline and External Hardening** - Harden prepare/export paths and defensively wrap all external-package-bound areas
+- [x] **Phase 3: Pipeline and External Hardening** - Harden prepare/export paths and defensively wrap all external-package-bound areas (completed 2026-09-02)
 - [ ] **Phase 4: Regression Net and Check Gate** - Write regression tests per fix, contract test matrix, verify R CMD check clean
 
 ## Phase Details
@@ -71,7 +71,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Calling estimate_panel_event_study() with method = 'de_chaisemartin_dhaultfoeuille' on a platform where DIDmultiplegt is absent or prone to segfault emits a clear warning and returns NULL rather than crashing the R session
   5. Using any optional package (sandwich, rugarch, did) when it is not installed produces a named warning describing the capability lost, not a silent fallback to a different (non-robust) method
 
-**Plans**: 2/2 plans executed
+**Plans**: 2/2 plans complete
 
 - [x] 03-01-PLAN.md — Pipeline hardening: prepare/window missing-date + empty-window, export/tidy NA-safety, cross_sectional singular design (PIPELINE-01/02/03)
 - [x] 03-02-PLAN.md — External-package wrapping: panel-DiD (did/DIDmultiplegt/didimputation) + rugarch/rmgarch failure wrapping + synthetic-control numerics + uniform absence policy (EXTERNAL-01/02/03/04)
@@ -96,5 +96,5 @@ Decimal phases appear between their surrounding integers in numeric order.
 |-------|----------------|--------|-----------|
 | 1. Contract Foundation | 2/2 | Complete    | 2026-09-02 |
 | 2. Model and Stats Sweep | 4/4 | Complete    | 2026-09-02 |
-| 3. Pipeline and External Hardening | 2/2 | In Progress|  |
+| 3. Pipeline and External Hardening | 2/2 | Complete    | 2026-09-02 |
 | 4. Regression Net and Check Gate | 0/TBD | Not started | - |
