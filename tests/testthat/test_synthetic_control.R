@@ -457,6 +457,45 @@ test_that("empty donor pool (.solve_sc_optim n==0) warns and does not crash from
 })
 
 
+# --- CR-02 regression: empty donor pool at estimate_synthetic_control level ---
+
+test_that("estimate_synthetic_control: empty donor pool warns and returns invisible(NULL)", {
+  # CR-02 regression: without the early guard, X_all %*% rep(NA, 0) yields a
+  # zero vector so y_synth=0 and att = mean(y_treated[post]) — the raw treated
+  # outcome level (maximally wrong plausible-looking result).
+  # After fix: returns invisible(NULL) + one warning before entering any solver.
+  treated <- tibble::tibble(time = 1:20, outcome = rnorm(20))
+  # Empty donor_data (zero rows, but correct columns)
+  empty_donors <- tibble::tibble(unit = character(0), time = integer(0),
+                                  outcome = numeric(0))
+
+  task <- SyntheticControlTask$new(
+    treated_data = treated,
+    donor_data = empty_donors,
+    treatment_time = 11
+  )
+
+  ws <- character(0)
+  result <- withCallingHandlers(
+    estimate_synthetic_control(task, method = "optim"),
+    warning = function(w) {
+      ws[[length(ws) + 1]] <<- conditionMessage(w)
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  # Must warn about empty donor pool
+  expect_true(length(ws) >= 1L)
+  expect_true(any(grepl("donor pool is empty|empty donor", ws, ignore.case = TRUE)))
+
+  # Must return NULL (not a fabricated ATT)
+  expect_null(result)
+
+  # task$results must remain NULL — no fake ATT stored
+  expect_null(task$results)
+})
+
+
 test_that("valid donor pool weights unchanged after solve.QP guard addition", {
   skip_if_not_installed("quadprog")
   d <- create_sc_test_data(n_donors = 5, n_periods = 40, treatment_time = 21)
