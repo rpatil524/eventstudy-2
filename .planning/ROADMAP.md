@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Contract Foundation** - Define the degenerate-input contract and configurable strict/lenient mode; prove it on a reference model (completed 2026-09-02)
 - [x] **Phase 2: Model and Stats Sweep** - Apply the contract uniformly across all 13 return models and all test statistics (completed 2026-09-02)
 - [x] **Phase 3: Pipeline and External Hardening** - Harden prepare/export paths and defensively wrap all external-package-bound areas (completed 2026-09-02)
-- [ ] **Phase 4: Regression Net and Check Gate** - Write regression tests per fix, contract test matrix, verify R CMD check clean
+- [x] **Phase 4: Regression Net and Check Gate** - Write regression tests per fix, contract test matrix, verify R CMD check clean (completed 2026-09-02)
 
 ## Phase Details
 
@@ -88,10 +88,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Running devtools::test() (or testthat::test_dir()) on the full suite passes all 400+ pre-existing tests with no regressions
   4. Running R CMD check produces no new NOTEs or WARNINGs compared to the pre-milestone baseline — the CRAN submission bar is met
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans complete
 
-- [ ] 04-01-PLAN.md — Contract matrix (table-driven test_contract_matrix.R, every component × {strict,lenient} × degenerate input) + fix→test catalog in NEWS.md (TEST-01/02) (wave 1)
-- [ ] 04-02-PLAN.md — Check gate: full suite green + devtools::document() + R CMD check baseline delta, fix new NOTEs/WARNINGs at source (TEST-03/04) (wave 2)
+- [x] 04-01-PLAN.md — Contract matrix (table-driven test_contract_matrix.R, every component × {strict,lenient} × degenerate input) + fix→test catalog in NEWS.md (TEST-01/02) (wave 1)
+- [x] 04-02-PLAN.md — Check gate: full suite green + devtools::document() + R CMD check baseline delta, fix new NOTEs/WARNINGs at source (TEST-03/04) (wave 2)
 
 ## Progress
 
@@ -100,4 +100,4 @@ Decimal phases appear between their surrounding integers in numeric order.
 | 1. Contract Foundation | 2/2 | Complete    | 2026-09-02 |
 | 2. Model and Stats Sweep | 4/4 | Complete    | 2026-09-02 |
 | 3. Pipeline and External Hardening | 2/2 | Complete    | 2026-09-02 |
-| 4. Regression Net and Check Gate | 0/2 | Not started | - |
+| 4. Regression Net and Check Gate | 2/2 | Complete   | 2026-09-02 |
