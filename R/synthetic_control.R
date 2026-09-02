@@ -115,6 +115,10 @@ estimate_synthetic_control <- function(task, method = c("quadprog", "optim"),
   # Solve for weights W: min ||y_pre - X_pre %*% W||^2 s.t. W >= 0, sum(W) = 1
   if (method == "quadprog" && requireNamespace("quadprog", quietly = TRUE)) {
     weights <- .solve_sc_quadprog(y_pre, X_pre)
+    if (is.null(weights)) {
+      # solve.QP failed (singular/collinear donors); fall back to optim
+      weights <- .solve_sc_optim(y_pre, X_pre)
+    }
   } else {
     if (method == "quadprog") {
       message("Package 'quadprog' not available. Falling back to optim.")
@@ -194,7 +198,15 @@ estimate_synthetic_control <- function(task, method = c("quadprog", "optim"),
   bvec <- c(1, rep(0, n))
   meq <- 1  # first constraint is equality
 
-  res <- quadprog::solve.QP(Dmat, dvec, Amat, bvec, meq = meq)
+  res <- tryCatch(
+    quadprog::solve.QP(Dmat, dvec, Amat, bvec, meq = meq),
+    error = function(e) {
+      warning("Synthetic control: quadprog::solve.QP failed (singular/collinear donor pool): ",
+              conditionMessage(e), " - falling back to optim.", call. = FALSE)
+      NULL
+    }
+  )
+  if (is.null(res)) return(NULL)
   pmax(res$solution, 0)  # numerical cleanup
 }
 
@@ -203,6 +215,13 @@ estimate_synthetic_control <- function(task, method = c("quadprog", "optim"),
 #' @noRd
 .solve_sc_optim <- function(y, X) {
   n <- ncol(X)
+
+  # Guard: empty donor pool cannot produce weights
+  if (n == 0) {
+    warning("Synthetic control: empty donor pool - cannot estimate weights.",
+            call. = FALSE)
+    return(rep(NA_real_, 0))
+  }
 
   # Objective: ||y - X %*% w||^2 where w is simplex-constrained
   # Use log-ratio transform: w = softmax(theta)
