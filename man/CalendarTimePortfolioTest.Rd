@@ -4,11 +4,6 @@
 \alias{CalendarTimePortfolioTest}
 \title{Calendar-Time Portfolio Test}
 \description{
-Calendar-Time Portfolio Test
-
-Calendar-Time Portfolio Test
-}
-\details{
 Aggregates event-firm returns into calendar-time portfolios and tests
 whether the portfolio intercept (alpha) is significantly different from
 zero. This approach naturally handles cross-sectional dependence that
@@ -19,64 +14,65 @@ of all event firms' abnormal returns and computes a t-statistic of the
 mean portfolio return.
 }
 \section{Super class}{
-\code{\link[EventStudy:TestStatisticBase]{EventStudy::TestStatisticBase}} -> \code{CalendarTimePortfolioTest}
+\code{\link[EventStudy:TestStatisticBase]{TestStatisticBase}} -> \code{CalendarTimePortfolioTest}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{name}}{Short code of the test statistic.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{name}}{Short code of the test statistic.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-CalendarTimePortfolioTest-compute}{\code{CalendarTimePortfolioTest$compute()}}
-\item \href{#method-CalendarTimePortfolioTest-clone}{\code{CalendarTimePortfolioTest$clone()}}
+  \itemize{
+    \item \href{#method-CalendarTimePortfolioTest-compute}{\code{CalendarTimePortfolioTest$compute()}}
+    \item \href{#method-CalendarTimePortfolioTest-clone}{\code{CalendarTimePortfolioTest$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>EventStudy::TestStatisticBase$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>TestStatisticBase$initialize()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-CalendarTimePortfolioTest-compute"></a>}}
 \if{latex}{\out{\hypertarget{method-CalendarTimePortfolioTest-compute}{}}}
-\subsection{Method \code{compute()}}{
-Computes the calendar-time portfolio test.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CalendarTimePortfolioTest$compute(data_tbl, model)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{The data for multiple events with
+\subsection{\code{CalendarTimePortfolioTest$compute()}}{
+  Computes the calendar-time portfolio test.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{CalendarTimePortfolioTest$compute(data_tbl, model)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{The data for multiple events with
 calculated abnormal returns.}
+      \item{\code{model}}{The fitted models (unused directly).}
+    }
+    \if{html}{\out{</div>}}
+  }
+}
 
-\item{\code{model}}{The fitted models (unused directly).}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-CalendarTimePortfolioTest-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-CalendarTimePortfolioTest-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CalendarTimePortfolioTest$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{CalendarTimePortfolioTest$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{CalendarTimePortfolioTest$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

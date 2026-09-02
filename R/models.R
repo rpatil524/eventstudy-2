@@ -10,6 +10,17 @@ ModelBase <- R6Class("ModelBase",
                      public = list(
                        #' @field model_name Name of the model.
                        model_name = "",
+                       #' @field degenerate_mode Resolved degenerate-input mode injected by
+                       #'   fit_model() before fit() is called. Subclasses that implement the
+                       #'   degenerate-input contract (MarketModel and Phase-2 models) read this
+                       #'   field inside fit() via .resolve_degenerate_mode(self$degenerate_mode).
+                       degenerate_mode = NULL,
+                       #' @field event_id Event identifier threaded from the outer data_tbl row.
+                       #'   Used in degenerate-input error/warning messages.
+                       event_id = NULL,
+                       #' @field firm_symbol Firm identifier threaded from the outer data_tbl row.
+                       #'   Used in degenerate-input error/warning messages.
+                       firm_symbol = NULL,
                        #' @description
                        #' Fits the model with given data.
                        #'

@@ -4,11 +4,6 @@
 \alias{MarketAdjustedModel}
 \title{Market Adjusted Model}
 \description{
-Market Adjusted Model
-
-Market Adjusted Model
-}
-\details{
 The Market Adjusted Model is another simple approach used in event studies
 to estimate the expected returns of a stock and calculate its abnormal
 returns during an event window. This model is less complex than the Market
@@ -19,72 +14,78 @@ individual stock parameters (such as alpha and beta) is not feasible or
 desired, and a basic benchmark for comparison is needed.
 }
 \section{Super class}{
-\code{\link[EventStudy:ModelBase]{EventStudy::ModelBase}} -> \code{MarketAdjustedModel}
+\code{\link[EventStudy:ModelBase]{ModelBase}} -> \code{MarketAdjustedModel}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{model_name}}{Name of the model.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{model_name}}{Name of the model.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-MarketAdjustedModel-fit}{\code{MarketAdjustedModel$fit()}}
-\item \href{#method-MarketAdjustedModel-abnormal_returns}{\code{MarketAdjustedModel$abnormal_returns()}}
-\item \href{#method-MarketAdjustedModel-clone}{\code{MarketAdjustedModel$clone()}}
-}
+  \itemize{
+    \item \href{#method-MarketAdjustedModel-fit}{\code{MarketAdjustedModel$fit()}}
+    \item \href{#method-MarketAdjustedModel-abnormal_returns}{\code{MarketAdjustedModel$abnormal_returns()}}
+    \item \href{#method-MarketAdjustedModel-clone}{\code{MarketAdjustedModel$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-MarketAdjustedModel-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-MarketAdjustedModel-fit}{}}}
-\subsection{Method \code{fit()}}{
-fit Fit the model with given data.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarketAdjustedModel$fit(data_tbl)}\if{html}{\out{</div>}}
+\subsection{\code{MarketAdjustedModel$fit()}}{
+  fit Fit the model with given data.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MarketAdjustedModel$fit(data_tbl)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{Data frame or tibble containing the data to fit.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{Data frame or tibble containing the data to fit.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-MarketAdjustedModel-abnormal_returns"></a>}}
 \if{latex}{\out{\hypertarget{method-MarketAdjustedModel-abnormal_returns}{}}}
-\subsection{Method \code{abnormal_returns()}}{
-abnormal_returns Calculate the abnormal returns with given data.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarketAdjustedModel$abnormal_returns(data_tbl)}\if{html}{\out{</div>}}
+\subsection{\code{MarketAdjustedModel$abnormal_returns()}}{
+  abnormal_returns Calculate the abnormal returns with given data.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MarketAdjustedModel$abnormal_returns(data_tbl)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{Data frame or tibble containing the data to calculate abnormal returns.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{Data frame or tibble containing the data to calculate abnormal returns.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-MarketAdjustedModel-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-MarketAdjustedModel-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarketAdjustedModel$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{MarketAdjustedModel$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{MarketAdjustedModel$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

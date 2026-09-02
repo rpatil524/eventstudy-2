@@ -117,5 +117,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Simon Mueller \email{sm@data-zoo.de}
 
+Authors:
+\itemize{
+  \item Simon Mueller \email{sm@data-zoo.de}
+}
+
 }
 \keyword{internal}

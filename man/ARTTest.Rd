@@ -4,11 +4,6 @@
 \alias{ARTTest}
 \title{Abnormal Return T Statistic (ART)}
 \description{
-Abnormal Return T Statistic (ART)
-
-Abnormal Return T Statistic (ART)
-}
-\details{
 The AR t-test is a statistical method used to determine whether the abnormal
 return of a security on a specific day is significantly different from zero.
 This test helps researchers identify whether the event of interest has a
@@ -17,66 +12,67 @@ significant impact on the security’s return at a particular point in time.
 See also \url{https://eventstudy.de/statistics/ar_car_statistics.html}
 }
 \section{Super class}{
-\code{\link[EventStudy:TestStatisticBase]{EventStudy::TestStatisticBase}} -> \code{ARTTest}
+\code{\link[EventStudy:TestStatisticBase]{TestStatisticBase}} -> \code{ARTTest}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{name}}{Short code of the test statistic.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{name}}{Short code of the test statistic.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-ARTTest-compute}{\code{ARTTest$compute()}}
-\item \href{#method-ARTTest-clone}{\code{ARTTest$clone()}}
+  \itemize{
+    \item \href{#method-ARTTest-compute}{\code{ARTTest$compute()}}
+    \item \href{#method-ARTTest-clone}{\code{ARTTest$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>EventStudy::TestStatisticBase$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="EventStudy" data-topic="TestStatisticBase" data-id="initialize"><a href='../../EventStudy/html/TestStatisticBase.html#method-TestStatisticBase-initialize'><code>TestStatisticBase$initialize()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ARTTest-compute"></a>}}
 \if{latex}{\out{\hypertarget{method-ARTTest-compute}{}}}
-\subsection{Method \code{compute()}}{
-Computes the test AR test statistics for a single event.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ARTTest$compute(data_tbl, model)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{The data for a single event with
+\subsection{\code{ARTTest$compute()}}{
+  Computes the test AR test statistics for a single event.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ARTTest$compute(data_tbl, model)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{The data for a single event with
 calculated abnormal returns.}
-
-\item{\code{model}}{The fitted model that includes the
+      \item{\code{model}}{The fitted model that includes the
 necessary information for calculating the test
 statistic.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ARTTest-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-ARTTest-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ARTTest$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ARTTest$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ARTTest$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

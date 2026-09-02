@@ -5,91 +5,93 @@
 \title{Base class for Event Study test statistics}
 \description{
 Base class for Event Study test statistics
-
-Base class for Event Study test statistics
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{name}}{Short code of the test statistic.}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{name}}{Short code of the test statistic.}
 
-\item{\code{confidence_level}}{The chosen confidence
+    \item{\code{confidence_level}}{The chosen confidence
 level.}
 
-\item{\code{confidence_type}}{Type of the test. Defaults
+    \item{\code{confidence_type}}{Type of the test. Defaults
 to 'two-sided'. Alternatives are 'less' or
 greater'.}
-}
-\if{html}{\out{</div>}}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-TestStatisticBase-new}{\code{TestStatisticBase$new()}}
-\item \href{#method-TestStatisticBase-compute}{\code{TestStatisticBase$compute()}}
-\item \href{#method-TestStatisticBase-clone}{\code{TestStatisticBase$clone()}}
-}
+  \itemize{
+    \item \href{#method-TestStatisticBase-initialize}{\code{TestStatisticBase$new()}}
+    \item \href{#method-TestStatisticBase-compute}{\code{TestStatisticBase$compute()}}
+    \item \href{#method-TestStatisticBase-clone}{\code{TestStatisticBase$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-TestStatisticBase-new"></a>}}
-\if{latex}{\out{\hypertarget{method-TestStatisticBase-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the test statistic. This includes the
+\if{html}{\out{<a id="method-TestStatisticBase-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-TestStatisticBase-initialize}{}}}
+\subsection{\code{TestStatisticBase$new()}}{
+  Initializes the test statistic. This includes the
 confidence level and the type of the test ('less',
 greater' or 'two-sided')
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TestStatisticBase$new(confidence_level = 0.95, confidence_type = "two-sided")}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{confidence_level}}{The confidence level for
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestStatisticBase$new(confidence_level = 0.95, confidence_type = "two-sided")}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{confidence_level}}{The confidence level for
 the confidence band. Must be anumber between 0
 and 1.}
+      \item{\code{confidence_type}}{Side of the test statistic.}
+    }
+    \if{html}{\out{</div>}}
+  }
+}
 
-\item{\code{confidence_type}}{Side of the test statistic.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TestStatisticBase-compute"></a>}}
 \if{latex}{\out{\hypertarget{method-TestStatisticBase-compute}{}}}
-\subsection{Method \code{compute()}}{
-Computes the test test statistics for a single event.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TestStatisticBase$compute(data_tbl, model)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{data_tbl}}{The data for a single event with
+\subsection{\code{TestStatisticBase$compute()}}{
+  Computes the test test statistics for a single event.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestStatisticBase$compute(data_tbl, model)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_tbl}}{The data for a single event with
 calculated abnormal returns.}
-
-\item{\code{model}}{The fitted model that includes the
+      \item{\code{model}}{The fitted model that includes the
 necessary information for calculating the test
 statistic.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TestStatisticBase-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-TestStatisticBase-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TestStatisticBase$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{TestStatisticBase$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestStatisticBase$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
