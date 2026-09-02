@@ -84,7 +84,7 @@ export_results <- function(task,
         d %>%
           dplyr::filter(event_window == 1) %>%
           dplyr::select(relative_index, abnormal_returns) %>%
-          dplyr::mutate(car = cumsum(abnormal_returns))
+          dplyr::mutate(car = cumsum(dplyr::coalesce(abnormal_returns, 0)))
       })) %>%
       tidyr::unnest(data)
   }
