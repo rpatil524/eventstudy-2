@@ -54,6 +54,7 @@ Suggests:
     covr,
     rmgarch,
     quadprog,
+    callr,
     did,
     DIDmultiplegt,
     didimputation,
