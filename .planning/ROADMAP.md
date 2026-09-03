@@ -71,7 +71,7 @@ Decimal phases appear between their surrounding integers in numeric order. Numbe
   4. All LLM/HTTP dependencies live in Suggests and are `requireNamespace()`-guarded; the package loads and the offline layer works with them absent
   5. The provider layer is tested entirely offline (httptest2 mocks / static fixtures) with no network in examples, tests, or vignettes by default (`@examplesIf` / `skip_on_cran()` / vignette eval guards)
 
-**Plans**: 3 plans
+**Plans**: 0/3 plans executed
 
 - [ ] 06-1-PLAN.md — ProviderBase + CustomProvider tracer + call-time arg/env/key resolution + es_provider_response + httr2/jsonlite Suggests (Wave 1)
 - [ ] 06-2-PLAN.md — OpenAICompatProvider (any base_url incl Ollama/LM Studio) + shared httr2 request/response helpers + offline mock failure matrix (Wave 2)
@@ -121,6 +121,6 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 3. Pipeline and External Hardening | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 4. Regression Net and Check Gate | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 5. Offline Diagnostics + Grounding KB | v0.60.0 | 3/3 | Complete    | 2026-09-03 |
-| 6. Provider Abstraction + HTTP Harness | v0.60.0 | 0/3 | Not started | - |
+| 6. Provider Abstraction + HTTP Harness | v0.60.0 | 0/3 | Planned    |  |
 | 7. Grounded Advise Layer + Guard | v0.60.0 | 0/TBD | Not started | - |
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 0/TBD | Not started | - |
