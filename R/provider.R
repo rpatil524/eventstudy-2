@@ -365,6 +365,102 @@ CustomProvider <- R6::R6Class(
 )
 
 # ---------------------------------------------------------------------------
+# OpenAICompatProvider — OpenAI + any OpenAI-compatible endpoint (HTTP)
+# ---------------------------------------------------------------------------
+
+#' @title OpenAICompatProvider
+#' @description A provider that issues \code{POST {base_url}/chat/completions}
+#'   with an OpenAI-shaped request body. Because the endpoint is selected purely
+#'   by \code{base_url} + \code{model}, this single class covers OpenAI itself
+#'   AND every OpenAI-compatible backend — Ollama, LM Studio, or any gateway —
+#'   via a \code{base_url} override, with no code change.
+#'
+#'   The API key is resolved at CALL time from \code{OPENAI_API_KEY} (never at
+#'   construction, never stored on the object) and attached with
+#'   \code{req_auth_bearer_token()}, which redacts the \code{Authorization}
+#'   header in every print/error path. A missing key, transport/timeout failure,
+#'   non-2xx status, malformed body, or missing completion text each degrades to
+#'   exactly one \code{warning()} plus an `es_provider_response` with
+#'   \code{text = NA_character_} — it never crashes the session and never returns
+#'   a fabricated completion.
+#'
+#'   \code{httr2} is required only for this provider and is guarded by
+#'   \code{requireNamespace()} at the top of \code{complete()}, so the package
+#'   installs and \code{R CMD check}s cleanly with \code{httr2} absent.
+#' @export
+#' @examples
+#' \dontrun{
+#' # OpenAI (reads OPENAI_API_KEY from the environment at call time):
+#' p <- OpenAICompatProvider$new(model = "gpt-4o")
+#' p$complete("Summarise these event-study diagnostics")
+#'
+#' # Any OpenAI-compatible endpoint works via a base_url override — e.g. a local
+#' # Ollama server (no cloud key needed by the server, but OPENAI_API_KEY is still
+#' # read as the bearer token; set it to any non-empty value for local servers):
+#' p_local <- OpenAICompatProvider$new(
+#'   model = "llama3",
+#'   base_url = "http://localhost:11434/v1"   # Ollama; LM Studio: :1234/v1
+#' )
+#' p_local$complete("Summarise these diagnostics")
+#' }
+OpenAICompatProvider <- R6::R6Class(
+  "OpenAICompatProvider",
+  inherit = ProviderBase,
+  public = list(
+    #' @description Construct an OpenAICompatProvider. Stores non-secret config
+    #'   only; the API key is resolved at call time inside \code{complete()}.
+    #' @param model Character model identifier, e.g. "gpt-4o" or a local model
+    #'   name like "llama3".
+    #' @param base_url Character base URL. Defaults to the OpenAI cloud endpoint;
+    #'   override for OpenAI-compatible servers (Ollama, LM Studio, gateways).
+    #' @param ... Ignored; accepted for forward-compatibility.
+    initialize = function(model, base_url = "https://api.openai.com/v1", ...) {
+      super$initialize(model = model, base_url = base_url)
+      invisible(self)
+    },
+
+    #' @description Complete a prompt via \code{POST {base_url}/chat/completions}.
+    #'   Resolves the key at call time; on a missing key or any HTTP/parse failure
+    #'   returns one warning + \code{NA}. Structured output is OPTIONAL: when
+    #'   \code{schema} is supplied a \code{response_format} json_schema is added to
+    #'   the body, but omitting it uses the plain-text path (which local models
+    #'   that lack \code{response_format} support still handle).
+    #' @param prompt Character prompt.
+    #' @param schema Optional structured-output schema (list) or \code{NULL}.
+    #' @param ... Ignored; accepted for forward-compatibility.
+    #' @return An `es_provider_response` (see \code{ProviderBase$complete}).
+    complete = function(prompt, schema = NULL, ...) {
+      if (!requireNamespace("httr2", quietly = TRUE)) {
+        stop("Package 'httr2' is required for the OpenAI-compatible provider. ",
+             "Install it with: install.packages('httr2')")
+      }
+      key <- .resolve_api_key("openai")
+      # Treat unset (NA) AND set-but-empty ("") identically as "no key".
+      if (is.na(key) || !nzchar(key)) {
+        return(.provider_failure("openai", "no API key (set OPENAI_API_KEY)"))
+      }
+
+      body <- list(
+        model = self$model,
+        messages = list(list(role = "user", content = prompt))
+      )
+      if (!is.null(schema)) {
+        # OPTIONAL: local models (Ollama/LM Studio) may not support this; the
+        # plain-text path above still works when schema is omitted.
+        body$response_format <- list(
+          type = "json_schema",
+          json_schema = list(name = "advice", schema = schema)
+        )
+      }
+
+      resp <- .perform_request(self$base_url, "chat/completions", body, key,
+                               auth = "bearer")
+      .finish_response(resp, function(p) p$choices[[1]]$message$content, "openai")
+    }
+  )
+)
+
+# ---------------------------------------------------------------------------
 # provider() — convenience factory (custom branch wired in this plan)
 # ---------------------------------------------------------------------------
 
@@ -414,15 +510,20 @@ provider <- function(type = NULL, fn = NULL, model = NULL, base_url = NULL, ...)
     return(CustomProvider$new(fn = fn, model = cfg$model, ...))
   }
 
-  # The HTTP provider classes arrive in later plans (06-2 OpenAICompatProvider,
-  # 06-3 AnthropicProvider). Until the class exists, error clearly. The later
-  # plans replace this exists() guard with a real constructor call.
-  cls <- switch(type,
-                openai    = "OpenAICompatProvider",
-                anthropic = "AnthropicProvider")
-  if (exists(cls, mode = "function")) {
-    return(get(cls, mode = "function")$new(model = cfg$model,
-                                           base_url = cfg$base_url, ...))
+  # OpenAICompatProvider now exists (06-2); construct it directly. base_url is
+  # passed only when resolved, so the class default (OpenAI cloud) applies when
+  # neither arg nor env supplies one.
+  if (identical(type, "openai")) {
+    args <- list(model = cfg$model)
+    if (!is.null(cfg$base_url)) args$base_url <- cfg$base_url
+    return(do.call(OpenAICompatProvider$new, c(args, list(...))))
+  }
+
+  # AnthropicProvider arrives in 06-3. Until the class exists, error clearly.
+  # 06-3 replaces this exists() guard with a real constructor call.
+  if (exists("AnthropicProvider", mode = "function")) {
+    return(get("AnthropicProvider", mode = "function")$new(
+      model = cfg$model, base_url = cfg$base_url, ...))
   }
   stop(sprintf("Provider type '%s' is delivered in a later plan.", type),
        call. = FALSE)

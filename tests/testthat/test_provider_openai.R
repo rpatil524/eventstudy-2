@@ -69,3 +69,61 @@ test_that(".finish_response on a well-formed 200 returns success with extracted 
   expect_false(res$is_deterministic)
   expect_null(res$error)
 })
+
+# ---------------------------------------------------------------------------
+# Task 2: OpenAICompatProvider end-to-end (offline mocks + dummy key)
+# ---------------------------------------------------------------------------
+
+test_that("OpenAICompatProvider happy path returns the mocked completion text", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  httr2::local_mocked_responses(
+    mock_200(list(choices = list(list(message = list(content = "hello from model")))))
+  )
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  res <- p$complete("hi")
+  expect_equal(res$text, "hello from model")
+  expect_equal(res$source, "openai")
+  expect_false(res$is_deterministic)
+  expect_null(res$error)
+})
+
+test_that("OpenAICompatProvider honors any base_url (Ollama/LM Studio) with no code change", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  httr2::local_mocked_responses(
+    mock_200(list(choices = list(list(message = list(content = "local model reply")))))
+  )
+  p <- OpenAICompatProvider$new(model = "llama3", base_url = "http://localhost:11434/v1")
+  res <- p$complete("hi")
+  expect_equal(res$text, "local model reply")
+})
+
+test_that("OpenAICompatProvider schema is optional (both schema and plain-text work)", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  httr2::local_mocked_responses(
+    mock_200(list(choices = list(list(message = list(content = "structured")))))
+  )
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  # schema supplied -> response_format added, mock ignores it
+  res_schema <- p$complete("hi", schema = list(type = "object"))
+  expect_equal(res_schema$text, "structured")
+  # no schema -> plain-text path
+  res_plain <- p$complete("hi")
+  expect_equal(res_plain$text, "structured")
+})
+
+test_that("OpenAICompatProvider missing key degrades to one warning + NA at call time", {
+  withr::local_envvar(OPENAI_API_KEY = "")
+  # Construction must NOT error even with no key.
+  p <- expect_no_error(OpenAICompatProvider$new(model = "gpt-4o"))
+  expect_warning(res <- p$complete("hi"), "no API key")
+  expect_true(is.na(res$text))
+  expect_equal(res$source, "openai")
+})
+
+test_that("OpenAICompatProvider 4xx degrades to one warning + NA", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  httr2::local_mocked_responses(mock_status(401L))
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  expect_warning(res <- p$complete("hi"), "HTTP 401")
+  expect_true(is.na(res$text))
+})
