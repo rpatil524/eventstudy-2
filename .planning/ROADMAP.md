@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order. Numbe
 
 **Milestone Goal:** Add an LLM-agnostic AI advisor that guides users through an entire event study — grounded so it interprets only package-computed numbers and never fabricates results.
 
-- [ ] **Phase 5: Offline Diagnostics + Grounding Knowledge Base** - Deterministic zero-dependency `es_diagnostics()`, the pure-R assumption→test knowledge base, and a non-LLM rule-based advice fallback — all independently shippable with no API key
+- [x] **Phase 5: Offline Diagnostics + Grounding Knowledge Base** - Deterministic zero-dependency `es_diagnostics()`, the pure-R assumption→test knowledge base, and a non-LLM rule-based advice fallback — all independently shippable with no API key (completed 2026-09-03)
 - [ ] **Phase 6: Provider Abstraction + CRAN-Safe HTTP Harness** - LLM-agnostic `AdvisorProvider` R6 hierarchy (Anthropic, OpenAI-compatible, custom hook), 3-tier config precedence, graceful degradation, tested entirely offline with mocked HTTP
 - [ ] **Phase 7: Grounded Advise Layer + Grounding Guard** - `es_advise()` returning a structured `Advice` object with a runtime grounding guard, all six advice modes, and report-writing integration into `generate_report()`
 - [ ] **Phase 8: Agent Skill + Waitlist + Green Check Gate** - Claude Code Agent Skill orchestrating the full advise loop, the commercial "Advisor Pro" waitlist surface, and a green `R CMD check` with the 1378-test suite still green
@@ -115,7 +115,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 2. Model and Stats Sweep | v0.50.0 | 4/4 | Complete | 2026-09-02 |
 | 3. Pipeline and External Hardening | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 4. Regression Net and Check Gate | v0.50.0 | 2/2 | Complete | 2026-09-02 |
-| 5. Offline Diagnostics + Grounding KB | v0.60.0 | 3/3 | In Progress|  |
+| 5. Offline Diagnostics + Grounding KB | v0.60.0 | 3/3 | Complete    | 2026-09-03 |
 | 6. Provider Abstraction + HTTP Harness | v0.60.0 | 0/TBD | Not started | - |
 | 7. Grounded Advise Layer + Guard | v0.60.0 | 0/TBD | Not started | - |
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 0/TBD | Not started | - |
