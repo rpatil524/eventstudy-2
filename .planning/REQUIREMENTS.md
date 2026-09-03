@@ -25,7 +25,7 @@ LLM-agnostic layer. All HTTP/LLM dependencies optional.
 
 - [x] **PROV-01**: An `AdvisorProvider` R6 base defines a uniform request/response contract (consistent with `ModelBase`/`TestStatisticBase`)
 - [ ] **PROV-02**: Native Anthropic Messages provider using tool-use structured output (`input_schema`)
-- [ ] **PROV-03**: OpenAI-compatible provider using `response_format` json_schema, usable against any compatible base URL (incl. local Ollama / LM Studio)
+- [x] **PROV-03**: OpenAI-compatible provider using `response_format` json_schema, usable against any compatible base URL (incl. local Ollama / LM Studio)
 - [x] **PROV-04**: `CustomProvider` accepting a user function `(prompt, schema) -> list` — plug any provider with no package change
 - [x] **PROV-05**: Provider + model resolved by 3-tier precedence: explicit arg → env var (`EVENTSTUDY_ADVISOR_PROVIDER` / `_MODEL` / `_BASE_URL`) → default
 - [ ] **PROV-06**: API keys read only from the environment; never logged, bundled, committed, or written to fixtures; redacted from all errors
@@ -120,7 +120,7 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | CRAN-05 | Phase 5 | Complete |
 | PROV-01 | Phase 6 | Complete |
 | PROV-02 | Phase 6 | Pending |
-| PROV-03 | Phase 6 | Pending |
+| PROV-03 | Phase 6 | Complete |
 | PROV-04 | Phase 6 | Complete |
 | PROV-05 | Phase 6 | Complete |
 | PROV-06 | Phase 6 | Pending |

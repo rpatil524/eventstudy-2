@@ -5,11 +5,11 @@ milestone_name: Grounded AI Advisor
 current_phase: 6
 current_phase_name: Provider Abstraction + CRAN-Safe HTTP Harness
 status: planning
-stopped_at: Completed 06-1-PLAN.md
-last_updated: "2026-09-03T21:04:23.084Z"
+stopped_at: Completed 06-2-PLAN.md
+last_updated: "2026-09-03T21:13:28.955Z"
 last_activity: 2026-09-03
 last_activity_desc: Phase 5 complete, transitioned to Phase 6
-state_head: 16abe5298e2e1dde84fb0b66e7b45cc91a98e37f
+state_head: 268ce1f7299de2704dc238c1e4f1e6b66a6cb1d2
 progress:
   total_phases: 4
   completed_phases: 1
@@ -67,6 +67,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 05-offline-diagnostics-grounding-knowledge-base P02 | 277 | 2 tasks | 5 files |
 | Phase 05 P03 | 18 | 2 tasks | 6 files |
 | Phase 06 P01 | 6m | 3 tasks | 8 files |
+| Phase 06 P02 | 7m | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 05]: es_advice contract: source=offline_kb, is_deterministic=TRUE, rules_matched with plain scalar fields only (JSON-safe)
 - [Phase 06]: provider layer = hand-rolled thin httr2 client (NOT ellmer) — user decision 2026-09-03. R6 ProviderBase → OpenAICompat/Anthropic/Custom; httr2/jsonlite stay Suggests; offline-tested via httr2::with_mocked_responses; keys redacted on all error paths; NA+one-warning on failure
 - [Phase 6]: es_provider_response is a distinct S3 class sharing source/is_deterministic field names with es_advice for trivial Phase 7 slotting
+- [Phase 6]: OpenAICompatProvider covers OpenAI + Ollama/LM Studio via base_url override; shared .perform_request/.finish_response reused by 06-3
+- [Phase 6]: Empty-string API key treated as missing (one warning + NA at call time)
 
 ### Pending Todos
 
@@ -110,8 +113,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-03T21:04:23.052Z
-Stopped at: Completed 06-1-PLAN.md
+Last session: 2026-09-03T21:13:21.874Z
+Stopped at: Completed 06-2-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
