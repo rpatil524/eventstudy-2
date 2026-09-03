@@ -71,10 +71,15 @@ Decimal phases appear between their surrounding integers in numeric order. Numbe
   4. All LLM/HTTP dependencies live in Suggests and are `requireNamespace()`-guarded; the package loads and the offline layer works with them absent
   5. The provider layer is tested entirely offline (httptest2 mocks / static fixtures) with no network in examples, tests, or vignettes by default (`@examplesIf` / `skip_on_cran()` / vignette eval guards)
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+- [ ] 06-1-PLAN.md — ProviderBase + CustomProvider tracer + call-time arg/env/key resolution + es_provider_response + httr2/jsonlite Suggests (Wave 1)
+- [ ] 06-2-PLAN.md — OpenAICompatProvider (any base_url incl Ollama/LM Studio) + shared httr2 request/response helpers + offline mock failure matrix (Wave 2)
+- [ ] 06-3-PLAN.md — AnthropicProvider (tool-use input_schema + text fallback) + mandatory x-api-key redaction test + provider() factory + R CMD check gate (Wave 3)
+
 **UI hint**: no
 
-> **Planning-time decision (do not resolve in the roadmap):** the provider-implementation fork — Posit `ellmer` for the two built-in providers versus a hand-rolled thin `httr2` layer. Both keep the offline layer dependency-free and expose identical R6 seams. Settle this via a short spike at the start of Phase 6 planning.
+> **Planning-time decision (RESOLVED 2026-09-03):** the provider-implementation fork was settled in favor of a hand-rolled thin `httr2` layer (NOT Posit `ellmer`) — smallest Suggests footprint, full control over key redaction and never-crash trapping, deterministic offline mocking. See 06-CONTEXT.md.
 
 ### Phase 7: Grounded Advise Layer + Grounding Guard
 
@@ -116,6 +121,6 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 3. Pipeline and External Hardening | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 4. Regression Net and Check Gate | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 5. Offline Diagnostics + Grounding KB | v0.60.0 | 3/3 | Complete    | 2026-09-03 |
-| 6. Provider Abstraction + HTTP Harness | v0.60.0 | 0/TBD | Not started | - |
+| 6. Provider Abstraction + HTTP Harness | v0.60.0 | 0/3 | Not started | - |
 | 7. Grounded Advise Layer + Guard | v0.60.0 | 0/TBD | Not started | - |
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 0/TBD | Not started | - |
