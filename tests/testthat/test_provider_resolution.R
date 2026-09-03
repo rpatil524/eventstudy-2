@@ -92,9 +92,10 @@ test_that("provider('openai') now constructs the OpenAICompatProvider (delivered
   expect_true(inherits(p, "OpenAICompatProvider"))
 })
 
-test_that("provider() still errors clearly for the not-yet-delivered anthropic type", {
+test_that("provider('anthropic') now constructs the AnthropicProvider (delivered in 06-3)", {
   withr::local_envvar(EVENTSTUDY_ADVISOR_PROVIDER = "")
-  expect_error(provider("anthropic"), "later plan")
+  p <- provider("anthropic", model = "claude-opus-4-8")
+  expect_true(inherits(p, "AnthropicProvider"))
 })
 
 test_that("provider() rejects an unknown type via match.arg", {
