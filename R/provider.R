@@ -81,6 +81,70 @@
 }
 
 # ---------------------------------------------------------------------------
+# Call-time backend + key resolution (arg -> env -> default)
+# ---------------------------------------------------------------------------
+
+#' Resolve provider / model / base_url by 3-tier precedence
+#'
+#' Precedence for each field is: explicit argument -> environment selector
+#' (\code{EVENTSTUDY_ADVISOR_PROVIDER} / \code{_MODEL} / \code{_BASE_URL}) ->
+#' documented default. An unset or empty (\code{""}) env var is treated as unset.
+#' The default provider is \code{"custom"} (the no-network provider), so the
+#' package resolves to a working provider with no configuration.
+#'
+#' These environment variables are SELECTORS (which backend/model/URL) — distinct
+#' from the API-key SECRETS resolved by \code{.resolve_api_key()}. Both are read,
+#' never written.
+#'
+#' @param provider Optional character provider type; \code{NULL} to resolve.
+#' @param model Optional character model identifier; \code{NULL} to resolve.
+#' @param base_url Optional character base URL; \code{NULL} to resolve.
+#' @return A named list with elements \code{provider}, \code{model},
+#'   \code{base_url} (the latter two may be \code{NULL} when neither arg nor env
+#'   supplies them).
+#' @noRd
+.resolve_provider_config <- function(provider = NULL, model = NULL,
+                                     base_url = NULL) {
+  # "" (unset env default) collapses to NULL so the next tier applies.
+  env_or_null <- function(name) {
+    val <- Sys.getenv(name, unset = "")
+    if (identical(val, "")) NULL else val
+  }
+
+  provider <- provider %||% env_or_null("EVENTSTUDY_ADVISOR_PROVIDER") %||% "custom"
+  model    <- model    %||% env_or_null("EVENTSTUDY_ADVISOR_MODEL")
+  base_url <- base_url %||% env_or_null("EVENTSTUDY_ADVISOR_BASE_URL")
+
+  list(provider = provider, model = model, base_url = base_url)
+}
+
+#' Resolve an API key from the environment at CALL time
+#'
+#' Reads the provider-conventional secret env var (\code{OPENAI_API_KEY} for
+#' openai-compatible, \code{ANTHROPIC_API_KEY} for anthropic). Returns
+#' \code{NA_character_} when unset — it NEVER stops here; a missing key surfaces
+#' as one clear failure at call time via \code{.provider_failure()} inside the
+#' HTTP providers' \code{complete()} (delivered in 06-2/06-3). Keys are read at
+#' call time only, never stored on any object and never printed.
+#'
+#' @param provider Character provider type ("openai" or "anthropic"). Other
+#'   values (e.g. "custom") need no key and return \code{NA_character_}.
+#' @return The key string, or \code{NA_character_} when unset / not applicable.
+#' @noRd
+.resolve_api_key <- function(provider) {
+  name <- switch(
+    provider,
+    openai    = "OPENAI_API_KEY",
+    anthropic = "ANTHROPIC_API_KEY",
+    NULL
+  )
+  if (is.null(name)) {
+    return(NA_character_)
+  }
+  Sys.getenv(name, unset = NA_character_)
+}
+
+# ---------------------------------------------------------------------------
 # ProviderBase — abstract R6 contract
 # ---------------------------------------------------------------------------
 
