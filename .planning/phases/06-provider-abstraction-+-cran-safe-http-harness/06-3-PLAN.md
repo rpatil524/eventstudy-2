@@ -3,7 +3,7 @@ phase: 06-provider-abstraction-+-cran-safe-http-harness
 plan: 03
 type: execute
 wave: 3
-depends_on: ["06-01", "06-02"]
+depends_on: ["06-1", "06-2"]
 files_modified:
   - R/provider.R
   - tests/testthat/helper-provider.R
