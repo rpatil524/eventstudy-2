@@ -47,6 +47,14 @@ recommend_stat <- function(x, provider = NULL, ...) {
 
 #' @rdname recommend_stat
 #' @export
+recommend_stat.default <- function(x, provider = NULL, ...) {
+  stop("recommend_stat() requires an EventStudyTask or es_diagnostics object.",
+       call. = FALSE)
+}
+
+
+#' @rdname recommend_stat
+#' @export
 recommend_stat.EventStudyTask <- function(x, provider = NULL, ...) {
   diag <- es_diagnostics(x)
   recommend_stat.es_diagnostics(diag, provider = provider, ...)
@@ -94,6 +102,14 @@ recommend_stat.es_diagnostics <- function(x, provider = NULL, ...) {
 #' @export
 flag_robustness <- function(x, provider = NULL, ...) {
   UseMethod("flag_robustness")
+}
+
+
+#' @rdname flag_robustness
+#' @export
+flag_robustness.default <- function(x, provider = NULL, ...) {
+  stop("flag_robustness() requires an EventStudyTask or es_diagnostics object.",
+       call. = FALSE)
 }
 
 

@@ -428,11 +428,18 @@ print.es_diagnostics <- function(x, ...) {
         min_dates[i] <- NA_character_
         max_dates[i] <- NA_character_
       } else {
-        # Convert string dates "%d.%m.%Y" to comparable Date objects
-        dates_i <- tryCatch(
-          as.Date(ew$date, "%d.%m.%Y"),
-          error = function(e) as.Date(NA)
-        )
+        # Convert dates to comparable Date objects. Try ISO 8601 first (also
+        # handles Date-class input), then fall back to the package's legacy
+        # "%d.%m.%Y" character convention. Behavior is identical on valid
+        # package data; this only adds robustness to alternate date encodings.
+        dates_i <- tryCatch({
+          parsed <- suppressWarnings(as.Date(ew$date))
+          if (all(is.na(parsed))) {
+            suppressWarnings(as.Date(ew$date, "%d.%m.%Y"))
+          } else {
+            parsed
+          }
+        }, error = function(e) as.Date(NA))
         valid_dates <- dates_i[!is.na(dates_i)]
         if (length(valid_dates) == 0L) {
           min_dates[i] <- NA_character_
@@ -485,10 +492,10 @@ print.es_diagnostics <- function(x, ...) {
 .extract_contract_state <- function(task, idx) {
   n <- length(idx)
   is_fitted_vec    <- logical(n)
-  na_ar_count_vec  <- integer(n)
-  na_est_count_vec <- integer(n)
-  insuff_obs_vec   <- logical(n)
-  zero_var_vec     <- logical(n)
+  na_ar_count_vec  <- rep(NA_integer_, n)
+  na_est_count_vec <- rep(NA_integer_, n)
+  insuff_obs_vec   <- rep(NA, n)
+  zero_var_vec     <- rep(NA, n)
 
   for (k in seq_along(idx)) {
     i     <- idx[k]

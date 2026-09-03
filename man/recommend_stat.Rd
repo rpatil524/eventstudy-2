@@ -2,11 +2,14 @@
 % Please edit documentation in R/advise_offline.R
 \name{recommend_stat}
 \alias{recommend_stat}
+\alias{recommend_stat.default}
 \alias{recommend_stat.EventStudyTask}
 \alias{recommend_stat.es_diagnostics}
 \title{Recommend Test Statistics via Offline KB Matching}
 \usage{
 recommend_stat(x, provider = NULL, ...)
+
+\method{recommend_stat}{default}(x, provider = NULL, ...)
 
 \method{recommend_stat}{EventStudyTask}(x, provider = NULL, ...)
 

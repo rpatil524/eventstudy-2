@@ -161,6 +161,9 @@ EVENTSTUDY_KB <- list(
     recommendation = paste0(
       "Estimation-window residuals appear approximately normal (Shapiro-Wilk p > 0.05 ",
       "in >= 70% of events). Patell Z is appropriate under the normality assumption. ",
+      "Note: estimation-window residual normality is a proxy for—not equivalent to—the ",
+      "cross-sectional normality of standardized abnormal returns that Patell Z formally ",
+      "assumes. ",
       "[Threshold: 70% of events, p = 0.05 — ASSUMED, adjustable]"
     ),
     citation = list(
@@ -414,6 +417,11 @@ EVENTSTUDY_KB <- list(
 #'   \code{id}, \code{category}, \code{condition}, \code{recommendation},
 #'   \code{citation} (list of \code{author}/\code{year}/\code{key}/\code{venue}),
 #'   and \code{severity}.
+#'
+#' @note Each rule's \code{condition} field is an R function closure and is
+#'   therefore \strong{not} JSON-serializable. Any consumer that serializes
+#'   the KB (e.g. Phase 7 system-prompt injection) must drop the
+#'   \code{condition} field from each rule record before encoding to JSON.
 #'
 #' @seealso \code{\link{recommend_stat}}, \code{\link{flag_robustness}},
 #'   \code{\link{es_diagnostics}}

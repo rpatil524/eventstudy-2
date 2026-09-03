@@ -29,6 +29,12 @@ exported and serializable, ready for Phase 7 system-prompt injection.
 The actual prompt-injection behavior is a Phase 7 deliverable and is
 deliberately out of scope here.
 }
+\note{
+Each rule's \code{condition} field is an R function closure and is
+  therefore \strong{not} JSON-serializable. Any consumer that serializes
+  the KB (e.g. Phase 7 system-prompt injection) must drop the
+  \code{condition} field from each rule record before encoding to JSON.
+}
 \examples{
 kb <- es_kb()
 length(kb)             # number of rules

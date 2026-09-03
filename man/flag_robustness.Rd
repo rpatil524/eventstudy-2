@@ -2,11 +2,14 @@
 % Please edit documentation in R/advise_offline.R
 \name{flag_robustness}
 \alias{flag_robustness}
+\alias{flag_robustness.default}
 \alias{flag_robustness.EventStudyTask}
 \alias{flag_robustness.es_diagnostics}
 \title{Flag Robustness Issues via Offline KB Matching}
 \usage{
 flag_robustness(x, provider = NULL, ...)
+
+\method{flag_robustness}{default}(x, provider = NULL, ...)
 
 \method{flag_robustness}{EventStudyTask}(x, provider = NULL, ...)
 
