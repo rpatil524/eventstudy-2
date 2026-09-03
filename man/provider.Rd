@@ -30,9 +30,9 @@ A \code{ProviderBase} subclass instance.
 Convenience factory that resolves the backend by 3-tier precedence
 (explicit \code{type} argument -> \code{EVENTSTUDY_ADVISOR_PROVIDER} env
 selector -> default \code{"custom"}) and constructs the matching provider
-object. In this release only the \code{"custom"} branch is wired; the
-\code{"openai"} and \code{"anthropic"} HTTP providers are delivered in later
-plans and, until then, error with a clear "delivered in a later plan" message.
+object. All three backends are wired: the in-process \code{"custom"} hook and
+the HTTP \code{"openai"} (OpenAI-compatible) and \code{"anthropic"} (native
+Anthropic Messages) providers.
 }
 \details{
 The \code{"custom"} branch needs no network and neither \code{httr2} nor
@@ -45,9 +45,11 @@ p <- provider("custom", fn = function(prompt, schema) "advice text")
 p$complete("Summarise")$text
 
 \dontrun{
-# HTTP providers (delivered in later plans) make live calls; never run in
-# examples or on CRAN:
+# HTTP providers make live calls; never run in examples or on CRAN:
 p <- provider("openai", model = "gpt-4o")
 p$complete("Summarise these diagnostics")
+
+a <- provider("anthropic", model = "claude-opus-4-8")
+a$complete("Summarise these diagnostics")
 }
 }

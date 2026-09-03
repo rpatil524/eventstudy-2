@@ -461,7 +461,161 @@ OpenAICompatProvider <- R6::R6Class(
 )
 
 # ---------------------------------------------------------------------------
-# provider() — convenience factory (custom branch wired in this plan)
+# AnthropicProvider — native Anthropic Messages API (HTTP)
+# ---------------------------------------------------------------------------
+
+#' Render a tool_use block's structured input to a single character string
+#'
+#' Given the parsed Anthropic response, prefer the FIRST content block whose
+#' \code{type == "tool_use"} and render its \code{$input} to a character string
+#' (via \code{jsonlite::toJSON} when available, else a \code{paste} of its
+#' fields). When no tool_use block is present, fall back to the FIRST content
+#' block's \code{$text} — so the provider never crashes when the model answers
+#' with plain text instead of a tool call. This whole function is wrapped by
+#' \code{.finish_response}'s \code{tryCatch}, so any unexpected shape degrades to
+#' the standard one-warning + NA path rather than throwing.
+#'
+#' @param parsed Parsed Anthropic response body (a list with \code{$content}).
+#' @return A single character string, or \code{NA_character_} when nothing usable.
+#' @noRd
+.extract_anthropic_text <- function(parsed) {
+  content <- parsed$content
+  if (length(content) == 0L) {
+    return(NA_character_)
+  }
+
+  # Prefer the first tool_use block's structured input.
+  for (block in content) {
+    if (identical(block$type, "tool_use") && !is.null(block$input)) {
+      input <- block$input
+      if (requireNamespace("jsonlite", quietly = TRUE)) {
+        return(as.character(
+          jsonlite::toJSON(input, auto_unbox = TRUE, null = "null")
+        ))
+      }
+      # jsonlite absent: render key=value pairs deterministically.
+      return(paste(
+        vapply(
+          seq_along(input),
+          function(i) paste0(names(input)[[i]], "=", as.character(input[[i]])[[1L]]),
+          character(1L)
+        ),
+        collapse = ", "
+      ))
+    }
+  }
+
+  # Fallback: the first block's text (plain-text answer despite a schema).
+  txt <- content[[1L]]$text
+  if (is.null(txt)) NA_character_ else as.character(txt)[[1L]]
+}
+
+#' @title AnthropicProvider
+#' @description A provider that issues \code{POST {base_url}/v1/messages} against
+#'   the native Anthropic Messages API. The request carries the mandatory
+#'   \code{max_tokens} field and the \code{anthropic-version} header; when a
+#'   \code{schema} is supplied it adds a tool-use \code{input_schema} block
+#'   (\code{tools} + \code{tool_choice}) to obtain structured output, and the
+#'   response extractor prefers that tool call's structured \code{input} while
+#'   falling back to the first text block — so the provider never crashes when the
+#'   model replies with plain text instead of a tool call.
+#'
+#'   The API key is resolved at CALL time from \code{ANTHROPIC_API_KEY} (never at
+#'   construction, never stored on the object) and attached with
+#'   \code{req_headers_redacted("x-api-key" = key)}, which redacts the key in
+#'   every print/error path. Note \code{req_auth_bearer_token} does NOT redact an
+#'   \code{x-api-key} header — the redacted-headers helper is mandatory here. A
+#'   missing key, transport/timeout failure, non-2xx status, malformed body, or
+#'   missing completion text each degrades to exactly one \code{warning()} plus an
+#'   `es_provider_response` with \code{text = NA_character_} — it never crashes the
+#'   session and never returns a fabricated completion.
+#'
+#'   \code{httr2} is required only for this provider and is guarded by
+#'   \code{requireNamespace()} at the top of \code{complete()}, so the package
+#'   installs and \code{R CMD check}s cleanly with \code{httr2} absent.
+#' @export
+#' @examples
+#' \dontrun{
+#' # Reads ANTHROPIC_API_KEY from the environment at call time:
+#' p <- AnthropicProvider$new(model = "claude-opus-4-8")
+#' p$complete("Summarise these event-study diagnostics")
+#'
+#' # Structured output via a tool-use input_schema:
+#' schema <- list(type = "object",
+#'                properties = list(advice = list(type = "string")))
+#' p$complete("Recommend a test statistic", schema = schema)
+#' }
+AnthropicProvider <- R6::R6Class(
+  "AnthropicProvider",
+  inherit = ProviderBase,
+  public = list(
+    #' @field max_tokens Integer max completion tokens (Anthropic REQUIRES this).
+    max_tokens = NULL,
+
+    #' @description Construct an AnthropicProvider. Stores non-secret config only;
+    #'   the API key is resolved at call time inside \code{complete()}.
+    #' @param model Character model identifier, e.g. "claude-opus-4-8".
+    #' @param base_url Character base URL. Defaults to the Anthropic cloud
+    #'   endpoint.
+    #' @param max_tokens Integer maximum number of tokens to generate. The
+    #'   Anthropic Messages API REQUIRES this field; defaults to 1024.
+    #' @param ... Ignored; accepted for forward-compatibility.
+    initialize = function(model, base_url = "https://api.anthropic.com",
+                          max_tokens = 1024L, ...) {
+      super$initialize(model = model, base_url = base_url)
+      self$max_tokens <- max_tokens
+      invisible(self)
+    },
+
+    #' @description Complete a prompt via \code{POST {base_url}/v1/messages}.
+    #'   Resolves the key at call time; on a missing key or any HTTP/parse failure
+    #'   returns one warning + \code{NA}. Structured output is OPTIONAL: when
+    #'   \code{schema} is supplied a tool-use \code{input_schema} block is added and
+    #'   the extractor prefers the tool call's \code{input}, falling back to the
+    #'   first text block.
+    #' @param prompt Character prompt.
+    #' @param schema Optional structured-output schema (list) or \code{NULL}.
+    #' @param ... Ignored; accepted for forward-compatibility.
+    #' @return An `es_provider_response` (see \code{ProviderBase$complete}).
+    complete = function(prompt, schema = NULL, ...) {
+      if (!requireNamespace("httr2", quietly = TRUE)) {
+        stop("Package 'httr2' is required for the Anthropic provider. ",
+             "Install it with: install.packages('httr2')")
+      }
+      key <- .resolve_api_key("anthropic")
+      # Treat unset (NA) AND set-but-empty ("") identically as "no key".
+      if (is.na(key) || !nzchar(key)) {
+        return(.provider_failure("anthropic", "no API key (set ANTHROPIC_API_KEY)"))
+      }
+
+      body <- list(
+        model = self$model,
+        max_tokens = self$max_tokens,
+        messages = list(list(role = "user", content = prompt))
+      )
+      if (!is.null(schema)) {
+        # Tool-use structured-output path: define a single "advice" tool whose
+        # input_schema is the caller's schema and force the model to call it.
+        body$tools <- list(list(
+          name = "advice",
+          description = "Return the structured advice payload.",
+          input_schema = schema
+        ))
+        body$tool_choice <- list(type = "tool", name = "advice")
+      }
+
+      resp <- .perform_request(
+        self$base_url, "v1/messages", body, key,
+        auth = "x-api-key",
+        extra_headers = list("anthropic-version" = "2023-06-01")
+      )
+      .finish_response(resp, .extract_anthropic_text, "anthropic")
+    }
+  )
+)
+
+# ---------------------------------------------------------------------------
+# provider() — convenience factory (all three branches wired)
 # ---------------------------------------------------------------------------
 
 #' Construct a Grounded AI Advisor provider
@@ -469,9 +623,9 @@ OpenAICompatProvider <- R6::R6Class(
 #' Convenience factory that resolves the backend by 3-tier precedence
 #' (explicit \code{type} argument -> \code{EVENTSTUDY_ADVISOR_PROVIDER} env
 #' selector -> default \code{"custom"}) and constructs the matching provider
-#' object. In this release only the \code{"custom"} branch is wired; the
-#' \code{"openai"} and \code{"anthropic"} HTTP providers are delivered in later
-#' plans and, until then, error with a clear "delivered in a later plan" message.
+#' object. All three backends are wired: the in-process \code{"custom"} hook and
+#' the HTTP \code{"openai"} (OpenAI-compatible) and \code{"anthropic"} (native
+#' Anthropic Messages) providers.
 #'
 #' The \code{"custom"} branch needs no network and neither \code{httr2} nor
 #' \code{jsonlite}. Keys are never read here; the HTTP providers resolve them at
@@ -496,10 +650,12 @@ OpenAICompatProvider <- R6::R6Class(
 #' p$complete("Summarise")$text
 #'
 #' \dontrun{
-#' # HTTP providers (delivered in later plans) make live calls; never run in
-#' # examples or on CRAN:
+#' # HTTP providers make live calls; never run in examples or on CRAN:
 #' p <- provider("openai", model = "gpt-4o")
 #' p$complete("Summarise these diagnostics")
+#'
+#' a <- provider("anthropic", model = "claude-opus-4-8")
+#' a$complete("Summarise these diagnostics")
 #' }
 provider <- function(type = NULL, fn = NULL, model = NULL, base_url = NULL, ...) {
   cfg <- .resolve_provider_config(provider = type, model = model,
@@ -519,12 +675,10 @@ provider <- function(type = NULL, fn = NULL, model = NULL, base_url = NULL, ...)
     return(do.call(OpenAICompatProvider$new, c(args, list(...))))
   }
 
-  # AnthropicProvider arrives in 06-3. Until the class exists, error clearly.
-  # 06-3 replaces this exists() guard with a real constructor call.
-  if (exists("AnthropicProvider", mode = "function")) {
-    return(get("AnthropicProvider", mode = "function")$new(
-      model = cfg$model, base_url = cfg$base_url, ...))
-  }
-  stop(sprintf("Provider type '%s' is delivered in a later plan.", type),
-       call. = FALSE)
+  # AnthropicProvider (06-3): all three branches are now live. base_url is passed
+  # only when resolved, so the class default (Anthropic cloud) applies when
+  # neither arg nor env supplies one.
+  args <- list(model = cfg$model)
+  if (!is.null(cfg$base_url)) args$base_url <- cfg$base_url
+  do.call(AnthropicProvider$new, c(args, list(...)))
 }
