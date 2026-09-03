@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": null,
+  "milestone": "v0.60.0 — Grounded AI Advisor",
   "phases": [
     {
       "number": "1",
@@ -22,12 +22,32 @@
       "number": "4",
       "name": "Regression Net and Check Gate",
       "status": "complete"
+    },
+    {
+      "number": "5",
+      "name": "Offline Diagnostics + Grounding KB",
+      "status": "in_progress"
+    },
+    {
+      "number": "6",
+      "name": "Provider Abstraction + HTTP Harness",
+      "status": "pending"
+    },
+    {
+      "number": "7",
+      "name": "Grounded Advise Layer + Guard",
+      "status": "pending"
+    },
+    {
+      "number": "8",
+      "name": "Agent Skill + Waitlist + Check Gate",
+      "status": "pending"
     }
   ],
   "next": {
-    "command": "/gsd:progress",
-    "label": "Show progress",
-    "reason": "Unsure of state — showing progress"
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 5 of 4 · 0% · executing"
   },
-  "updated_at": "2026-09-02T18:06:13.062Z"
+  "updated_at": "2026-09-03T20:09:09.769Z"
 }

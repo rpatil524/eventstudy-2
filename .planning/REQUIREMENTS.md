@@ -49,10 +49,10 @@ The `Advice` object and the grounding guarantee.
 
 Encoded event-study methodology with citations.
 
-- [ ] **KB-01**: Assumption→test-statistic mapping encoded as a testable decision table: Shapiro-Wilk normality → Patell vs BMP; event-induced variance → BMP; cross-sectional correlation/clustering → Kolari-Pynnönen; non-normal → Sign/Corrado
-- [ ] **KB-02**: KB entries carry academic citations (MacKinlay 1997, Brown & Warner 1985, Patell 1976, BMP 1991, Kolari-Pynnönen 2010)
-- [ ] **KB-03**: KB is a pure-R data structure with unit tests asserting each rule fires on the correct diagnostic condition
-- [ ] **KB-04**: The system prompt injects KB context to ground the LLM's methodological reasoning
+- [x] **KB-01**: Assumption→test-statistic mapping encoded as a testable decision table: Shapiro-Wilk normality → Patell vs BMP; event-induced variance → BMP; cross-sectional correlation/clustering → Kolari-Pynnönen; non-normal → Sign/Corrado
+- [x] **KB-02**: KB entries carry academic citations (MacKinlay 1997, Brown & Warner 1985, Patell 1976, BMP 1991, Kolari-Pynnönen 2010)
+- [x] **KB-03**: KB is a pure-R data structure with unit tests asserting each rule fires on the correct diagnostic condition
+- [x] **KB-04**: The system prompt injects KB context to ground the LLM's methodological reasoning
 
 ### Claude Code Agent Skill (SKILL)
 
@@ -111,10 +111,10 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | DIAG-05 | Phase 5 | Complete |
 | DIAG-06 | Phase 5 | Complete |
 | DIAG-07 | Phase 5 | Complete |
-| KB-01 | Phase 5 | Pending |
-| KB-02 | Phase 5 | Pending |
-| KB-03 | Phase 5 | Pending |
-| KB-04 | Phase 5 | Pending |
+| KB-01 | Phase 5 | Complete |
+| KB-02 | Phase 5 | Complete |
+| KB-03 | Phase 5 | Complete |
+| KB-04 | Phase 5 | Complete |
 | ADV-08 | Phase 5 | Pending |
 | CRAN-01 | Phase 5 | Complete |
 | CRAN-05 | Phase 5 | Complete |

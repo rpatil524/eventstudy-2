@@ -52,10 +52,10 @@ Decimal phases appear between their surrounding integers in numeric order. Numbe
   4. Each KB decision-table rule is a pure-R data structure carrying its academic citation (MacKinlay, Brown & Warner, Patell, BMP, Kolari-Pynnönen) and has a unit test asserting it fires on the correct diagnostic condition
   5. `R CMD check` shows zero new hard dependencies from this phase and existing valid-input pipeline behavior is byte-identical (advisor is purely additive)
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 - [x] 05-1-PLAN.md — es_diagnostics() serializable harvester + S3 print + payload cap (Wave 1)
-- [ ] 05-2-PLAN.md — EVENTSTUDY_KB pure-R decision table with citations + per-rule firing tests (Wave 2)
+- [x] 05-2-PLAN.md — EVENTSTUDY_KB pure-R decision table with citations + per-rule firing tests (Wave 2)
 - [ ] 05-3-PLAN.md — offline recommend_stat()/flag_robustness() + Advice shape driven by the KB (Wave 3)
 
 ### Phase 6: Provider Abstraction + CRAN-Safe HTTP Harness
@@ -115,7 +115,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 2. Model and Stats Sweep | v0.50.0 | 4/4 | Complete | 2026-09-02 |
 | 3. Pipeline and External Hardening | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 4. Regression Net and Check Gate | v0.50.0 | 2/2 | Complete | 2026-09-02 |
-| 5. Offline Diagnostics + Grounding KB | v0.60.0 | 1/3 | In Progress|  |
+| 5. Offline Diagnostics + Grounding KB | v0.60.0 | 2/3 | In Progress|  |
 | 6. Provider Abstraction + HTTP Harness | v0.60.0 | 0/TBD | Not started | - |
 | 7. Grounded Advise Layer + Guard | v0.60.0 | 0/TBD | Not started | - |
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 0/TBD | Not started | - |
