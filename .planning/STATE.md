@@ -86,6 +86,7 @@ Recent decisions affecting current work:
 - [Phase 05]: KB-PRETREND omitted: pretrend signal not available in es_diagnostics harvester; documented in SUMMARY
 - [Phase 05]: recommend_stat/flag_robustness dispatch: accept either fitted task or es_diagnostics; provider=NULL silently ignored for Phase 7 forward-compat
 - [Phase 05]: es_advice contract: source=offline_kb, is_deterministic=TRUE, rules_matched with plain scalar fields only (JSON-safe)
+- [Phase 06]: provider layer = hand-rolled thin httr2 client (NOT ellmer) — user decision 2026-09-03. R6 ProviderBase → OpenAICompat/Anthropic/Custom; httr2/jsonlite stay Suggests; offline-tested via httr2::with_mocked_responses; keys redacted on all error paths; NA+one-warning on failure
 
 ### Pending Todos
 
@@ -93,7 +94,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- **Phase 6 planning-time fork:** provider implementation — Posit `ellmer` vs hand-rolled thin `httr2`. Resolve via a short spike at Phase 6 planning start (not in roadmap).
+- **Phase 6 planning-time fork — RESOLVED (2026-09-03, user decision):** provider implementation = **hand-rolled thin `httr2` client** (not Posit `ellmer`). Rationale: smallest dependency surface (httr2/jsonlite stay Suggests, requireNamespace-guarded), full control over key redaction + never-crash error trapping, deterministic offline tests via `httr2::with_mocked_responses` with zero real API calls. Shape: R6 `ProviderBase` → `OpenAICompatProvider` (POST /chat/completions), `AnthropicProvider` (/v1/messages), `CustomProvider` (user `fn(prompt)->text`, the offline test seam); resolution arg→env→default; failure returns NA + one warning; keys redacted in all error paths.
 - **Phase 5 KB correctness:** cross-check assumption→test mappings against Brown & Warner (1985), MacKinlay (1997), Patell (1976), BMP (1991), Kolari-Pynnönen (2010) primary literature.
 
 ## Deferred Items
