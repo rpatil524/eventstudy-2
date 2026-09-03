@@ -256,3 +256,67 @@ CustomProvider <- R6::R6Class(
     .fn = NULL
   )
 )
+
+# ---------------------------------------------------------------------------
+# provider() — convenience factory (custom branch wired in this plan)
+# ---------------------------------------------------------------------------
+
+#' Construct a Grounded AI Advisor provider
+#'
+#' Convenience factory that resolves the backend by 3-tier precedence
+#' (explicit \code{type} argument -> \code{EVENTSTUDY_ADVISOR_PROVIDER} env
+#' selector -> default \code{"custom"}) and constructs the matching provider
+#' object. In this release only the \code{"custom"} branch is wired; the
+#' \code{"openai"} and \code{"anthropic"} HTTP providers are delivered in later
+#' plans and, until then, error with a clear "delivered in a later plan" message.
+#'
+#' The \code{"custom"} branch needs no network and neither \code{httr2} nor
+#' \code{jsonlite}. Keys are never read here; the HTTP providers resolve them at
+#' call time inside their own \code{complete()}.
+#'
+#' @param type Provider type, one of \code{"custom"}, \code{"openai"},
+#'   \code{"anthropic"}. When \code{NULL} (the default) it is resolved from the
+#'   \code{EVENTSTUDY_ADVISOR_PROVIDER} env var, falling back to \code{"custom"}.
+#' @param fn For \code{type = "custom"}, the user function
+#'   \code{function(prompt, schema, ...)} returning a list or character. Required
+#'   for the custom branch.
+#' @param model Optional character model identifier (resolved from
+#'   \code{EVENTSTUDY_ADVISOR_MODEL} when \code{NULL}).
+#' @param base_url Optional character base URL for HTTP providers (resolved from
+#'   \code{EVENTSTUDY_ADVISOR_BASE_URL} when \code{NULL}).
+#' @param ... Additional arguments forwarded to the provider constructor.
+#' @return A \code{ProviderBase} subclass instance.
+#' @export
+#' @examples
+#' # Custom provider runs in-process, no network:
+#' p <- provider("custom", fn = function(prompt, schema) "advice text")
+#' p$complete("Summarise")$text
+#'
+#' \dontrun{
+#' # HTTP providers (delivered in later plans) make live calls; never run in
+#' # examples or on CRAN:
+#' p <- provider("openai", model = "gpt-4o")
+#' p$complete("Summarise these diagnostics")
+#' }
+provider <- function(type = NULL, fn = NULL, model = NULL, base_url = NULL, ...) {
+  cfg <- .resolve_provider_config(provider = type, model = model,
+                                  base_url = base_url)
+  type <- match.arg(cfg$provider, c("custom", "openai", "anthropic"))
+
+  if (identical(type, "custom")) {
+    return(CustomProvider$new(fn = fn, model = cfg$model, ...))
+  }
+
+  # The HTTP provider classes arrive in later plans (06-2 OpenAICompatProvider,
+  # 06-3 AnthropicProvider). Until the class exists, error clearly. The later
+  # plans replace this exists() guard with a real constructor call.
+  cls <- switch(type,
+                openai    = "OpenAICompatProvider",
+                anthropic = "AnthropicProvider")
+  if (exists(cls, mode = "function")) {
+    return(get(cls, mode = "function")$new(model = cfg$model,
+                                           base_url = cfg$base_url, ...))
+  }
+  stop(sprintf("Provider type '%s' is delivered in a later plan.", type),
+       call. = FALSE)
+}

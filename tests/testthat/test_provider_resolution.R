@@ -70,3 +70,28 @@ test_that("constructing a provider with no key set raises no error (call-time on
   withr::local_envvar(OPENAI_API_KEY = NA, ANTHROPIC_API_KEY = NA)
   expect_no_error(CustomProvider$new(function(prompt, schema) "x"))
 })
+
+# --- provider() factory -----------------------------------------------------
+
+test_that("provider('custom') dispatches CustomProvider with no httr2", {
+  p <- provider("custom", fn = function(prompt, schema) "x")
+  expect_true(inherits(p, "CustomProvider"))
+  expect_identical(p$complete("hi")$text, "x")
+})
+
+test_that("provider() with no type resolves to the default (custom) working provider", {
+  withr::local_envvar(EVENTSTUDY_ADVISOR_PROVIDER = "")
+  p <- provider(fn = function(prompt, schema) "default-branch")
+  expect_true(inherits(p, "CustomProvider"))
+  expect_identical(p$complete("hi")$text, "default-branch")
+})
+
+test_that("provider() errors clearly for an unimplemented HTTP type in this plan", {
+  withr::local_envvar(EVENTSTUDY_ADVISOR_PROVIDER = "")
+  expect_error(provider("openai"), "later plan")
+})
+
+test_that("provider() rejects an unknown type via match.arg", {
+  withr::local_envvar(EVENTSTUDY_ADVISOR_PROVIDER = "")
+  expect_error(provider("gpt-9000"))
+})

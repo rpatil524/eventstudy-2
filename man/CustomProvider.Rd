@@ -22,7 +22,7 @@ res$text
 res$source
 }
 \section{Super class}{
-\code{ProviderBase} -> \code{CustomProvider}
+\code{\link[EventStudy:ProviderBase]{ProviderBase}} -> \code{CustomProvider}
 }
 \section{Methods}{
 \subsection{Public methods}{
