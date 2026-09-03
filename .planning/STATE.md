@@ -1,19 +1,21 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.60.0
+milestone_name: Grounded AI Advisor
+current_phase: 05
 current_phase_name: Offline Diagnostics + Grounding Knowledge Base
-status: planning
-stopped_at: roadmap created (Phases 5-8)
-last_updated: "2026-09-02T23:15:00.000Z"
-last_activity: 2026-09-02
-last_activity_desc: Roadmap created for v0.60.0 (Phases 5-8), 37/37 requirements mapped
-state_head: fb68d9992d79d890bd4b3c8fdafa6488b91b97d1
+status: executing
+stopped_at: Completed 05-1-PLAN.md (es_diagnostics harvester)
+last_updated: "2026-09-03T20:01:38.157Z"
+last_activity: 2026-09-03
+last_activity_desc: Phase 05 execution started
+state_head: 495ebdcfe42fabb1a652d058244975fe27530893
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-milestone_name: Grounded AI Advisor
+  total_plans: 3
+  completed_plans: 1
+  percent: 0
 ---
 
 # Project State
@@ -23,14 +25,14 @@ milestone_name: Grounded AI Advisor
 See: .planning/PROJECT.md (updated 2026-09-02)
 
 **Core value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics, never fabricating a result.
-**Current focus:** Phase 5 — Offline Diagnostics + Grounding Knowledge Base
+**Current focus:** Phase 05 — Offline Diagnostics + Grounding Knowledge Base
 
 ## Current Position
 
-Phase: 5 of 8 (Offline Diagnostics + Grounding Knowledge Base) — first phase of v0.60.0
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-09-02 — Roadmap created for v0.60.0, 37/37 requirements mapped across Phases 5-8
+Phase: 05 (Offline Diagnostics + Grounding Knowledge Base) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-09-03 — Phase 05 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -57,6 +59,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: n/a
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 05 P01 | 10 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -70,6 +77,9 @@ Recent decisions affecting current work:
 - LLM layer optional (Suggests: httr2/jsonlite, requireNamespace-guarded); offline layer pure base R, zero hard deps
 - Provider abstraction = OpenAI-compatible + Anthropic + custom hook (R6 strategy pattern); resolution arg → env → default
 - Freemium: bundled advisor free; retrieval-corpus "Advisor Pro" a future paid tier gated by a waitlist
+- [Phase 05]: p-values extracted via stats::pt(abs(t), df, lower.tail=FALSE)*2 — dist_student_t objects never stored in es_diagnostics output
+- [Phase 05]: unclass() required before jsonlite::toJSON() to strip S3 class from es_diagnostics and invoke default list handler
+- [Phase 05]: cross_sectional signals computed across ALL events; per-event vectors capped to max_events top-N by anomaly score (Inf for unfitted, abs(final_car) otherwise)
 
 ### Pending Todos
 
@@ -91,8 +101,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T23:15:00.000Z
-Stopped at: Roadmap created for v0.60.0 (Phases 5-8); ROADMAP.md, REQUIREMENTS.md traceability, and STATE.md written
+Last session: 2026-09-03T20:01:38.142Z
+Stopped at: Completed 05-1-PLAN.md (es_diagnostics harvester)
 Resume file: None
 
 ## Operator Next Steps

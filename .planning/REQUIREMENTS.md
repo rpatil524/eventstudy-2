@@ -11,13 +11,13 @@ Requirements for this milestone. Each maps to a roadmap phase (see Traceability)
 
 Deterministic, zero-dependency feature extraction. Always works with no API key.
 
-- [ ] **DIAG-01**: `es_diagnostics(task)` returns a serializable named list (class `es_diagnostics`) using only base R + existing package internals — zero new dependencies
-- [ ] **DIAG-02**: Diagnostics include estimation-window fit signals (R², Durbin-Watson, Ljung-Box p, Shapiro-Wilk p, ACF1) sourced from `R/diagnostics.R`
-- [ ] **DIAG-03**: Diagnostics include event-window results (AR/CAR, AAR/CAAR, per-test-statistic values and p-values)
-- [ ] **DIAG-04**: Diagnostics include cross-sectional signals (n_events, n_valid_events, CAR dispersion/IQR, event-window overlap count)
-- [ ] **DIAG-05**: Diagnostics surface v0.50.0 contract state per event (`is_fitted`, NA counts, zero-variance / insufficient-obs flags)
-- [ ] **DIAG-06**: Diagnostics payload is size-capped (row cap on per-event tables) to bound LLM token cost
-- [ ] **DIAG-07**: `es_diagnostics()` runs without error on tasks containing degenerate/NA events and with no API key present
+- [x] **DIAG-01**: `es_diagnostics(task)` returns a serializable named list (class `es_diagnostics`) using only base R + existing package internals — zero new dependencies
+- [x] **DIAG-02**: Diagnostics include estimation-window fit signals (R², Durbin-Watson, Ljung-Box p, Shapiro-Wilk p, ACF1) sourced from `R/diagnostics.R`
+- [x] **DIAG-03**: Diagnostics include event-window results (AR/CAR, AAR/CAAR, per-test-statistic values and p-values)
+- [x] **DIAG-04**: Diagnostics include cross-sectional signals (n_events, n_valid_events, CAR dispersion/IQR, event-window overlap count)
+- [x] **DIAG-05**: Diagnostics surface v0.50.0 contract state per event (`is_fitted`, NA counts, zero-variance / insufficient-obs flags)
+- [x] **DIAG-06**: Diagnostics payload is size-capped (row cap on per-event tables) to bound LLM token cost
+- [x] **DIAG-07**: `es_diagnostics()` runs without error on tasks containing degenerate/NA events and with no API key present
 
 ### Provider Abstraction (PROV)
 
@@ -67,11 +67,11 @@ Encoded event-study methodology with citations.
 
 ### CRAN Safety & Quality Gate (CRAN)
 
-- [ ] **CRAN-01**: Offline diagnostics add zero hard dependencies; all advisor deps stay in Suggests
+- [x] **CRAN-01**: Offline diagnostics add zero hard dependencies; all advisor deps stay in Suggests
 - [ ] **CRAN-02**: No network in examples/tests/vignettes by default (`@examplesIf` / `skip_on_cran()` / vignette eval guards)
 - [ ] **CRAN-03**: Provider layer tested offline (httptest2 mocks / static fixtures); the grounding guard has dedicated deterministic regression tests
 - [ ] **CRAN-04**: Green `R CMD check` — no new NOTEs/WARNINGs; existing 1378 tests stay green
-- [ ] **CRAN-05**: Existing pipeline behavior on valid input is unchanged (advisor is purely additive)
+- [x] **CRAN-05**: Existing pipeline behavior on valid input is unchanged (advisor is purely additive)
 
 ## Future Requirements
 
@@ -104,20 +104,20 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIAG-01 | Phase 5 | Pending |
-| DIAG-02 | Phase 5 | Pending |
-| DIAG-03 | Phase 5 | Pending |
-| DIAG-04 | Phase 5 | Pending |
-| DIAG-05 | Phase 5 | Pending |
-| DIAG-06 | Phase 5 | Pending |
-| DIAG-07 | Phase 5 | Pending |
+| DIAG-01 | Phase 5 | Complete |
+| DIAG-02 | Phase 5 | Complete |
+| DIAG-03 | Phase 5 | Complete |
+| DIAG-04 | Phase 5 | Complete |
+| DIAG-05 | Phase 5 | Complete |
+| DIAG-06 | Phase 5 | Complete |
+| DIAG-07 | Phase 5 | Complete |
 | KB-01 | Phase 5 | Pending |
 | KB-02 | Phase 5 | Pending |
 | KB-03 | Phase 5 | Pending |
 | KB-04 | Phase 5 | Pending |
 | ADV-08 | Phase 5 | Pending |
-| CRAN-01 | Phase 5 | Pending |
-| CRAN-05 | Phase 5 | Pending |
+| CRAN-01 | Phase 5 | Complete |
+| CRAN-05 | Phase 5 | Complete |
 | PROV-01 | Phase 6 | Pending |
 | PROV-02 | Phase 6 | Pending |
 | PROV-03 | Phase 6 | Pending |
@@ -143,6 +143,7 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | CRAN-04 | Phase 8 | Pending |
 
 **Coverage:**
+
 - v0.60.0 requirements: 37 total (DIAG 7, PROV 8, ADV 8, KB 4, SKILL 3, BIZ 2, CRAN 5)
 - Mapped to phases: 37 (Phase 5: 14, Phase 6: 10, Phase 7: 7, Phase 8: 6)
 - Unmapped: 0 ✓
