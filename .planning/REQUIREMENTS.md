@@ -43,7 +43,7 @@ The `Advice` object and the grounding guarantee.
 - [ ] **ADV-05**: `es_advise()` supports task types: `interpret`, `recommend_stat`, `recommend_model`, `flag_robustness`, `design_discussion`, `report_writing`
 - [ ] **ADV-06**: `es_advise()` errors clearly when no provider/key is available — never a silent or fabricated result
 - [ ] **ADV-07**: `report_writing` drafts grounded narrative consumable by `generate_report()` (add `advice = NULL` param + guarded template section; render path unchanged)
-- [ ] **ADV-08**: Non-LLM rule-based fallback for `recommend_stat` / `flag_robustness` driven by the KB decision table (works with no provider)
+- [x] **ADV-08**: Non-LLM rule-based fallback for `recommend_stat` / `flag_robustness` driven by the KB decision table (works with no provider)
 
 ### Grounding Knowledge Base (KB)
 
@@ -115,7 +115,7 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | KB-02 | Phase 5 | Complete |
 | KB-03 | Phase 5 | Complete |
 | KB-04 | Phase 5 | Complete |
-| ADV-08 | Phase 5 | Pending |
+| ADV-08 | Phase 5 | Complete |
 | CRAN-01 | Phase 5 | Complete |
 | CRAN-05 | Phase 5 | Complete |
 | PROV-01 | Phase 6 | Pending |

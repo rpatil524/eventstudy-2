@@ -4,17 +4,17 @@ milestone: v0.60.0
 milestone_name: Grounded AI Advisor
 current_phase: 05
 current_phase_name: Offline Diagnostics + Grounding Knowledge Base
-status: executing
-stopped_at: Completed 05-1-PLAN.md (es_diagnostics harvester)
-last_updated: "2026-09-03T20:01:38.157Z"
+status: verifying
+stopped_at: Completed 05-3-PLAN.md (advise_offline)
+last_updated: "2026-09-03T20:14:35.342Z"
 last_activity: 2026-09-03
 last_activity_desc: Phase 05 execution started
-state_head: 495ebdcfe42fabb1a652d058244975fe27530893
+state_head: ffd92143085088d0cc6f89b721e9e8d6e61be284
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 3
   percent: 0
 ---
 
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 ## Current Position
 
 Phase: 05 (Offline Diagnostics + Grounding Knowledge Base) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
+Plan: 3 of 3
+Status: Phase complete — ready for verification
 Last activity: 2026-09-03 — Phase 05 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -64,6 +64,8 @@ Progress: [░░░░░░░░░░] 0%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 05 P01 | 10 | 3 tasks | 5 files |
+| Phase 05-offline-diagnostics-grounding-knowledge-base P02 | 277 | 2 tasks | 5 files |
+| Phase 05 P03 | 18 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -80,6 +82,10 @@ Recent decisions affecting current work:
 - [Phase 05]: p-values extracted via stats::pt(abs(t), df, lower.tail=FALSE)*2 — dist_student_t objects never stored in es_diagnostics output
 - [Phase 05]: unclass() required before jsonlite::toJSON() to strip S3 class from es_diagnostics and invoke default list handler
 - [Phase 05]: cross_sectional signals computed across ALL events; per-event vectors capped to max_events top-N by anomaly score (Inf for unfitted, abs(final_car) otherwise)
+- [Phase 05]: Added category field (stat_choice|robustness) to KB rules to enable recommend_stat()/flag_robustness() filtering without re-classifying at call time
+- [Phase 05]: KB-PRETREND omitted: pretrend signal not available in es_diagnostics harvester; documented in SUMMARY
+- [Phase 05]: recommend_stat/flag_robustness dispatch: accept either fitted task or es_diagnostics; provider=NULL silently ignored for Phase 7 forward-compat
+- [Phase 05]: es_advice contract: source=offline_kb, is_deterministic=TRUE, rules_matched with plain scalar fields only (JSON-safe)
 
 ### Pending Todos
 
@@ -101,8 +107,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-03T20:01:38.142Z
-Stopped at: Completed 05-1-PLAN.md (es_diagnostics harvester)
+Last session: 2026-09-03T20:14:35.326Z
+Stopped at: Completed 05-3-PLAN.md (advise_offline)
 Resume file: None
 
 ## Operator Next Steps
