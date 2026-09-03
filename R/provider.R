@@ -145,6 +145,113 @@
 }
 
 # ---------------------------------------------------------------------------
+# Shared httr2 request/response plumbing (never-throw discipline)
+# ---------------------------------------------------------------------------
+#
+# Both helpers reference `httr2` ONLY inside their bodies. They are called only
+# from a concrete provider's complete(), which guards `requireNamespace("httr2")`
+# at its top — so R CMD check stays clean with httr2 uninstalled.
+
+#' Build and perform a thin httr2 request, trapping transport failures
+#'
+#' Assembles the request pipeline (url path append, JSON body, timeout, retry
+#' WITHOUT transient/transport retry, and \code{req_error(is_error = ~FALSE)} so a
+#' non-2xx status returns an inspectable response instead of throwing), attaches
+#' auth (bearer -> \code{req_auth_bearer_token} which auto-redacts Authorization;
+#' x-api-key -> \code{req_headers_redacted} so the key is redacted in every
+#' print/error path), and performs it inside \code{tryCatch}. A
+#' transport/timeout failure is returned as the condition object (never thrown)
+#' so \code{.finish_response()} can degrade it uniformly.
+#'
+#' Shared by \code{OpenAICompatProvider} (bearer) and \code{AnthropicProvider}
+#' (x-api-key, delivered in 06-3). References \code{httr2} only inside the body;
+#' callers guard \code{requireNamespace("httr2")}.
+#'
+#' @param base_url Character base URL, e.g. "https://api.openai.com/v1".
+#' @param path Character path appended to the base, e.g. "chat/completions".
+#' @param body Named list request body (JSON-encoded via \code{req_body_json}).
+#' @param key Character API key (attached redacted).
+#' @param auth One of \code{"bearer"} or \code{"x-api-key"}.
+#' @param extra_headers Named list of additional headers (e.g. the Anthropic
+#'   \code{anthropic-version}). Empty by default.
+#' @param timeout Numeric request timeout in seconds (default 30).
+#' @param max_tries Integer max attempts (default 2); transport failures are NOT
+#'   retried so a down endpoint fails fast to one warning.
+#' @return An httr2 response object, OR a condition object on transport/timeout
+#'   failure.
+#' @noRd
+.perform_request <- function(base_url, path, body, key,
+                             auth = c("bearer", "x-api-key"),
+                             extra_headers = list(),
+                             timeout = 30, max_tries = 2) {
+  auth <- match.arg(auth)
+
+  req <- httr2::request(base_url)
+  req <- httr2::req_url_path_append(req, path)
+  req <- httr2::req_body_json(req, body)
+  req <- httr2::req_timeout(req, timeout)
+  req <- httr2::req_retry(req, max_tries = max_tries, retry_on_failure = FALSE)
+  # is_error = FALSE turns non-2xx into a normal return so .finish_response()
+  # branches on resp_status() instead of httr2 throwing an httr2_http_* error.
+  req <- httr2::req_error(req, is_error = function(resp) FALSE)
+
+  if (identical(auth, "bearer")) {
+    req <- httr2::req_auth_bearer_token(req, key)
+  } else {
+    req <- httr2::req_headers_redacted(req, "x-api-key" = key)
+  }
+  if (length(extra_headers)) {
+    req <- do.call(httr2::req_headers, c(list(req), extra_headers))
+  }
+
+  tryCatch(
+    httr2::req_perform(req),
+    error = function(e) e
+  )
+}
+
+#' Branch on an httr2 response and safely extract completion text
+#'
+#' Consumes the return of \code{.perform_request()} and produces an
+#' \code{es_provider_response} on every path: a condition (transport/timeout) ->
+#' failure; a non-2xx status -> failure carrying ONLY \code{"HTTP <status>"} (no
+#' body, no key); a malformed 200 body (\code{resp_body_json} trapped to
+#' \code{NULL}) -> failure; an empty / missing completion text -> failure; and a
+#' well-formed body -> success. Every failure routes through
+#' \code{.provider_failure()} so EXACTLY ONE warning is emitted. References
+#' \code{httr2} only inside the body; callers guard \code{requireNamespace}.
+#'
+#' @param resp An httr2 response object or a condition (from
+#'   \code{.perform_request()}).
+#' @param extract_fn A function \code{function(parsed) -> character} pulling the
+#'   completion text out of the parsed JSON body.
+#' @param source_label Character provider label used in the response + warning.
+#' @return An \code{es_provider_response} S3 object.
+#' @noRd
+.finish_response <- function(resp, extract_fn, source_label) {
+  if (inherits(resp, "condition")) {
+    return(.provider_failure(source_label, "request failed (network/timeout)"))
+  }
+  status <- httr2::resp_status(resp)
+  if (status < 200L || status >= 300L) {
+    # NEVER include the response body or key — only the status code.
+    return(.provider_failure(source_label, paste0("HTTP ", status)))
+  }
+  parsed <- tryCatch(
+    httr2::resp_body_json(resp),
+    error = function(e) NULL
+  )
+  if (is.null(parsed)) {
+    return(.provider_failure(source_label, "malformed response body"))
+  }
+  text <- tryCatch(extract_fn(parsed), error = function(e) NA_character_)
+  if (length(text) != 1L || is.na(text) || !nzchar(text)) {
+    return(.provider_failure(source_label, "no completion text in response"))
+  }
+  .provider_success(source_label, text)
+}
+
+# ---------------------------------------------------------------------------
 # ProviderBase — abstract R6 contract
 # ---------------------------------------------------------------------------
 
