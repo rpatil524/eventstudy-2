@@ -86,9 +86,15 @@ test_that("provider() with no type resolves to the default (custom) working prov
   expect_identical(p$complete("hi")$text, "default-branch")
 })
 
-test_that("provider() errors clearly for an unimplemented HTTP type in this plan", {
+test_that("provider('openai') now constructs the OpenAICompatProvider (delivered in 06-2)", {
   withr::local_envvar(EVENTSTUDY_ADVISOR_PROVIDER = "")
-  expect_error(provider("openai"), "later plan")
+  p <- provider("openai", model = "gpt-4o")
+  expect_true(inherits(p, "OpenAICompatProvider"))
+})
+
+test_that("provider() still errors clearly for the not-yet-delivered anthropic type", {
+  withr::local_envvar(EVENTSTUDY_ADVISOR_PROVIDER = "")
+  expect_error(provider("anthropic"), "later plan")
 })
 
 test_that("provider() rejects an unknown type via match.arg", {

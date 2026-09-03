@@ -127,3 +127,71 @@ test_that("OpenAICompatProvider 4xx degrades to one warning + NA", {
   expect_warning(res <- p$complete("hi"), "HTTP 401")
   expect_true(is.na(res$text))
 })
+
+# ---------------------------------------------------------------------------
+# Task 3: full failure matrix through the provider + one-warning + serializable
+# ---------------------------------------------------------------------------
+
+test_that("OpenAICompatProvider 5xx degrades to one warning + NA", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  httr2::local_mocked_responses(mock_status(503L))
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  expect_warning(res <- p$complete("hi"), "HTTP 503")
+  expect_true(is.na(res$text))
+})
+
+test_that("OpenAICompatProvider malformed 200 body degrades without crashing", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  httr2::local_mocked_responses(mock_malformed())
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  expect_warning(res <- p$complete("hi"), "malformed")
+  expect_true(is.na(res$text))
+})
+
+test_that("OpenAICompatProvider transport/timeout degrades without crashing", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  httr2::local_mocked_responses(mock_timeout())
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  expect_warning(res <- p$complete("hi"), "network|timeout")
+  expect_true(is.na(res$text))
+})
+
+test_that("each failure scenario emits EXACTLY ONE warning (no double-warn)", {
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  count_warnings <- function(expr) {
+    n <- 0L
+    withCallingHandlers(
+      force(expr),
+      warning = function(w) {
+        n <<- n + 1L
+        invokeRestart("muffleWarning")
+      }
+    )
+    n
+  }
+  for (mk in list(mock_status(401L), mock_status(503L),
+                  mock_malformed(), mock_timeout())) {
+    httr2::local_mocked_responses(mk)
+    n <- count_warnings(p$complete("hi"))
+    expect_equal(n, 1L)
+  }
+})
+
+test_that("es_provider_response (success and failure) is JSON-serializable", {
+  skip_if_not_installed("jsonlite")
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+
+  httr2::local_mocked_responses(
+    mock_200(list(choices = list(list(message = list(content = "ok")))))
+  )
+  ok <- p$complete("hi")
+  # The response is a plain list of scalars; unclass() drops the S3 tag so
+  # jsonlite serializes it as a JSON object (the shape Phase 7 will emit).
+  expect_no_error(jsonlite::toJSON(unclass(ok), null = "null", auto_unbox = TRUE))
+
+  httr2::local_mocked_responses(mock_status(401L))
+  suppressWarnings(fail <- p$complete("hi"))
+  expect_no_error(jsonlite::toJSON(unclass(fail), null = "null", auto_unbox = TRUE))
+})
