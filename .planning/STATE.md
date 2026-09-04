@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v0.60.0
 milestone_name: Grounded AI Advisor
-current_phase: 7
-current_phase_name: Grounded Advise Layer + Grounding Guard
+current_phase: 8
+current_phase_name: Agent Skill + Waitlist + Green Check Gate
 status: planning
-stopped_at: Completed 07-2-PLAN.md
-last_updated: "2026-09-04T06:48:37.852Z"
+stopped_at: Phase 7 complete, ready to plan Phase 8
+last_updated: "2026-09-04T07:09:47.454Z"
 last_activity: 2026-09-04
-last_activity_desc: Phase 6 complete, transitioned to Phase 7
-state_head: ba80524dd46f9e8ddd933e6acdc6fa59812aadeb
+last_activity_desc: Phase 7 complete, transitioned to Phase 8
+state_head: 2efb9059f83fd9af8cf5d888d5e84a1509ecadda
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
   completed_plans: 8
-  percent: 50
+  percent: 75
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 ## Current Position
 
-Phase: 7 — Grounded Advise Layer + Grounding Guard
+Phase: 8 — Agent Skill + Waitlist + Green Check Gate
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-09-04 — Phase 6 complete, transitioned to Phase 7
+Last activity: 2026-09-04 — Phase 7 complete, transitioned to Phase 8
 
 Progress: [█████░░░░░] 50%
 
@@ -50,7 +50,7 @@ Progress: [█████░░░░░] 50%
 |-------|-------|-------|----------|
 | 5 | 3 | - | - |
 | 6 | 3 | - | - |
-| 7 | TBD | - | - |
+| 7 | 2 | - | - |
 | 8 | TBD | - | - |
 
 **Recent Trend:**
@@ -120,7 +120,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-09-04T06:48:37.809Z
-Stopped at: Completed 07-2-PLAN.md
+Stopped at: Phase 7 complete, ready to plan Phase 8
 Resume file: None
 
 ## Operator Next Steps

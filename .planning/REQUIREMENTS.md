@@ -36,12 +36,12 @@ LLM-agnostic layer. All HTTP/LLM dependencies optional.
 
 The `Advice` object and the grounding guarantee.
 
-- [ ] **ADV-01**: `es_advise(diagnostics, task_type=, provider=, model=)` returns an `Advice` S3 object (`interpretation`, `recommendations[]`, `caveats`) with a `print` method
-- [ ] **ADV-02**: Each recommendation carries structured fields: `action`, `kind`, `rationale`, `expected_effect`, `evidence[]`
-- [ ] **ADV-03**: Each `evidence` entry is structured `{diagnostic_key, value, threshold, direction}` referencing the diagnostics
-- [ ] **ADV-04**: A runtime grounding guard rejects any recommendation whose evidence cites a key absent from the diagnostics, or a value mismatching within tolerance (the invariant — enforced in R, not just the prompt)
-- [ ] **ADV-05**: `es_advise()` supports task types: `interpret`, `recommend_stat`, `recommend_model`, `flag_robustness`, `design_discussion`, `report_writing`
-- [ ] **ADV-06**: `es_advise()` errors clearly when no provider/key is available — never a silent or fabricated result
+- [x] **ADV-01**: `es_advise(diagnostics, task_type=, provider=, model=)` returns an `Advice` S3 object (`interpretation`, `recommendations[]`, `caveats`) with a `print` method
+- [x] **ADV-02**: Each recommendation carries structured fields: `action`, `kind`, `rationale`, `expected_effect`, `evidence[]`
+- [x] **ADV-03**: Each `evidence` entry is structured `{diagnostic_key, value, threshold, direction}` referencing the diagnostics
+- [x] **ADV-04**: A runtime grounding guard rejects any recommendation whose evidence cites a key absent from the diagnostics, or a value mismatching within tolerance (the invariant — enforced in R, not just the prompt)
+- [x] **ADV-05**: `es_advise()` supports task types: `interpret`, `recommend_stat`, `recommend_model`, `flag_robustness`, `design_discussion`, `report_writing`
+- [x] **ADV-06**: `es_advise()` errors clearly when no provider/key is available — never a silent or fabricated result
 - [x] **ADV-07**: `report_writing` drafts grounded narrative consumable by `generate_report()` (add `advice = NULL` param + guarded template section; render path unchanged)
 - [x] **ADV-08**: Non-LLM rule-based fallback for `recommend_stat` / `flag_robustness` driven by the KB decision table (works with no provider)
 
@@ -128,12 +128,12 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | PROV-08 | Phase 6 | Complete |
 | CRAN-02 | Phase 6 | Complete |
 | CRAN-03 | Phase 6 | Complete |
-| ADV-01 | Phase 7 | Pending |
-| ADV-02 | Phase 7 | Pending |
-| ADV-03 | Phase 7 | Pending |
-| ADV-04 | Phase 7 | Pending |
-| ADV-05 | Phase 7 | Pending |
-| ADV-06 | Phase 7 | Pending |
+| ADV-01 | Phase 7 | Complete |
+| ADV-02 | Phase 7 | Complete |
+| ADV-03 | Phase 7 | Complete |
+| ADV-04 | Phase 7 | Complete |
+| ADV-05 | Phase 7 | Complete |
+| ADV-06 | Phase 7 | Complete |
 | ADV-07 | Phase 7 | Complete |
 | SKILL-01 | Phase 8 | Pending |
 | SKILL-02 | Phase 8 | Pending |

@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order. Numbe
 
 - [x] **Phase 5: Offline Diagnostics + Grounding Knowledge Base** - Deterministic zero-dependency `es_diagnostics()`, the pure-R assumption→test knowledge base, and a non-LLM rule-based advice fallback — all independently shippable with no API key (completed 2026-09-03)
 - [x] **Phase 6: Provider Abstraction + CRAN-Safe HTTP Harness** - LLM-agnostic `AdvisorProvider` R6 hierarchy (Anthropic, OpenAI-compatible, custom hook), 3-tier config precedence, graceful degradation, tested entirely offline with mocked HTTP (completed 2026-09-04)
-- [ ] **Phase 7: Grounded Advise Layer + Grounding Guard** - `es_advise()` returning a structured `Advice` object with a runtime grounding guard, all six advice modes, and report-writing integration into `generate_report()`
+- [x] **Phase 7: Grounded Advise Layer + Grounding Guard** - `es_advise()` returning a structured `Advice` object with a runtime grounding guard, all six advice modes, and report-writing integration into `generate_report()` (completed 2026-09-04)
 - [ ] **Phase 8: Agent Skill + Waitlist + Green Check Gate** - Claude Code Agent Skill orchestrating the full advise loop, the commercial "Advisor Pro" waitlist surface, and a green `R CMD check` with the 1378-test suite still green
 
 ## Phase Details
@@ -126,5 +126,5 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 4. Regression Net and Check Gate | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 5. Offline Diagnostics + Grounding KB | v0.60.0 | 3/3 | Complete    | 2026-09-03 |
 | 6. Provider Abstraction + HTTP Harness | v0.60.0 | 3/3 | Complete    | 2026-09-04 |
-| 7. Grounded Advise Layer + Guard | v0.60.0 | 2/2 | In Progress|  |
+| 7. Grounded Advise Layer + Guard | v0.60.0 | 2/2 | Complete    | 2026-09-04 |
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 0/TBD | Not started | - |
