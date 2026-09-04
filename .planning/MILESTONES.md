@@ -1,5 +1,19 @@
 # Milestones
 
+## v0.60.0 Grounded AI Advisor (Shipped: 2026-09-04)
+
+**Phases completed:** 4 phases, 10 plans, 10 tasks
+
+**Key accomplishments:**
+
+- Deterministic zero-dependency es_diagnostics() harvester: S3-classed named list extracting estimation-window fit signals, event-window AR/CAR p-values (via stats::pt — no dist objects), cross-sectional IQR/overlap, and per-event contract state from a fitted EventStudyTask, with anomaly-ranked max_events cap and aggregate remainder
+- Offline KB-matching advice engine — `recommend_stat()`/`flag_robustness()` deliver severity-ranked `es_advice` objects from any fitted task or diagnostics, with zero dependencies and no-provider guarantee (ADV-08).
+- Wire grounded `Advice` object into `generate_report()` via trailing `advice=NULL` param and guarded skeleton.Rmd chunk — NULL path is byte-identical, invalid advice degrades with one warning.
+- Claude Code Agent Skill driving the full advisor loop via existing exports only, plus a CRAN-safe opt-in Advisor Pro waitlist footer with `?advisor_pro` doc topic and README section.
+- Version bumped 0.50.0 → 0.60.0, NEWS v0.60.0 section written, dev dirs excluded from CRAN tarball via .Rbuildignore, advisor_pro.Rd generated, R CMD check --as-cran passes with 0 new NOTEs/WARNINGs.
+
+---
+
 ## v0.50.0 Robustness Hardening (Shipped: 2026-09-02)
 
 **Phases completed:** 4 phases, 10 plans, 18 tasks

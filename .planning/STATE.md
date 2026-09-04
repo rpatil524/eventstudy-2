@@ -2,20 +2,19 @@
 gsd_state_version: 1.0
 milestone: v0.60.0
 milestone_name: Grounded AI Advisor
-current_phase: 8
-current_phase_name: Agent Skill + Waitlist + Green Check Gate
-status: planning
-stopped_at: Completed 08-02-PLAN.md — CRAN green-check gate
-last_updated: "2026-09-04T07:53:07.956Z"
+status: Awaiting next milestone
+stopped_at: context exhaustion at 75% (2026-09-04)
+last_updated: "2026-09-04T08:30:50.100Z"
 last_activity: 2026-09-04
-last_activity_desc: Phase 7 complete, transitioned to Phase 8
-state_head: 709942faa3079edd3e47795867582563c8c9bbe9
+last_activity_desc: Milestone v0.60.0 completed and archived
+state_head: 2336e81559282ef5ab7874ed4ebc65f2e057036d
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 75
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+current_phase: 8
 ---
 
 # Project State
@@ -29,12 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 ## Current Position
 
-Phase: 8 — Agent Skill + Waitlist + Green Check Gate
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-09-04 — Phase 7 complete, transitioned to Phase 8
-
-Progress: [████████░░] 75%
+Phase: Milestone v0.60.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-09-04 — Milestone v0.60.0 completed and archived
 
 ## Performance Metrics
 
@@ -51,7 +48,7 @@ Progress: [████████░░] 75%
 | 5 | 3 | - | - |
 | 6 | 3 | - | - |
 | 7 | 2 | - | - |
-| 8 | TBD | - | - |
+| 8 | 2 | - | - |
 
 **Recent Trend:**
 
@@ -121,10 +118,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-04T07:53:07.897Z
-Stopped at: Completed 08-02-PLAN.md — CRAN green-check gate
+Last session: 2026-09-04T08:30:50.090Z
+Stopped at: context exhaustion at 75% (2026-09-04)
 Resume file: None
 
 ## Operator Next Steps
 
-- Plan the first phase with `/gsd-plan-phase 5`
+- Start the next milestone with /gsd-new-milestone

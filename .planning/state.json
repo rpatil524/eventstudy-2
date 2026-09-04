@@ -41,13 +41,13 @@
     {
       "number": "8",
       "name": "Agent Skill + Waitlist + Check Gate",
-      "status": "pending"
+      "status": "complete"
     }
   ],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Advance to the next step (plan phase 8)",
-    "reason": "Phase 8 of 4 — needs a plan"
+    "command": "/gsd:progress",
+    "label": "Show progress",
+    "reason": "Unsure of state — showing progress"
   },
-  "updated_at": "2026-09-04T07:09:47.476Z"
+  "updated_at": "2026-09-04T08:30:49.921Z"
 }
