@@ -8,6 +8,24 @@ description: >
 
 template:
   bootstrap: 5
+  bslib:
+    # Primary / accent color — deep professional blue
+    bg: "#FFFFFF"
+    fg: "#1A1A1A"
+    primary: "#1C4E80"
+    secondary: "#F8F9FA"
+    success: "#198754"
+    info: "#0dcaf0"
+    warning: "#ffc107"
+    danger: "#C0392B"
+    # Body typography — Inter
+    base_font: {google: "Inter"}
+    heading_font: {google: "Inter"}
+    # Monospace — JetBrains Mono
+    code_font: {google: "JetBrains Mono"}
+    # Font sizes and weights
+    font-size-base: "1rem"
+    headings-font-weight: "600"
 
 navbar:
   bg: light
