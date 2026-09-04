@@ -111,6 +111,9 @@ test_that("footer helper body contains no network/connection call", {
   # This is a structural (static) assertion — no mocking required.
   body_text <- paste(deparse(body(.advisor_pro_footer)), collapse = " ")
 
+  # Illustrative, not exhaustive: a curated list of the network/connection
+  # primitives the footer could plausibly reach for. The httr2 mock guard below
+  # is the behavioural backstop; this static scan catches obvious regressions.
   network_patterns <- c(
     "url(", "download.file(", "httr2::request(", "curl(",
     "readLines(", "GET(", "POST(", "socketConnection(",
@@ -123,7 +126,7 @@ test_that("footer helper body contains no network/connection call", {
 })
 
 test_that("footer helper with option TRUE makes no network call (httr2 mock guard)", {
-  skip_if_not_installed("httr2")
+  skip_if_not_installed("httr2", minimum_version = "1.0.0")
   # If httr2 is available, confirm the footer does not trigger any request
   expect_no_error(
     httr2::with_mocked_responses(
