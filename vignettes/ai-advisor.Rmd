@@ -1,0 +1,266 @@
+---
+title: "The Grounded AI Advisor: A Dieselgate Walkthrough"
+author: "Simon Mueller"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The Grounded AI Advisor: A Dieselgate Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>"
+)
+# Keep this vignette offline and API-key-free at build time. The deterministic
+# advisor chunks below evaluate live against the bundled `dieselgate` data; the
+# LLM chunk is eval = FALSE and its output is shown as a static captured block.
+Sys.setenv(EVENTSTUDY_NO_NETWORK = "1")
+```
+
+## Why the advisor exists
+
+Event study analysis produces a lot of numbers — abnormal returns, cumulative
+abnormal returns, t-statistics, normality p-values, autocorrelation
+diagnostics — and interpreting them correctly requires methodological judgment
+that is easy to get wrong. A large language model (LLM) is a tempting tool for
+that interpretation, but a naive LLM will happily *fabricate* a plausible
+number, cite a t-statistic the analysis never computed, or recommend a test on
+the basis of a diagnostic that does not exist.
+
+EventStudy's advisor is built so that this cannot happen. Its governing rule is
+a single **grounding invariant**:
+
+> The advisor never fabricates a number. Every claim it returns is provably tied
+> to a diagnostic the package actually computed.
+
+## How it works: two layers
+
+The advisor is deliberately split into two layers.
+
+1. **The deterministic offline grounding layer.** This is pure R with no network
+   access, no API key, and no optional dependencies required. It harvests the
+   already-computed statistical signals from a fitted task
+   (`es_diagnostics()`), matches them against a curated, peer-reviewed knowledge
+   base of methodology rules, and returns rule-based advice
+   (`recommend_stat()`, `flag_robustness()`). This layer is always available and
+   always reproducible.
+
+2. **The LLM interpretation layer.** This is optional. When you supply a provider
+   (`es_advise(..., provider = provider("anthropic"))`), the LLM is given *only*
+   the package-computed diagnostics and the pre-grounded knowledge-base
+   recommendations, and it is asked to write the prose interpretation around
+   them — not to invent new numbers.
+
+The grounding invariant is enforced by a **runtime guard** in R, independent of
+the prompt. After the LLM responds, every recommendation's cited evidence is
+re-checked against the actual diagnostics: any recommendation whose evidence
+cites a diagnostic key that is absent, or a value that mismatches beyond a
+numerical tolerance, is dropped, one caveat is recorded, and exactly one warning
+is emitted. The LLM cannot talk its way past the guard because the guard does
+not read the prompt — it reads the numbers.
+
+This vignette walks through both layers on a real dataset. **The deterministic
+layer runs live**; the **LLM layer is shown as a captured static example**,
+because CRAN builds run offline with no API key (see the note at the end).
+
+## The dieselgate example
+
+The package bundles a small, frozen dataset, `dieselgate`, containing daily
+adjusted prices for Volkswagen AG (`VOW.DE`, Xetra) and the DAX benchmark index
+(`^GDAXI`) around the 2015 emissions scandal. On 2015-09-18 the U.S.
+Environmental Protection Agency issued its Notice of Violation to Volkswagen;
+the share-price crash lands on the following trading days.
+
+`dieselgate` is a named list carrying three tibbles that feed
+`EventStudyTask$new()` — `firm`, `index`, and a one-row `request` — plus
+provenance `meta`. See `?dieselgate` for the full schema and provenance.
+
+```{r load-data}
+library(EventStudy)
+data(dieselgate)
+
+names(dieselgate)
+dieselgate$request
+```
+
+We build the task from the three tibbles and run the standard pipeline
+(`prepare_event_study()` -> `fit_model()` -> `calculate_statistics()`, wrapped by
+`run_event_study()`) with a plain market model.
+
+```{r run-pipeline}
+task <- EventStudyTask$new(
+  dieselgate$firm,
+  dieselgate$index,
+  dieselgate$request
+)
+task <- run_event_study(task, ParameterSet$new())
+```
+
+The market model estimated on the pre-event window has a beta near 1.1 and an
+R-squared around 0.70 — a well-behaved fit. The event window tells the story of
+the crash:
+
+```{r show-ar-car}
+ar  <- task$get_ar(1L)
+car <- task$get_car(1L)
+
+# Abnormal returns on the event day (0) and the two days after
+ar[ar$relative_index %in% c(0, 1, 2, 3), ]
+
+# Cumulative abnormal return over the full [-10, +10] window
+tail(car, 1L)
+```
+
+The first trading day after the disclosure shows an abnormal return of roughly
+**-17%**, followed by roughly **-12%** the next day, and the cumulative abnormal
+return over the `[-10, +10]` window reaches about **-35%**. This is a sharp,
+economically enormous, and highly statistically significant crash — exactly the
+kind of result the advisor should help a researcher interpret and stress-test.
+
+## What runs offline (deterministic)
+
+Everything in this section evaluates **live**, with **no API key and no network
+access**. This is the always-available grounding layer.
+
+### Diagnostics
+
+`es_diagnostics()` harvests the already-computed signals from the fitted task
+into a structured, JSON-ready object. It recomputes nothing.
+
+```{r diagnostics}
+diag <- es_diagnostics(task)
+diag
+```
+
+Note the diagnostics that matter here: the estimation-window R-squared is high
+(~0.70), but the Shapiro-Wilk normality p-value is very small (well below 0.05),
+so the residuals are **non-normal** — and there is only **one** event, a
+single-firm study.
+
+### Recommended statistics
+
+`recommend_stat()` matches the diagnostics against the knowledge base's
+statistical-choice rules and returns severity-ranked, citation-backed advice —
+deterministically.
+
+```{r recommend-stat}
+recommend_stat(diag)
+```
+
+Because the estimation-window residuals fail the normality test, the KB fires a
+rule recommending **non-parametric alternatives** (Sign Test, Rank Test) that
+are robust to departures from normality, citing Brown & Warner (1985). This
+recommendation is grounded in the actual Shapiro-Wilk p-value the package
+computed.
+
+### Robustness flags
+
+`flag_robustness()` matches the diagnostics against the robustness rules.
+
+```{r flag-robustness}
+flag_robustness(diag)
+```
+
+Here the KB flags the **small-sample** problem: with a single event, the
+cross-sectional t-test's large-sample normal approximation is unreliable, so
+parametric p-values should be interpreted cautiously. Again, this flag is tied
+directly to the computed event count.
+
+Both of these calls are pure R. They return the same answer on every machine,
+every time, with no external service involved.
+
+## What the LLM adds (shown static)
+
+The deterministic layer above tells you *which* tests to consider and *why*, but
+it does so in terse, rule-based prose. The optional LLM layer takes the **same
+grounded diagnostics and pre-grounded recommendations** and writes a fuller,
+narrative interpretation around them — without inventing any numbers.
+
+You would invoke it like this:
+
+```{r llm-call, eval = FALSE}
+# Requires an LLM provider and, for Anthropic/OpenAI-compatible providers,
+# the optional `httr2` + `jsonlite` Suggests and an API key in the environment.
+p      <- provider("anthropic")                 # or provider("openai_compatible", ...)
+advice <- es_advise(diag, task_type = "recommend_stat", provider = p)
+print(advice)
+```
+
+The block below is a **captured, illustrative example** of what
+`print(advice)` returns for this dieselgate result. It is **not executed at
+build time** (see the note that follows). Every number it cites — beta ~1.09,
+R-squared ~0.70, the Shapiro-Wilk p-value, the event-window CAR and its
+t-statistic — is one the live deterministic layer above already produced; the
+LLM only supplies the surrounding prose, and the runtime guard would drop any
+recommendation citing a diagnostic that did not match.
+
+<!-- BEGIN static captured LLM example (NOT executed) -->
+```
+Event Study Advice
+==================
+Source:         anthropic
+Task type:      recommend_stat
+Deterministic:  FALSE
+Recommendations: 1
+
+Interpretation:
+  The market model is well specified on the pre-event window (beta approximately
+  1.09, R-squared approximately 0.70), so the estimated normal-return benchmark
+  is credible. Against that benchmark the disclosure produced an abnormal return
+  of roughly -17% on the first post-event trading day and roughly -12% on the
+  second, cumulating to a cumulative abnormal return of about -35% over the
+  [-10, +10] window (CAR t-statistic approximately -7.7). The effect is large and
+  unambiguous. However, the estimation-window residuals fail the Shapiro-Wilk
+  normality test (p approximately 0.004), which undermines the distributional
+  assumptions of the standard parametric AR/CAR t-tests.
+
+[1] Consider non-parametric test statistics (Sign Test, Rank Test)
+    Kind:   stat_choice
+    Effect: Preserves test size when estimation-window residuals are non-normal.
+    Evidence:
+      estimation_window.shapiro_p = 0.0042 (threshold 0.05, below)
+
+Caveats:
+ - This is a single-firm, single-event study; the cross-sectional t-test's
+   large-sample approximation is unreliable with one event, so lean on the
+   event's own time-series standard error and on non-parametric tests.
+ - The crash coincides with heavy news flow and possible confounding events
+   (regulatory statements, credit-rating actions); attribute the full CAR to the
+   disclosure only with that caveat in mind.
+
+Advisor Pro (waitlist): richer, corpus-grounded interpretation.
+```
+<!-- END static captured LLM example -->
+
+### Why this block is not evaluated at build time
+
+This vignette is built by CRAN and by `R CMD build` in an environment that has
+**no network access and no API key**, and the optional AI Suggests
+(`httr2`, `jsonlite`) may not be installed. A live `es_advise()` call with a
+provider would need all three. So the LLM chunk is marked `eval = FALSE` and its
+output is shown as the static block above. The deterministic chunks
+(`es_diagnostics()`, `recommend_stat()`, `flag_robustness()`) *do* run live,
+because they are pure R and need nothing external.
+
+This is the whole point of the two-layer design: the grounded, reproducible
+layer is always available and always runs; the LLM layer is an optional
+interpretation on top, and it is held to the same grounding invariant by a
+runtime guard whether or not you can see it execute here.
+
+## Summary
+
+* The advisor **never fabricates a number** — the grounding invariant.
+* The **deterministic layer** (`es_diagnostics()`, `recommend_stat()`,
+  `flag_robustness()`) is pure, offline R and runs live everywhere.
+* The **LLM layer** (`es_advise()` with a provider) writes prose around the
+  same grounded diagnostics and is policed by a runtime guard.
+* On the bundled `dieselgate` example, the pipeline recovers the ~-35% CAR
+  crash, the deterministic layer recommends non-parametric tests (non-normal
+  residuals) and flags the single-event small-sample caveat, and the LLM layer
+  turns those grounded facts into a readable interpretation.
+
+See `?es_diagnostics`, `?recommend_stat`, `?flag_robustness`, `?es_advise`, and
+`?provider` for the full API, and `?dieselgate` for the dataset's provenance.
