@@ -2,14 +2,19 @@
 gsd_state_version: 1.0
 milestone: v0.62.0
 milestone_name: Documentation Site (pkgdown + CI/CD)
-status: planning
-last_updated: "2026-09-04T19:18:30.059Z"
+current_phase: 11
+current_phase_name: Curated pkgdown Site + Custom Theme (local build)
+status: verifying
+stopped_at: Completed 11-01-PLAN.md (Phase 11 complete — _pkgdown.yml + pkgdown/extra.scss built and verified)
+last_updated: "2026-09-04T20:59:06.402Z"
 last_activity: 2026-09-04
+last_activity_desc: Phase 11 execution started
+state_head: 5ac5d0dade3dbdeb12dd94851c76efb62cdf399a
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 1
+  completed_plans: 1
   percent: 0
 ---
 
@@ -20,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics, never fabricating a result. This milestone makes that legible via a curated docs site.
-**Current focus:** v0.62.0 — ship a curated pkgdown documentation site, CI-deployed to GitHub Pages, linked from the repo.
+**Current focus:** Phase 11 — Curated pkgdown Site + Custom Theme (local build)
 
 ## Current Position
 
-Phase: 11 (not started) — roadmap created, awaiting plan
-Plan: —
-Status: Roadmap created (2 phases, 15/15 requirements mapped)
-Last activity: 2026-09-04 — Milestone v0.62.0 roadmap created
+Phase: 11 (Curated pkgdown Site + Custom Theme (local build)) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-09-04 — Phase 11 execution started
 
 ## Milestone Roadmap (v0.62.0)
 
@@ -50,6 +55,11 @@ Dependency order: Phase 11 (local build) → Phase 12 (CI deploy of that config 
 - Trend: n/a
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 11-curated-pkgdown-site-custom-theme-local-build P01 | 3777 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -64,6 +74,9 @@ Recent decisions affecting current work:
 - Custom Bootstrap-5 theme, no logo — professional look without artwork; logo deferred.
 - CI deploy to gh-pages on push-to-main + releases (r-lib `pkgdown.yaml`); keeps the site out of the CRAN tarball via `.Rbuildignore`.
 - The GitHub repo "About → Website" field is a manual operator step (CI cannot set it) — flagged in Phase 12 notes, not an automated requirement.
+- [Phase 11]: pkgdown 2.2.0: all .Rd files (even non-exported) must be in reference: groups or an internal section to avoid missing-topic errors
+- [Phase 11]: has_keyword('datasets') resolves dieselgate bundled dataset inclusion without export() requirement
+- [Phase 11]: DESCRIPTION URL field for pkgdown site URL deferred to Phase 12 LINK-01 (scope guard)
 
 ### Pending Todos
 
@@ -96,8 +109,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-04
-Stopped at: v0.62.0 roadmap created (Phases 11-12)
+Last session: 2026-09-04T20:59:06.362Z
+Stopped at: Completed 11-01-PLAN.md (Phase 11 complete — _pkgdown.yml + pkgdown/extra.scss built and verified)
 Resume file: None
 
 ## Operator Next Steps

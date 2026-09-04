@@ -10,15 +10,15 @@ Requirements for milestone v0.62.0. Each maps to exactly one roadmap phase.
 
 ### Site structure (SITE)
 
-- [ ] **SITE-01**: A `_pkgdown.yml` at the package root configures a pkgdown 2.x (Bootstrap 5) site, with `url:` set to `https://sipemu.github.io/eventstudy/` so cross-references and canonical links resolve correctly.
-- [ ] **SITE-02**: The Reference index is organized into thematic groups with titles/descriptions — Pipeline & tasks, Return models, Test statistics, Panel/intraday/synthetic control, AI advisor, Diagnostics, Cross-sectional & simulation, Export & reporting, Plotting, Data & datasets — with every exported symbol appearing in exactly one group (no ungrouped/missing-topic warnings).
-- [ ] **SITE-03**: The navbar exposes Get Started, Reference, an Articles dropdown, and News/Changelog; all 18 existing vignettes are reachable and grouped meaningfully under Articles (e.g. Core workflow, Models, Inference & robustness, Specialized designs, AI advisor).
-- [ ] **SITE-04**: The homepage renders the README as the landing page (or a dedicated intro), building without error from the existing content.
+- [x] **SITE-01**: A `_pkgdown.yml` at the package root configures a pkgdown 2.x (Bootstrap 5) site, with `url:` set to `https://sipemu.github.io/eventstudy/` so cross-references and canonical links resolve correctly.
+- [x] **SITE-02**: The Reference index is organized into thematic groups with titles/descriptions — Pipeline & tasks, Return models, Test statistics, Panel/intraday/synthetic control, AI advisor, Diagnostics, Cross-sectional & simulation, Export & reporting, Plotting, Data & datasets — with every exported symbol appearing in exactly one group (no ungrouped/missing-topic warnings).
+- [x] **SITE-03**: The navbar exposes Get Started, Reference, an Articles dropdown, and News/Changelog; all 18 existing vignettes are reachable and grouped meaningfully under Articles (e.g. Core workflow, Models, Inference & robustness, Specialized designs, AI advisor).
+- [x] **SITE-04**: The homepage renders the README as the landing page (or a dedicated intro), building without error from the existing content.
 
 ### Theme (THEME)
 
-- [ ] **THEME-01**: A custom Bootstrap-5 theme is applied via `template.bootstrap: 5` and a `template.bootswatch` (or `template.theme`/`bslib` variables) choosing an accent color and font pairing that reads as professional; no package logo is required.
-- [ ] **THEME-02**: Syntax highlighting, code blocks, and the reference/article typography render cleanly under the chosen theme with no contrast or layout regressions in a local `pkgdown::build_site()`.
+- [x] **THEME-01**: A custom Bootstrap-5 theme is applied via `template.bootstrap: 5` and a `template.bootswatch` (or `template.theme`/`bslib` variables) choosing an accent color and font pairing that reads as professional; no package logo is required.
+- [x] **THEME-02**: Syntax highlighting, code blocks, and the reference/article typography render cleanly under the chosen theme with no contrast or layout regressions in a local `pkgdown::build_site()`.
 
 ### CI/CD deploy (CI)
 
@@ -34,7 +34,7 @@ Requirements for milestone v0.62.0. Each maps to exactly one roadmap phase.
 
 ### Build integrity (BUILD)
 
-- [ ] **BUILD-01**: `pkgdown::build_site()` completes locally with no errors and no missing-topic/orphaned-reference warnings against the current exports and vignettes.
+- [x] **BUILD-01**: `pkgdown::build_site()` completes locally with no errors and no missing-topic/orphaned-reference warnings against the current exports and vignettes.
 - [ ] **BUILD-02**: Network-touching vignettes (e.g. `data-download`) build reproducibly in CI — either already offline-safe, cached, or gated so a transient network failure does not break the docs build; any non-evaluated content is clearly labelled.
 - [ ] **BUILD-03**: `R CMD check --as-cran` shows no new NOTEs/WARNINGs relative to the v0.61.x baseline, the existing test suite stays green, and the package version is bumped to `0.62.0` with a NEWS.md `v0.62.0` entry recording the documentation site.
 
@@ -64,28 +64,30 @@ Mapped during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SITE-01 | Phase 11 | Pending |
-| SITE-02 | Phase 11 | Pending |
-| SITE-03 | Phase 11 | Pending |
-| SITE-04 | Phase 11 | Pending |
-| THEME-01 | Phase 11 | Pending |
-| THEME-02 | Phase 11 | Pending |
+| SITE-01 | Phase 11 | Complete |
+| SITE-02 | Phase 11 | Complete |
+| SITE-03 | Phase 11 | Complete |
+| SITE-04 | Phase 11 | Complete |
+| THEME-01 | Phase 11 | Complete |
+| THEME-02 | Phase 11 | Complete |
 | CI-01 | Phase 12 | Pending |
 | CI-02 | Phase 12 | Pending |
 | CI-03 | Phase 12 | Pending |
 | LINK-01 | Phase 12 | Pending |
 | LINK-02 | Phase 12 | Pending |
 | LINK-03 | Phase 12 | Pending |
-| BUILD-01 | Phase 11 | Pending |
+| BUILD-01 | Phase 11 | Complete |
 | BUILD-02 | Phase 12 | Pending |
 | BUILD-03 | Phase 12 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 15 total
 - Mapped to phases: 15 ✓
 - Unmapped: 0 ✓
 
 Phase distribution:
+
 - Phase 11 (Curated pkgdown Site + Custom Theme): SITE-01..04, THEME-01, THEME-02, BUILD-01 (7)
 - Phase 12 (CI/CD Deploy + Repo Linkage + Release Integrity): CI-01..03, LINK-01..03, BUILD-02, BUILD-03 (8)
 
