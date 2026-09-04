@@ -18,7 +18,11 @@ es_advise(diagnostics, task_type, provider = NULL, model = NULL, ...)
 Required for LLM-only task types. When \code{NULL} and task type is KB-based,
 falls back to the Phase 5 offline path.}
 
-\item{model}{Optional character model identifier; passed through to the provider.}
+\item{model}{Optional character model identifier. Reserved for forward
+compatibility: the effective model is the one the provider was constructed
+with (see \code{\link{provider}()}), so set the model there. Accepted here
+without error so calling code can pass it, but it does not override the
+provider's configured model.}
 
 \item{...}{Additional arguments (currently ignored; reserved for future use).}
 }

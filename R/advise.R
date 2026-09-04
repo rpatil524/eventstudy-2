@@ -224,7 +224,10 @@ KB_KEY_MAP <- list(
 
   for (rec in recs) {
     ev_list  <- rec$evidence %||% list()
-    all_good <- TRUE
+    # A recommendation with NO evidence is ungrounded by definition — it cites
+    # nothing the package computed. Empty evidence[] must be DROPPED, never kept
+    # (an empty inner loop would otherwise leave all_good = TRUE). (CR-01)
+    all_good <- length(ev_list) > 0L
 
     for (ev in ev_list) {
       key <- ev$diagnostic_key %||% ""
@@ -236,9 +239,12 @@ KB_KEY_MAP <- list(
       actual   <- .resolve_diag_key(diagnostics, key)
       reported <- ev$value
 
-      # NA handling
+      # NA handling — all(is.na()) catches an ALL-NA vector too, not just a
+      # scalar NA (e.g. every event failed model fitting). Without this a
+      # length>1 all-NA vector slips through to mean(na.rm=TRUE) -> NaN and
+      # crashes the tolerance compare with no warning. (CR-02)
       actual_na   <- length(actual) == 0L || is.null(actual) ||
-                     (length(actual) == 1L && is.na(actual))
+                     all(is.na(actual))
       reported_na <- is.null(reported) ||
                      (length(reported) == 1L && is.na(reported))
 
@@ -257,6 +263,14 @@ KB_KEY_MAP <- list(
       if (is.numeric(actual) && is.numeric(reported)) {
         # Guard: reported must also be scalar
         if (length(reported) != 1L) {
+          all_good <- FALSE
+          break
+        }
+        # Non-finite (Inf/-Inf/NaN) on either side is a mismatch, never a
+        # match: with actual = Inf the relative tolerance becomes Inf and would
+        # accept ANY reported value; abs(Inf - Inf) = NaN would also crash the
+        # comparison. Drop the recommendation instead. (CR-03)
+        if (!is.finite(actual) || !is.finite(reported)) {
           all_good <- FALSE
           break
         }
@@ -364,6 +378,7 @@ KB_KEY_MAP <- list(
             expected_effect = list(type = "string"),
             evidence = list(
               type = "array",
+              minItems = 1L,
               items = list(
                 type = "object",
                 properties = list(
@@ -688,7 +703,11 @@ print.Advice <- function(x, ...) {
 #' @param provider An optional provider R6 object (from \code{\link{provider}()}).
 #'   Required for LLM-only task types. When \code{NULL} and task type is KB-based,
 #'   falls back to the Phase 5 offline path.
-#' @param model Optional character model identifier; passed through to the provider.
+#' @param model Optional character model identifier. Reserved for forward
+#'   compatibility: the effective model is the one the provider was constructed
+#'   with (see \code{\link{provider}()}), so set the model there. Accepted here
+#'   without error so calling code can pass it, but it does not override the
+#'   provider's configured model.
 #' @param ... Additional arguments (currently ignored; reserved for future use).
 #'
 #' @return For KB task types without a provider: an \code{es_advice} S3 object

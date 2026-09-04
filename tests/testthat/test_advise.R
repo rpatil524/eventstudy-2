@@ -446,3 +446,82 @@ test_that("es_advise with non-es_diagnostics input -> stop()", {
     "es_diagnostics"
   )
 })
+
+# ==============================================================================
+# Grounding-guard degenerate-input hardening (code review 07-REVIEW.md)
+# ==============================================================================
+
+test_that("CR-01: recommendation with empty evidence[] is dropped as ungrounded", {
+  diag <- .make_test_diag()
+  advice_list <- list(
+    recommendations = list(
+      list(action = "No-evidence rec", kind = "stat_choice",
+           rationale = "", expected_effect = "", evidence = list())
+    ),
+    caveats = character()
+  )
+  # expect_warning() returns the condition, not the value — capture via handler
+  fired <- FALSE
+  res <- withCallingHandlers(
+    EventStudy:::.validate_grounding(advice_list, diag),
+    warning = function(w) {
+      fired <<- grepl("Grounding guard", conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_true(fired)
+  expect_equal(res$n_dropped, 1L)
+  expect_equal(length(res$recommendations), 0L)
+})
+
+test_that("CR-02: all-NA diagnostic vector drops the rec without crashing", {
+  diag <- .make_test_diag()
+  diag$estimation_window$r2 <- c(NA_real_, NA_real_, NA_real_, NA_real_, NA_real_)
+  advice_list <- list(
+    recommendations = list(
+      list(action = "Cite all-NA key", kind = "stat_choice", rationale = "",
+           expected_effect = "",
+           evidence = list(list(diagnostic_key = "estimation_window.r2",
+                                value = 0.5, threshold = 0.3, direction = "above")))
+    ),
+    caveats = character()
+  )
+  # expect_warning() returns the condition, not the value — capture via handler
+  fired <- FALSE
+  res <- withCallingHandlers(
+    EventStudy:::.validate_grounding(advice_list, diag),
+    warning = function(w) {
+      fired <<- grepl("Grounding guard", conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_true(fired)
+  expect_equal(res$n_dropped, 1L)
+  expect_equal(length(res$recommendations), 0L)
+})
+
+test_that("CR-03: non-finite (Inf) diagnostic value drops the rec, no false-accept, no crash", {
+  diag <- .make_test_diag()
+  diag$cross_sectional$car_iqr <- Inf
+  advice_list <- list(
+    recommendations = list(
+      list(action = "Cite Inf key", kind = "robustness", rationale = "",
+           expected_effect = "",
+           evidence = list(list(diagnostic_key = "cross_sectional.car_iqr",
+                                value = 12345, threshold = 0.02, direction = "above")))
+    ),
+    caveats = character()
+  )
+  # expect_warning() returns the condition, not the value — capture via handler
+  fired <- FALSE
+  res <- withCallingHandlers(
+    EventStudy:::.validate_grounding(advice_list, diag),
+    warning = function(w) {
+      fired <<- grepl("Grounding guard", conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_true(fired)
+  expect_equal(res$n_dropped, 1L)
+  expect_equal(length(res$recommendations), 0L)
+})
