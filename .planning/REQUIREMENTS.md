@@ -42,7 +42,7 @@ The `Advice` object and the grounding guarantee.
 - [ ] **ADV-04**: A runtime grounding guard rejects any recommendation whose evidence cites a key absent from the diagnostics, or a value mismatching within tolerance (the invariant — enforced in R, not just the prompt)
 - [ ] **ADV-05**: `es_advise()` supports task types: `interpret`, `recommend_stat`, `recommend_model`, `flag_robustness`, `design_discussion`, `report_writing`
 - [ ] **ADV-06**: `es_advise()` errors clearly when no provider/key is available — never a silent or fabricated result
-- [ ] **ADV-07**: `report_writing` drafts grounded narrative consumable by `generate_report()` (add `advice = NULL` param + guarded template section; render path unchanged)
+- [x] **ADV-07**: `report_writing` drafts grounded narrative consumable by `generate_report()` (add `advice = NULL` param + guarded template section; render path unchanged)
 - [x] **ADV-08**: Non-LLM rule-based fallback for `recommend_stat` / `flag_robustness` driven by the KB decision table (works with no provider)
 
 ### Grounding Knowledge Base (KB)
@@ -134,7 +134,7 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | ADV-04 | Phase 7 | Pending |
 | ADV-05 | Phase 7 | Pending |
 | ADV-06 | Phase 7 | Pending |
-| ADV-07 | Phase 7 | Pending |
+| ADV-07 | Phase 7 | Complete |
 | SKILL-01 | Phase 8 | Pending |
 | SKILL-02 | Phase 8 | Pending |
 | SKILL-03 | Phase 8 | Pending |

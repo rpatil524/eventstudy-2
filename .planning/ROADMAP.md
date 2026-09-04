@@ -93,10 +93,10 @@ Decimal phases appear between their surrounding integers in numeric order. Numbe
   3. `es_advise()` supports all six task types (`interpret`, `recommend_stat`, `recommend_model`, `flag_robustness`, `design_discussion`, `report_writing`) and errors clearly when no provider/key is available rather than returning a silent or fabricated result
   4. `report_writing` produces grounded narrative that `generate_report()` accepts via a new optional `advice = NULL` param and renders through a guarded template section, with the existing render path unchanged
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans executed
 
-- [ ] 07-1-PLAN.md — es_advise() engine: Advice S3 + print, grounding guard (.validate_grounding/.resolve_diag_key), six-task-type routing, KB-grounds/LLM-interprets, deterministic guard regression (Wave 1)
-- [ ] 07-2-PLAN.md — generate_report(advice=NULL) trailing param + guarded skeleton.Rmd advice section + backward-compat/degrade tests (Wave 2)
+- [x] 07-1-PLAN.md — es_advise() engine: Advice S3 + print, grounding guard (.validate_grounding/.resolve_diag_key), six-task-type routing, KB-grounds/LLM-interprets, deterministic guard regression (Wave 1)
+- [x] 07-2-PLAN.md — generate_report(advice=NULL) trailing param + guarded skeleton.Rmd advice section + backward-compat/degrade tests (Wave 2)
 
 **UI hint**: no
 
@@ -126,5 +126,5 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 4. Regression Net and Check Gate | v0.50.0 | 2/2 | Complete | 2026-09-02 |
 | 5. Offline Diagnostics + Grounding KB | v0.60.0 | 3/3 | Complete    | 2026-09-03 |
 | 6. Provider Abstraction + HTTP Harness | v0.60.0 | 3/3 | Complete    | 2026-09-04 |
-| 7. Grounded Advise Layer + Guard | v0.60.0 | 0/2 | Not started | - |
+| 7. Grounded Advise Layer + Guard | v0.60.0 | 2/2 | In Progress|  |
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 0/TBD | Not started | - |
