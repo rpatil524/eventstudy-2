@@ -59,7 +59,7 @@ Archive: `.planning/milestones/v0.61.0-ROADMAP.md`
 
 **Milestone Goal:** Ship a curated, professionally-themed pkgdown documentation website for EventStudy — auto-built and deployed to GitHub Pages by CI on every push to `main` and on releases — and link it prominently from the repo, matching the `fdars-r` documentation pattern.
 
-- [ ] **Phase 11: Curated pkgdown Site + Custom Theme (local build)** — `_pkgdown.yml` with grouped reference index, organized Articles nav over the 18 vignettes, README homepage, custom Bootstrap-5 theme, verified with a clean local `build_site()`
+- [x] **Phase 11: Curated pkgdown Site + Custom Theme (local build)** — `_pkgdown.yml` with grouped reference index, organized Articles nav over the 18 vignettes, README homepage, custom Bootstrap-5 theme, verified with a clean local `build_site()` (completed 2026-09-04)
 - [ ] **Phase 12: CI/CD Deploy + Repo Linkage + Release Integrity** — r-lib `pkgdown.yaml` workflow deploying to gh-pages, DESCRIPTION URL / README badge / `.Rbuildignore`, network-safe article build, green Actions run, and a CRAN-clean 0.62.0 release
 
 ## Phase Details
@@ -113,5 +113,5 @@ Archive: `.planning/milestones/v0.61.0-ROADMAP.md`
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 2/2 | Complete | 2026-09-04 |
 | 9. Bundled Dieselgate Dataset + Provenance | v0.61.0 | 1/1 | Complete | 2026-09-04 |
 | 10. Advisor Vignette + Offline-Safe Build + Docs + Release | v0.61.0 | 1/1 | Complete | 2026-09-04 |
-| 11. Curated pkgdown Site + Custom Theme (local build) | v0.62.0 | 1/1 | In Progress|  |
+| 11. Curated pkgdown Site + Custom Theme (local build) | v0.62.0 | 1/1 | Complete    | 2026-09-04 |
 | 12. CI/CD Deploy + Repo Linkage + Release Integrity | v0.62.0 | 0/? | Not started | - |

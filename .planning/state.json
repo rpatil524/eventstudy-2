@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v0.61.0 — Advisor Vignette + Dieselgate Walkthrough",
+  "milestone": "v0.62.0 — Documentation Site (pkgdown + CI/CD)",
   "phases": [
     {
       "number": "1",
@@ -52,12 +52,22 @@
       "number": "10",
       "name": "Advisor Vignette + Offline-Safe Build + Docs + Release",
       "status": "complete"
+    },
+    {
+      "number": "11",
+      "name": "Curated pkgdown Site + Custom Theme (local build)",
+      "status": "complete"
+    },
+    {
+      "number": "12",
+      "name": "CI/CD Deploy + Repo Linkage + Release Integrity",
+      "status": "pending"
     }
   ],
   "next": {
-    "command": "/gsd:progress",
-    "label": "Show progress",
-    "reason": "Unsure of state — showing progress"
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step (plan phase 12)",
+    "reason": "Phase 12 of 2 — needs a plan"
   },
-  "updated_at": "2026-09-04T12:18:16.360Z"
+  "updated_at": "2026-09-04T21:26:41.968Z"
 }
