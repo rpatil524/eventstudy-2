@@ -56,14 +56,14 @@ Encoded event-study methodology with citations.
 
 ### Claude Code Agent Skill (SKILL)
 
-- [ ] **SKILL-01**: A Claude Code Agent Skill (`.claude/skills/es-advisor/SKILL.md`) orchestrates load→run→diagnose→advise→re-run→compare
-- [ ] **SKILL-02**: The skill references package functions and ships reference files (no new R code required)
-- [ ] **SKILL-03**: The skill degrades to offline diagnostics when no API key is present
+- [x] **SKILL-01**: A Claude Code Agent Skill (`.claude/skills/es-advisor/SKILL.md`) orchestrates load→run→diagnose→advise→re-run→compare
+- [x] **SKILL-02**: The skill references package functions and ships reference files (no new R code required)
+- [x] **SKILL-03**: The skill degrades to offline diagnostics when no API key is present
 
 ### Commercial-Tier Waitlist (BIZ)
 
-- [ ] **BIZ-01**: Docs advertise a future retrieval-grounded "Advisor Pro" as a paid tier
-- [ ] **BIZ-02**: A passive waitlist pointer (static URL in docs + optional printed footer) with zero runtime network/telemetry not initiated by the user (CRAN no-phone-home)
+- [x] **BIZ-01**: Docs advertise a future retrieval-grounded "Advisor Pro" as a paid tier
+- [x] **BIZ-02**: A passive waitlist pointer (static URL in docs + optional printed footer) with zero runtime network/telemetry not initiated by the user (CRAN no-phone-home)
 
 ### CRAN Safety & Quality Gate (CRAN)
 
@@ -135,11 +135,11 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | ADV-05 | Phase 7 | Complete |
 | ADV-06 | Phase 7 | Complete |
 | ADV-07 | Phase 7 | Complete |
-| SKILL-01 | Phase 8 | Pending |
-| SKILL-02 | Phase 8 | Pending |
-| SKILL-03 | Phase 8 | Pending |
-| BIZ-01 | Phase 8 | Pending |
-| BIZ-02 | Phase 8 | Pending |
+| SKILL-01 | Phase 8 | Complete |
+| SKILL-02 | Phase 8 | Complete |
+| SKILL-03 | Phase 8 | Complete |
+| BIZ-01 | Phase 8 | Complete |
+| BIZ-02 | Phase 8 | Complete |
 | CRAN-04 | Phase 8 | Pending |
 
 **Coverage:**
