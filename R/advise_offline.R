@@ -165,6 +165,7 @@ print.es_advice <- function(x, ...) {
     }
   }
 
+  .advisor_pro_footer()
   invisible(x)
 }
 

@@ -657,6 +657,7 @@ print.Advice <- function(x, ...) {
     cat("Caveats:\n")
     for (cv in x$caveats) cat(" -", cv, "\n")
   }
+  .advisor_pro_footer()
   invisible(x)
 }
 

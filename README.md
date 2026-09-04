@@ -375,6 +375,31 @@ See `vignette("custom-models")` and `vignette("custom-test-statistics")` for det
 | `intraday-event-study` | Non-parametric intraday event studies |
 | `panel-event-study` | Panel DiD event studies |
 
+## Advisor Pro (Waitlist)
+
+**Advisor Pro** is a planned premium add-on that will provide retrieval-grounded,
+evidence-backed AI advice powered by a curated academic knowledge base. It will
+integrate seamlessly with the existing `es_advise()` / `es_diagnostics()` pipeline.
+
+**Planned features:**
+- Retrieval-augmented recommendations from peer-reviewed methodology
+- Automatic context assembly from `es_diagnostics()` output
+- Structured `Advice` objects with traceable evidence chains
+- Priority access to new KB rules and model integrations
+
+**Current free tier** already includes offline KB-based advice via
+`recommend_stat()` and `flag_robustness()` — no API key required.
+
+**Join the waitlist:** <https://github.com/sipemu/eventstudy#advisor-pro-waitlist>
+
+**Opt-in footer reminder** (silent by default):
+```r
+options(eventstudy.advisor_pro_footer = TRUE)
+# Appends a static waitlist URL to advice print output — no network call.
+```
+
+See `?advisor_pro` for details.
+
 ## Roadmap
 
 - [x] Return models (Market, Market Adjusted, Mean Adjusted)
