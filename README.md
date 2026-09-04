@@ -22,6 +22,8 @@ devtools::install_github("sipemu/eventstudy")
 
 ## Features
 
+- **AI Advisor** (new in 0.60.0): Grounded, LLM-agnostic advice via `es_advise()` plus offline `es_diagnostics()`. Interprets only package-computed numbers and never fabricates results. Works fully offline with no API key required; optional LLM providers (Anthropic, OpenAI-compatible, custom) can be supplied via `provider()`.
+
 - **13 Return Models**: Market Model, Market Adjusted, Mean Adjusted, Fama-French 3- and 5-factor, Carhart 4-factor, GARCH(1,1), Buy-and-Hold Abnormal Returns (BHAR), Volume, and Volatility models.
 
 - **11 Test Statistics**: Parametric (AR T, CAR T, BHAR T, Cross-Sectional T, Patell Z, BMP) and non-parametric (Sign, Generalized Sign, Rank, Calendar-Time Portfolio).
@@ -55,6 +57,18 @@ task <- run_event_study(task)
 print(task)
 summary(task)
 ```
+
+### AI Advisor
+
+New in 0.60.0. Get grounded advice about your fitted study — fully offline, no API key, and it never invents numbers (it interprets only what the package computed):
+
+```r
+diag   <- es_diagnostics(task)
+advice <- es_advise(diag, task_type = "recommend_stat")
+print(advice)
+```
+
+Runs offline out of the box. To use an LLM for prose interpretation, pass an optional `provider()` (Anthropic, OpenAI-compatible, or custom).
 
 ## Example: Dieselgate
 
@@ -419,6 +433,7 @@ See `?advisor_pro` for details.
 - [x] Intraday event study support
 - [x] Panel event study module (static/dynamic TWFE, Sun & Abraham 2021)
 - [x] Vignettes for custom models, test statistics, result extraction, panel
+- [x] Grounded AI advisor (es_advise, es_diagnostics, provider abstraction) — new in 0.60.0
 - [ ] CRAN submission
 
 ## References
