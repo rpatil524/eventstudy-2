@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 Phase: Milestone v0.60.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-09-04 — Completed quick task 260904-er6: surface v0.60.0 AI advisor in README
+Last activity: 2026-09-04 — Completed quick task 260904-id9: clear CRAN non-ASCII WARNING (unblocks CI)
 
 ## Performance Metrics
 
@@ -112,6 +112,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260904-er6 | Surface v0.60.0 AI advisor in README (Features bullet + Quick Start snippet + Roadmap item) | 2026-09-04 | 6e61c3b | [260904-er6-update-readme-md-to-prominently-feature-](./quick/260904-er6-update-readme-md-to-prominently-feature-/) |
+| 260904-id9 | Fix CRAN non-ASCII WARNING — escape non-ASCII in string literals of advise.R/knowledge_base.R/report.R (unblocks CI's error-on=warning gate) | 2026-09-04 | 462940f | [260904-id9-fix-cran-non-ascii-warning-escape-non-as](./quick/260904-id9-fix-cran-non-ascii-warning-escape-non-as/) |
 
 ## Deferred Items
 
