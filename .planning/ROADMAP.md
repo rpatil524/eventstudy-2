@@ -47,7 +47,7 @@ Archive: `.planning/milestones/v0.60.0-ROADMAP.md` · Audit: `.planning/mileston
 **Milestone Goal:** Ship a CRAN vignette that explains the AI advisor's idea and mechanics, anchored by a real Volkswagen dieselgate worked example, and align the package's other doc entry points around that story.
 
 - [x] **Phase 9: Bundled Dieselgate Dataset + Provenance** — reproducible `data-raw/` fetch of VW + benchmark returns around the Sept 2015 EPA disclosure, frozen into `data/` with documented provenance and `.Rd`, proven to drive a valid end-to-end event study
-- [ ] **Phase 10: Advisor Vignette + Offline-Safe Build + Docs + Release** — the two-layer advisor vignette (deterministic layer live, LLM layer static/labelled) on the bundled dieselgate data, offline-safe build, aligned README/pkgdown/NEWS, and a CRAN-clean 0.61.0 release
+- [x] **Phase 10: Advisor Vignette + Offline-Safe Build + Docs + Release** — the two-layer advisor vignette (deterministic layer live, LLM layer static/labelled) on the bundled dieselgate data, offline-safe build, aligned README/pkgdown/NEWS, and a CRAN-clean 0.61.0 release (completed 2026-09-04)
 
 ## Phase Details
 
@@ -89,4 +89,4 @@ Archive: `.planning/milestones/v0.60.0-ROADMAP.md` · Audit: `.planning/mileston
 | 7. Grounded Advise Layer + Guard | v0.60.0 | 2/2 | Complete | 2026-09-04 |
 | 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 2/2 | Complete | 2026-09-04 |
 | 9. Bundled Dieselgate Dataset + Provenance | v0.61.0 | 1/1 | Complete | 2026-09-04 |
-| 10. Advisor Vignette + Offline-Safe Build + Docs + Release | v0.61.0 | 0/? | Not started | - |
+| 10. Advisor Vignette + Offline-Safe Build + Docs + Release | v0.61.0 | 1/1 | Complete | 2026-09-04 |

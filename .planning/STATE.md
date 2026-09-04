@@ -5,17 +5,17 @@ milestone_name: Advisor Vignette + Dieselgate Walkthrough
 current_phase: 10
 current_phase_name: Advisor Vignette + Offline-Safe Build + Docs + Release
 status: in_progress
-stopped_at: Phase 9 complete; Phase 10 in progress (2026-09-04)
+stopped_at: Phases 9-10 complete; milestone closeout (audit/complete) pending (2026-09-04)
 last_updated: "2026-09-04T11:43:53.108Z"
 last_activity: 2026-09-04
-last_activity_desc: Roadmap created for v0.61.0 (Phases 9-10)
+last_activity_desc: Phase 10 complete — advisor vignette + 0.61.0 release (c2c1783, 4852d27)
 state_head: eb289b73d17fa391800b04d6f9eb4386f5a28a04
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 0
-  completed_plans: 0
-  percent: 50
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -25,15 +25,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics, never fabricating a result.
-**Current focus:** Phase 9 — Bundled Dieselgate Dataset + Provenance
+**Current focus:** v0.61.0 closeout — milestone audit → complete → cleanup
 
 ## Current Position
 
-Phase: 9 — Bundled Dieselgate Dataset + Provenance
+Phase: 10 — Advisor Vignette + Offline-Safe Build + Docs + Release (COMPLETE)
 Plan: —
-Status: Roadmapped (not yet planned)
-Progress: [░░░░░░░░░░] 0/2 phases
-Last activity: 2026-09-04 — Roadmap created for v0.61.0 (Phases 9-10)
+Status: All phases complete; milestone closeout pending
+Progress: [██████████] 2/2 phases
+Last activity: 2026-09-04 — Phase 10 complete (advisor vignette + 0.61.0 release; c2c1783, 4852d27)
 
 ## Performance Metrics
 

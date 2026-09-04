@@ -17,27 +17,27 @@ Requirements for milestone v0.61.0. Each maps to exactly one roadmap phase.
 
 ### Vignette (VIG)
 
-- [ ] **VIG-01**: A vignette (`vignettes/ai-advisor.Rmd` or similar) explains *why* the AI advisor exists and *how* it works, describing the two-layer architecture — deterministic offline grounding vs. LLM interpretation — and the grounding invariant (never fabricates a number).
-- [ ] **VIG-02**: The vignette runs the dieselgate example live through `prepare_event_study()` → `fit_model()` → `calculate_statistics()` on the bundled data, showing the abnormal-return / CAR result.
-- [ ] **VIG-03**: The vignette runs the deterministic offline advisor layer live with no API key — `es_diagnostics()`, `recommend_stat()`, and `flag_robustness()` — and shows their output.
-- [ ] **VIG-04**: The vignette presents the LLM layer (`es_advise()`) as a static, clearly-labelled captured response, with an explicit note explaining why it is not evaluated at build time (offline CRAN build + no API key).
-- [ ] **VIG-05**: The two layers are visually and narratively separated so a reader can tell which output is deterministic/live and which is the captured LLM interpretation.
+- [x] **VIG-01**: A vignette (`vignettes/ai-advisor.Rmd` or similar) explains *why* the AI advisor exists and *how* it works, describing the two-layer architecture — deterministic offline grounding vs. LLM interpretation — and the grounding invariant (never fabricates a number).
+- [x] **VIG-02**: The vignette runs the dieselgate example live through `prepare_event_study()` → `fit_model()` → `calculate_statistics()` on the bundled data, showing the abnormal-return / CAR result.
+- [x] **VIG-03**: The vignette runs the deterministic offline advisor layer live with no API key — `es_diagnostics()`, `recommend_stat()`, and `flag_robustness()` — and shows their output.
+- [x] **VIG-04**: The vignette presents the LLM layer (`es_advise()`) as a static, clearly-labelled captured response, with an explicit note explaining why it is not evaluated at build time (offline CRAN build + no API key).
+- [x] **VIG-05**: The two layers are visually and narratively separated so a reader can tell which output is deterministic/live and which is the captured LLM interpretation.
 
 ### Offline-safe build (BUILD)
 
-- [ ] **BUILD-01**: The vignette compiles with zero network and zero LLM API calls — LLM chunks use `eval=FALSE` and/or precomputed static output; deterministic chunks evaluate live against bundled data.
-- [ ] **BUILD-02**: `R CMD build` produces the vignette without needing a network connection, API key, or optional AI Suggests (`httr2`/`jsonlite`) to be present.
+- [x] **BUILD-01**: The vignette compiles with zero network and zero LLM API calls — LLM chunks use `eval=FALSE` and/or precomputed static output; deterministic chunks evaluate live against bundled data.
+- [x] **BUILD-02**: `R CMD build` produces the vignette without needing a network connection, API key, or optional AI Suggests (`httr2`/`jsonlite`) to be present.
 
 ### Docs alignment (DOCS)
 
-- [ ] **DOCS-01**: README references the advisor vignette and the dieselgate example as the entry point for understanding the advisor.
-- [ ] **DOCS-02**: pkgdown configuration lists the new vignette (and, if applicable, the bundled dataset) under appropriate sections.
-- [ ] **DOCS-03**: NEWS.md records the vignette and dataset addition under a new `v0.61.0` heading.
+- [x] **DOCS-01**: README references the advisor vignette and the dieselgate example as the entry point for understanding the advisor.
+- [x] **DOCS-02**: pkgdown configuration lists the new vignette (and, if applicable, the bundled dataset) under appropriate sections.
+- [x] **DOCS-03**: NEWS.md records the vignette and dataset addition under a new `v0.61.0` heading.
 
 ### Release quality (REL)
 
-- [ ] **REL-01**: DESCRIPTION registers the vignette builder (`VignetteBuilder: knitr`), declares any newly-required Suggests, and bumps the package version to `0.61.0`.
-- [ ] **REL-02**: `R CMD check --as-cran` passes with no new NOTEs/WARNINGs relative to the v0.60.0 baseline, and the existing test suite stays green.
+- [x] **REL-01**: DESCRIPTION registers the vignette builder (`VignetteBuilder: knitr`), declares any newly-required Suggests, and bumps the package version to `0.61.0`.
+- [x] **REL-02**: `R CMD check --as-cran` passes with no new NOTEs/WARNINGs relative to the v0.60.0 baseline, and the existing test suite stays green.
 
 ## Future Requirements
 
@@ -67,18 +67,18 @@ Mapped during roadmap creation (2026-09-04).
 | DATA-02 | Phase 9 | Complete |
 | DATA-03 | Phase 9 | Complete |
 | DATA-04 | Phase 9 | Complete |
-| VIG-01 | Phase 10 | Pending |
-| VIG-02 | Phase 10 | Pending |
-| VIG-03 | Phase 10 | Pending |
-| VIG-04 | Phase 10 | Pending |
-| VIG-05 | Phase 10 | Pending |
-| BUILD-01 | Phase 10 | Pending |
-| BUILD-02 | Phase 10 | Pending |
-| DOCS-01 | Phase 10 | Pending |
-| DOCS-02 | Phase 10 | Pending |
-| DOCS-03 | Phase 10 | Pending |
-| REL-01 | Phase 10 | Pending |
-| REL-02 | Phase 10 | Pending |
+| VIG-01 | Phase 10 | Complete |
+| VIG-02 | Phase 10 | Complete |
+| VIG-03 | Phase 10 | Complete |
+| VIG-04 | Phase 10 | Complete |
+| VIG-05 | Phase 10 | Complete |
+| BUILD-01 | Phase 10 | Complete |
+| BUILD-02 | Phase 10 | Complete |
+| DOCS-01 | Phase 10 | Complete |
+| DOCS-02 | Phase 10 | N/A (no _pkgdown.yml) |
+| DOCS-03 | Phase 10 | Complete |
+| REL-01 | Phase 10 | Complete |
+| REL-02 | Phase 10 | Complete |
 
 **Coverage:**
 - v1 requirements: 16 total
