@@ -130,7 +130,7 @@ utils::globalVariables(c(
 #' @import R6
 #' @importFrom dplyr %>% mutate filter select n group_by summarise left_join
 #'   rename bind_rows arrange transmute ungroup n_distinct coalesce any_of
-#'   case_when
+#'   case_when lag
 #' @importFrom tibble as_tibble
 #' @importFrom rlang .data %||%
 #' @importFrom distributional dist_student_t
