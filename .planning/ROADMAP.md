@@ -73,7 +73,8 @@ Archive: `.planning/milestones/v0.61.0-ROADMAP.md`
   2. A visitor to the built site sees a navbar with Get Started, Reference, an Articles dropdown, and News/Changelog, and can reach all 18 vignettes grouped meaningfully under Articles.
   3. The homepage renders the README as the landing page without build error, and `url:` is set to `https://sipemu.github.io/eventstudy/` so cross-references and canonical links resolve.
   4. The site applies a custom Bootstrap-5 theme (accent color + font pairing via `template.bootswatch`/bslib variables, no logo), and reference/article typography, code blocks, and syntax highlighting render cleanly with no contrast or layout regressions in the local build.
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 11-01-PLAN.md — curated `_pkgdown.yml` (grouped reference + Articles + navbar) and custom Bootstrap-5 bslib theme, verified warning-clean via local `build_site()`
 **UI hint**: yes
 
 ### Phase 12: CI/CD Deploy + Repo Linkage + Release Integrity
