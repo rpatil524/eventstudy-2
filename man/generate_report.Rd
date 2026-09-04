@@ -15,6 +15,7 @@ generate_report(
   cross_sectional = NULL,
   confidence_level = 0.95,
   interactive = TRUE,
+  advice = NULL,
   ...
 )
 }
@@ -39,6 +40,14 @@ generate_report(
 
 \item{interactive}{Logical. Use interactive plotly plots in HTML output.
 Default TRUE.}
+
+\item{advice}{An optional grounded \code{Advice} object returned by
+\code{\link{es_advise}(task_type = "report_writing")}. When supplied and
+a valid \code{Advice}, renders a new \strong{AI Advisor Interpretation}
+section in the report. When \code{NULL} (the default), the existing render
+path is completely unchanged (byte-identical output). A supplied but
+invalid \code{advice} (not an \code{Advice} object) is silently coerced to
+\code{NULL} with exactly one \code{warning()} — the report is never broken.}
 
 \item{...}{Additional arguments passed to \code{rmarkdown::render}.}
 }

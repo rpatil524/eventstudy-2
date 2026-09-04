@@ -15,6 +15,13 @@
 #' @param confidence_level Confidence level for plots. Default 0.95.
 #' @param interactive Logical. Use interactive plotly plots in HTML output.
 #'   Default TRUE.
+#' @param advice An optional grounded \code{Advice} object returned by
+#'   \code{\link{es_advise}(task_type = "report_writing")}. When supplied and
+#'   a valid \code{Advice}, renders a new \strong{AI Advisor Interpretation}
+#'   section in the report. When \code{NULL} (the default), the existing render
+#'   path is completely unchanged (byte-identical output). A supplied but
+#'   invalid \code{advice} (not an \code{Advice} object) is silently coerced to
+#'   \code{NULL} with exactly one \code{warning()} — the report is never broken.
 #' @param ... Additional arguments passed to \code{rmarkdown::render}.
 #'
 #' @return The path to the generated report (invisibly).
@@ -31,6 +38,7 @@ generate_report <- function(task,
                               cross_sectional = NULL,
                               confidence_level = 0.95,
                               interactive = TRUE,
+                              advice = NULL,
                               ...) {
   if (!requireNamespace("rmarkdown", quietly = TRUE)) {
     stop("Package 'rmarkdown' is required for report generation. ",
@@ -82,6 +90,16 @@ generate_report <- function(task,
     output_dir <- getwd()
   }
 
+  # Validate advice param: a supplied non-Advice degrades gracefully (one warning,
+  # skip section) — never breaks the report (ADV-07, T-07-05).
+  if (!is.null(advice) && !inherits(advice, "Advice")) {
+    warning(
+      "generate_report(): 'advice' is not an Advice object — advice section will be skipped.",
+      call. = FALSE
+    )
+    advice <- NULL
+  }
+
   # Render
   rmarkdown::render(
     input = template_path,
@@ -95,7 +113,8 @@ generate_report <- function(task,
       sections = sections,
       cross_sectional = cross_sectional,
       confidence_level = confidence_level,
-      interactive = interactive
+      interactive = interactive,
+      advice = advice
     ),
     envir = new.env(parent = globalenv()),
     quiet = TRUE,

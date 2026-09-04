@@ -16,6 +16,7 @@ params:
   cross_sectional: NULL
   confidence_level: 0.95
   interactive: TRUE
+  advice: NULL
 ---
 
 ```{r setup, include=FALSE}
@@ -182,6 +183,37 @@ tryCatch({
 }, error = function(e) {
   cat("*Could not generate panel event study plot.*\n\n")
 })
+```
+
+```{r advice-section, results='asis', eval=!is.null(params$advice) && inherits(params$advice, "Advice")}
+cat("\n## AI Advisor Interpretation\n\n")
+advice <- params$advice
+cat(sprintf("*Source: %s | Deterministic: %s*\n\n",
+            advice$source,
+            advice$is_deterministic))
+
+if (nzchar(advice$interpretation %||% "")) {
+  cat("### Interpretation\n\n")
+  cat(advice$interpretation, "\n\n")
+}
+
+if (length(advice$recommendations) > 0L) {
+  cat("### Recommendations\n\n")
+  for (i in seq_along(advice$recommendations)) {
+    r <- advice$recommendations[[i]]
+    cat(sprintf("**%d. %s**\n\n", i, r$action %||% ""))
+    if (nzchar(r$rationale %||% "")) cat(r$rationale, "\n\n")
+    if (nzchar(r$expected_effect %||% "")) {
+      cat("*Expected effect:*", r$expected_effect, "\n\n")
+    }
+  }
+}
+
+if (length(advice$caveats) > 0L) {
+  cat("### Caveats\n\n")
+  for (cv in advice$caveats) cat("-", cv, "\n")
+  cat("\n")
+}
 ```
 
 ```{r appendix-section, results='asis', eval="appendix" %in% sections}
