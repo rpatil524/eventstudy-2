@@ -6,10 +6,10 @@ current_phase: 12
 current_phase_name: CI/CD Deploy + Repo Linkage + Release Integrity
 status: planning
 stopped_at: Phase 11 complete, ready to plan Phase 12
-last_updated: "2026-09-04T21:26:41.955Z"
+last_updated: "2026-09-04T22:32:30.933Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 11 complete, transitioned to Phase 12
-state_head: b6f12505aedfc045c8400ae96ce8e0db0cd595e8
+state_head: e85ffbc9aad24e4e21581644acdb8ed59117c9ab
 progress:
   total_phases: 2
   completed_phases: 1
@@ -96,6 +96,7 @@ Recent decisions affecting current work:
 | 260904-id9 | Fix CRAN non-ASCII WARNING — escape non-ASCII in string literals of advise.R/knowledge_base.R/report.R | 2026-09-04 | 462940f | [260904-id9-fix-cran-non-ascii-warning-escape-non-as](./quick/260904-id9-fix-cran-non-ascii-warning-escape-non-as/) |
 | 260904-kxy | Fix latent dplyr::lag import bug (returns silently all-zero/NA without dplyr attached) + regression test + advisor-vignette AR/CAR plots; released 0.61.1 | 2026-09-04 | 6c47339 | [260904-kxy-fix-dplyr-lag-import-bug-causing-all-na-](./quick/260904-kxy-fix-dplyr-lag-import-bug-causing-all-na-/) |
 | 260904-len | Extend bundled dieselgate to 4 automakers / 2 groups (README flagship example); multi-group advisor vignette with CI bands + group CAAR comparison (VW Group CAAR −38.6% vs Other +1.3% n.s.) + mock AI-advisor block; released 0.61.2 | 2026-09-04 | fa87166 | [260904-len-multi-automaker-vignette-ci-groups-advisor](./quick/260904-len-multi-automaker-vignette-ci-groups-advisor/) |
+| 260904-x88 | redesign the pkgdown site to match fdars-r | 2026-09-04 | e85ffbc | [260904-x88-redesign-the-pkgdown-site-to-match-fdars](./quick/260904-x88-redesign-the-pkgdown-site-to-match-fdars/) |
 
 ## Deferred Items
 
