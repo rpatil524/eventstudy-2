@@ -15,6 +15,12 @@
   connectivity, not the specific source). Fixes intermittent red CI on the
   R-devel job when Yahoo was unreachable.
 
+* **Fixed the single-event CAR confidence band in `plot_event_study()`.** The band
+  was centered on zero (`+/- z*sqrt(k)*sigma`) instead of on the CAR estimate, so
+  a CAR that drifts away from zero (e.g. VW's -35% in the advisor vignette) ran
+  far outside its own "confidence band". The ribbon is now `CAR +/- z*sqrt(k)*sigma`
+  and correctly envelops the CAR path.
+
 
 # EventStudy 0.61.2
 

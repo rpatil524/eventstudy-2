@@ -162,8 +162,10 @@ plot_event_study <- function(task,
       dplyr::mutate(
         value = cumsum(abnormal_returns),
         n = 1:dplyr::n(),
-        ci_lower = -z_val * sqrt(n) * sigma,
-        ci_upper = z_val * sqrt(n) * sigma
+        # Confidence band is the CAR estimate +/- its standard error
+        # (SE(CAR_k) ~ sqrt(k) * sigma), so the ribbon envelops the CAR path.
+        ci_lower = value - z_val * sqrt(n) * sigma,
+        ci_upper = value + z_val * sqrt(n) * sigma
       )
     y_label = "Cumulative Abnormal Return"
     if (is.null(title)) title = paste("Cumulative Abnormal Returns - Event", event_id)
