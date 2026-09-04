@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v0.60.0
 milestone_name: Grounded AI Advisor
-current_phase: 6
-current_phase_name: Provider Abstraction + CRAN-Safe HTTP Harness
+current_phase: 7
+current_phase_name: Grounded Advise Layer + Grounding Guard
 status: planning
-stopped_at: Completed 06-3-PLAN.md (Phase 6 closed)
-last_updated: "2026-09-03T21:25:36.220Z"
-last_activity: 2026-09-03
-last_activity_desc: Phase 5 complete, transitioned to Phase 6
-state_head: aeeaafb11b1e2605ae0bbe4294497d44577eba7f
+stopped_at: Phase 6 complete, ready to plan Phase 7
+last_updated: "2026-09-04T05:54:58.989Z"
+last_activity: 2026-09-04
+last_activity_desc: Phase 6 complete, transitioned to Phase 7
+state_head: 23cc9721f3d73f1a7d6c3f28cc9d5fdb03194eb6
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 3
-  percent: 25
+  completed_plans: 6
+  percent: 50
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 ## Current Position
 
-Phase: 6 — Provider Abstraction + CRAN-Safe HTTP Harness
-Plan: 06-3 complete (3 of 3) — Phase 6 closed
-Status: Phase 6 complete
-Last activity: 2026-09-03 — 06-3 executed: AnthropicProvider + finalized provider() factory + phase gate (1726 pass/0 fail, R CMD check clean)
+Phase: 7 — Grounded Advise Layer + Grounding Guard
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-04 — Phase 6 complete, transitioned to Phase 7
 
 Progress: [███░░░░░░░] 25%
 
@@ -49,7 +49,7 @@ Progress: [███░░░░░░░] 25%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 5 | 3 | - | - |
-| 6 | TBD | - | - |
+| 6 | 3 | - | - |
 | 7 | TBD | - | - |
 | 8 | TBD | - | - |
 
@@ -97,7 +97,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- **Phase 6 post-review fixes — RESOLVED (2026-09-04, commit 23cc972).** Both CONFIRMED never-crash criticals fixed + regression-tested (CustomProvider NULL/character(0) degrade; OpenAICompat jsonlite-absent degrade). Full suite 1793 pass / 0 fail. Phase 6 marked complete.
+- **CRAN R CMD check (CRAN-02)** was NOT re-run after the fix (fix is within the guarded pattern, tests green). The Phase 8 green-check gate re-runs the full `R CMD check`; confirm clean there.
 
 ### Blockers/Concerns
 
@@ -116,7 +117,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-09-03T21:25:36.193Z
-Stopped at: Completed 06-3-PLAN.md (Phase 6 closed)
+Stopped at: Phase 6 complete, ready to plan Phase 7
 Resume file: None
 
 ## Operator Next Steps
