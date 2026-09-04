@@ -1,3 +1,69 @@
+# EventStudy 0.60.0
+
+## Grounded AI Advisor — Feature Set (Phases 5–8)
+
+This release ships a complete AI-advisor layer for event study analysis, built
+on a deterministic offline knowledge base and an optional LLM backend.  All
+advisor features respect CRAN's no-phone-home policy: network calls are
+opt-in and fully guarded.
+
+### Offline Diagnostics + Grounding Knowledge Base (Phase 5)
+
+* **`es_diagnostics()`** — offline pre-flight diagnostic suite that inspects
+  estimation-window length, event-window span, event clustering, model
+  residual autocorrelation, and return normality, returning a structured
+  `Diagnostics` object consumable by the advice layer.
+
+* **`es_kb`** — a curated deterministic knowledge base (`R/advisor_kb.R`)
+  mapping diagnostic flags to actionable methodology recommendations, sourced
+  from MacKinlay (1997), Boehmer et al. (1991), Patell (1976), and related
+  academic literature.  `recommend_stat()` and `flag_robustness()` query the
+  KB without any network call.
+
+### LLM-Agnostic Provider Abstraction (Phase 6)
+
+* **`provider()`** — constructs a provider configuration for the LLM backend
+  of `es_advise()`.  Supports Anthropic (`provider("anthropic")`),
+  OpenAI-compatible endpoints (`provider("openai_compatible", base_url = ...)`),
+  and custom call-back providers.  Uses `httr2` + `jsonlite` (both in
+  `Suggests`) guarded by `requireNamespace()` — never loads unless the user
+  explicitly calls `es_advise()` with a provider.
+
+### Grounded `es_advise()` + Runtime Grounding Guard (Phase 7)
+
+* **`es_advise()`** — LLM-backed advice function that assembles grounding
+  context from `es_diagnostics()` output and the KB, sends a grounded prompt
+  to the configured provider, and returns a structured `Advice` object.  A
+  runtime grounding guard validates that the LLM response cites at least one
+  KB rule; ungrounded responses are downgraded to `"speculative"` confidence
+  and a warning is emitted — the package never silently returns LLM hallucinations
+  as authoritative advice.
+
+* **`generate_report(advice = )`** — the report pipeline now accepts an
+  optional `Advice` object; when supplied, a dedicated "AI Advisor" section
+  is rendered in the output report with evidence chains and confidence labels.
+
+### Claude Code Agent Skill (Phase 8)
+
+* **`.claude/skills/es-advisor/SKILL.md`** — a Claude Code Agent Skill that
+  surfaces `es_diagnostics()` + `es_advise()` to Claude Code users directly
+  from their AI assistant.  The skill file is excluded from the CRAN tarball
+  via `.Rbuildignore`.
+
+### Advisor Pro Waitlist (BIZ-01)
+
+* **Advisor Pro** is a planned retrieval-augmented premium tier backed by a
+  curated academic knowledge base.  It is not yet available.  To join the
+  waitlist, visit:
+  <https://github.com/sipemu/eventstudy#advisor-pro-waitlist>
+
+  An optional opt-in footer can be enabled for `Advice` print methods:
+  ```r
+  options(eventstudy.advisor_pro_footer = TRUE)
+  ```
+  The footer is silent by default and opens no network connections.  See
+  `?advisor_pro` for details.
+
 # EventStudy 0.50.0
 
 ## Robustness Hardening — Regression Catalog
