@@ -8,85 +8,26 @@ description: >
 
 template:
   bootstrap: 5
-  bslib:
-    # Primary / accent color — deep professional blue
-    bg: "#FFFFFF"
-    fg: "#1A1A1A"
-    primary: "#1C4E80"
-    secondary: "#F8F9FA"
-    success: "#198754"
-    info: "#0dcaf0"
-    warning: "#ffc107"
-    danger: "#C0392B"
-    # Body typography — Inter
-    base_font: {google: "Inter"}
-    heading_font: {google: "Inter"}
-    # Monospace — JetBrains Mono
-    code_font: {google: "JetBrains Mono"}
-    # Font sizes and weights
-    font-size-base: "1rem"
-    headings-font-weight: "600"
+
+home:
+  sidebar: false
 
 navbar:
-  bg: light
-  left:
-    - text: "Get Started"
+  structure:
+    left: [get-started, reference, articles]
+    right: [search, github]
+  components:
+    get-started:
+      text: "Get Started"
       href: articles/introduction.html
-    - text: "Reference"
+    reference:
+      text: "Reference"
       href: reference/index.html
-    - text: "Articles"
-      menu:
-        - text: "Core Workflow"
-        - text: "Extracting and Exporting Results"
-          href: articles/result-extraction.html
-        - text: "Diagnostics and Validation"
-          href: articles/diagnostics-validation.html
-        - text: "Bootstrap Inference and Multiple Testing"
-          href: articles/inference-robustness.html
-        - text: "---"
-        - text: "Return Models"
-        - text: "Factor Models, GARCH, and BHAR"
-          href: articles/factor-models-bhar.html
-        - text: "Time-Varying Volatility Models"
-          href: articles/time-varying-models.html
-        - text: "Custom Return Models"
-          href: articles/custom-models.html
-        - text: "Volume and Volatility Event Studies"
-          href: articles/volume-volatility-event-study.html
-        - text: "---"
-        - text: "Test Statistics"
-        - text: "Custom Test Statistics"
-          href: articles/custom-test-statistics.html
-        - text: "---"
-        - text: "Advanced Designs"
-        - text: "Panel DiD Event Studies"
-          href: articles/panel-event-study.html
-        - text: "Modern DiD Estimators"
-          href: articles/modern-did-estimators.html
-        - text: "Intraday Event Studies"
-          href: articles/intraday-event-study.html
-        - text: "Synthetic Control"
-          href: articles/synthetic-control.html
-        - text: "---"
-        - text: "Cross-Sectional and Simulation"
-        - text: "Cross-Sectional Analysis"
-          href: articles/cross-sectional-analysis.html
-        - text: "Monte Carlo Power Analysis"
-          href: articles/simulation-power-analysis.html
-        - text: "---"
-        - text: "AI Advisor"
-        - text: "Grounded AI Advisor"
-          href: articles/ai-advisor.html
-        - text: "---"
-        - text: "Data and Reporting"
-        - text: "Downloading Stock and Factor Data"
-          href: articles/data-download.html
-        - text: "Automated Reporting"
-          href: articles/automated-reports.html
-    - text: "Changelog"
-      href: news/index.html
-  right:
-    - icon: fab fa-github fa-lg
+    articles:
+      text: "Articles"
+      href: articles/gallery.html
+    github:
+      icon: fab fa-github fa-lg
       href: https://github.com/sipemu/eventstudy
       aria-label: GitHub
 
@@ -239,6 +180,12 @@ articles:
       Package overview with a complete Dieselgate worked example.
     contents:
       - introduction
+
+  - title: "Gallery"
+    desc: >
+      Browse all vignettes by topic.
+    contents:
+      - gallery
 
   - title: "Core Workflow"
     desc: >
