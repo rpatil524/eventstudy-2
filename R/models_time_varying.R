@@ -334,14 +334,27 @@ DCCGARCHModel <- R6Class("DCCGARCHModel",
                                res <- safe_fit(dcc_spec, data = returns_mat)
 
                                if (is.null(res$error)) {
-                                 # Check convergence of underlying GARCH fits
-                                 converged <- tryCatch({
-                                   # rmgarch does not expose a single convergence flag;
-                                   # check that covariance matrices are finite
-                                   H_check <- rmgarch::rcov(res$result)
-                                   all(is.finite(H_check))
-                                 }, error = function(e) FALSE)
-                                 if (converged) {
+                                 # Check convergence of underlying GARCH fits.
+                                 # rmgarch does not expose a single convergence flag; we probe
+                                 # the conditional covariance matrices via rcov. Distinguish two
+                                 # outcomes so failures route to the correct handler:
+                                 #   - rcov ERRORS            -> statistics-extraction failure
+                                 #   - rcov returns non-finite -> genuine non-convergence
+                                 conv_probe <- tryCatch(
+                                   list(ok = all(is.finite(rmgarch::rcov(res$result))),
+                                        err = NULL),
+                                   error = function(e) list(ok = NA, err = e)
+                                 )
+                                 if (!is.null(conv_probe$err)) {
+                                   # rcov (or covariance extraction) failed -> treat as a
+                                   # calculate_statistics failure so the message + one-warning
+                                   # contract match the statistics-failure path below.
+                                   private$.is_fitted <- FALSE
+                                   private$.degenerate_handled <- TRUE  # suppress second warning in abnormal_returns()
+                                   warning("DCC-GARCH model statistics computation failed: ",
+                                           conditionMessage(conv_probe$err),
+                                           ". Returning NA abnormal returns.", call. = FALSE)
+                                 } else if (isTRUE(conv_probe$ok)) {
                                    private$.fitted_model <- res$result
                                    private$.is_fitted <- TRUE
                                    tryCatch(
@@ -356,10 +369,12 @@ DCCGARCHModel <- R6Class("DCCGARCHModel",
                                    )
                                  } else {
                                    private$.is_fitted <- FALSE
+                                   private$.degenerate_handled <- TRUE  # suppress second warning in abnormal_returns()
                                    warning("DCC-GARCH model produced non-finite covariance. Returning NA.")
                                  }
                                } else {
                                  private$.is_fitted <- FALSE
+                                 private$.degenerate_handled <- TRUE  # suppress second warning in abnormal_returns()
                                  private$.error <- res$error
                                  warning("DCC-GARCH fitting failed: ",
                                          conditionMessage(res$error))
