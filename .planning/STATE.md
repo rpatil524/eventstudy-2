@@ -107,6 +107,7 @@ Recent decisions affecting current work:
 |---|-------------|------|--------|-----------|
 | 260904-er6 | Surface v0.60.0 AI advisor in README (Features bullet + Quick Start snippet + Roadmap item) | 2026-09-04 | 6e61c3b | [260904-er6-update-readme-md-to-prominently-feature-](./quick/260904-er6-update-readme-md-to-prominently-feature-/) |
 | 260904-id9 | Fix CRAN non-ASCII WARNING — escape non-ASCII in string literals of advise.R/knowledge_base.R/report.R | 2026-09-04 | 462940f | [260904-id9-fix-cran-non-ascii-warning-escape-non-as](./quick/260904-id9-fix-cran-non-ascii-warning-escape-non-as/) |
+| 260904-kxy | Fix latent dplyr::lag import bug (returns silently all-zero/NA without dplyr attached) + regression test + advisor-vignette AR/CAR plots; released 0.61.1 | 2026-09-04 | 6c47339 | [260904-kxy-fix-dplyr-lag-import-bug-causing-all-na-](./quick/260904-kxy-fix-dplyr-lag-import-bug-causing-all-na-/) |
 
 ## Deferred Items
 
