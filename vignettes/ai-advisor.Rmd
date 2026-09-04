@@ -120,6 +120,84 @@ return over the `[-10, +10]` window reaches about **-35%**. This is a sharp,
 economically enormous, and highly statistically significant crash — exactly the
 kind of result the advisor should help a researcher interpret and stress-test.
 
+### Seeing the crash
+
+The numbers above are easier to read as pictures. The two plots below render
+**offline** from the AR and CAR tibbles already computed above — no network, no
+API key. The abnormal-return plot makes the crash on the days *after* the event
+day (relative index 0, drawn in a contrasting colour) visually obvious; the
+cumulative-abnormal-return path shows the steady slide to about -35%.
+
+```{r plot-ar, fig.alt = "Abnormal returns across the [-10, +10] event window, with the largest negative bars on the first two days after the event.", fig.width = 7, fig.height = 4}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ar$is_event_day <- ar$relative_index == 0
+  ggplot2::ggplot(
+    ar,
+    ggplot2::aes(x = relative_index, y = abnormal_returns, fill = is_event_day)
+  ) +
+    ggplot2::geom_col() +
+    ggplot2::scale_fill_manual(
+      values = c(`FALSE` = "grey40", `TRUE` = "firebrick"),
+      guide  = "none"
+    ) +
+    ggplot2::geom_hline(yintercept = 0, colour = "black", linewidth = 0.3) +
+    ggplot2::labs(
+      title = "Abnormal returns around the Dieselgate disclosure",
+      subtitle = "Event day (relative index 0) highlighted",
+      x = "Trading days relative to event",
+      y = "Abnormal return"
+    ) +
+    ggplot2::theme_minimal()
+} else {
+  # ggplot2 is a hard dependency, but stay resilient in stripped-down builds.
+  barplot(
+    ar$abnormal_returns,
+    names.arg = ar$relative_index,
+    col = ifelse(ar$relative_index == 0, "firebrick", "grey40"),
+    main = "Abnormal returns around the Dieselgate disclosure",
+    xlab = "Trading days relative to event",
+    ylab = "Abnormal return"
+  )
+  abline(h = 0)
+}
+```
+
+The event-day abnormal return itself is small; the damage lands on the **next
+two trading days**, which is why event windows are drawn wide enough to capture
+the reaction rather than just the announcement instant.
+
+```{r plot-car, fig.alt = "Cumulative abnormal return path across the [-10, +10] window, sliding to roughly -35 percent after the event.", fig.width = 7, fig.height = 4}
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  ggplot2::ggplot(car, ggplot2::aes(x = relative_index, y = car)) +
+    ggplot2::geom_line(colour = "firebrick", linewidth = 0.8) +
+    ggplot2::geom_point(colour = "firebrick", size = 1.2) +
+    ggplot2::geom_hline(yintercept = 0, colour = "black", linewidth = 0.3) +
+    ggplot2::geom_vline(
+      xintercept = 0, colour = "grey50", linetype = "dashed", linewidth = 0.3
+    ) +
+    ggplot2::labs(
+      title = "Cumulative abnormal return (CAR) path",
+      subtitle = "Dashed line marks the event day; CAR reaches about -35%",
+      x = "Trading days relative to event",
+      y = "Cumulative abnormal return"
+    ) +
+    ggplot2::theme_minimal()
+} else {
+  plot(
+    car$relative_index, car$car,
+    type = "b", col = "firebrick",
+    main = "Cumulative abnormal return (CAR) path",
+    xlab = "Trading days relative to event",
+    ylab = "Cumulative abnormal return"
+  )
+  abline(h = 0)
+  abline(v = 0, lty = 2, col = "grey50")
+}
+```
+
+By the end of the window the cumulative abnormal return has reached roughly
+-35% — the headline crash the advisor will help interpret and stress-test below.
+
 ## What runs offline (deterministic)
 
 Everything in this section evaluates **live**, with **no API key and no network
