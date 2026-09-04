@@ -161,10 +161,10 @@ EVENTSTUDY_KB <- list(
     recommendation = paste0(
       "Estimation-window residuals appear approximately normal (Shapiro-Wilk p > 0.05 ",
       "in >= 70% of events). Patell Z is appropriate under the normality assumption. ",
-      "Note: estimation-window residual normality is a proxy for—not equivalent to—the ",
+      "Note: estimation-window residual normality is a proxy for\u2014not equivalent to\u2014the ",
       "cross-sectional normality of standardized abnormal returns that Patell Z formally ",
       "assumes. ",
-      "[Threshold: 70% of events, p = 0.05 — ASSUMED, adjustable]"
+      "[Threshold: 70% of events, p = 0.05 \u2014 ASSUMED, adjustable]"
     ),
     citation = list(
       author = "Patell, J.M.",
@@ -192,7 +192,7 @@ EVENTSTUDY_KB <- list(
       "(Shapiro-Wilk p < 0.05). Consider non-parametric alternatives: ",
       "Sign Test or Rank Test (Corrado 1989) are robust to departures from normality. ",
       "Brown & Warner (1985) document that parametric tests lose size control under ",
-      "non-normal return distributions. [Threshold: 50% of events — ASSUMED, adjustable]"
+      "non-normal return distributions. [Threshold: 50% of events \u2014 ASSUMED, adjustable]"
     ),
     citation = list(
       author = "Brown, S.J. and Warner, J.B.",
@@ -225,7 +225,7 @@ EVENTSTUDY_KB <- list(
       "variance increase, which inflates Patell Z rejection rates. Use the ",
       "BMP (Boehmer-Musumeci-Poulsen) test, which standardizes by the ",
       "event-window variance and is specifically designed for this case. ",
-      "[Thresholds: IQR > 0.10, SD > 0.15 — ASSUMED, adjustable]"
+      "[Thresholds: IQR > 0.10, SD > 0.15 \u2014 ASSUMED, adjustable]"
     ),
     citation = list(
       author = "Boehmer, E., Musumeci, J. and Poulsen, A.B.",
@@ -253,7 +253,7 @@ EVENTSTUDY_KB <- list(
     recommendation = paste0(
       "Event windows overlap in calendar time (cross-sectional correlation of ",
       "abnormal returns is likely). Standard BMP and Patell Z assume independence ",
-      "across events — this assumption is violated when windows cluster. ",
+      "across events \u2014 this assumption is violated when windows cluster. ",
       "Use the Kolari-Pynnonen (KP) adjusted BMP test, which corrects for ",
       "cross-sectional correlation arising from overlapping event windows."
     ),
@@ -289,7 +289,7 @@ EVENTSTUDY_KB <- list(
       "using HAC-robust standard errors (MarketModel use_hac = TRUE) or ",
       "interpreting significance levels conservatively. ",
       "Brown & Warner (1985) document that autocorrelation inflates test size. ",
-      "[DW bounds: [1.5, 2.5] — ASSUMED heuristic, adjustable]"
+      "[DW bounds: [1.5, 2.5] \u2014 ASSUMED heuristic, adjustable]"
     ),
     citation = list(
       author = "Brown, S.J. and Warner, J.B.",
@@ -316,11 +316,11 @@ EVENTSTUDY_KB <- list(
     },
     recommendation = paste0(
       "Market model fit is poor: R-squared < 0.05 in >= 50% of events. ",
-      "Low R² inflates the standard error of abnormal returns, reducing ",
+      "Low R\u00b2 inflates the standard error of abnormal returns, reducing ",
       "test power. Consider a multi-factor model (Fama-French 3/5, Carhart 4) ",
       "or a Market-Adjusted (index-return) model to improve fit. ",
-      "MacKinlay (1997) §3.1 documents this relationship. ",
-      "[Threshold: R² < 0.05 — ASSUMED, adjustable]"
+      "MacKinlay (1997) \u00a73.1 documents this relationship. ",
+      "[Threshold: R\u00b2 < 0.05 \u2014 ASSUMED, adjustable]"
     ),
     citation = list(
       author = "MacKinlay, A.C.",
@@ -350,8 +350,8 @@ EVENTSTUDY_KB <- list(
       "These events contribute NA abnormal returns, potentially biasing ",
       "cross-sectional test statistics. Inspect contract_state for details; ",
       "consider extending the estimation window or filtering events with ",
-      "insufficient data. MacKinlay (1997) §3 requires adequate estimation window length. ",
-      "[Threshold: < 80% fitted — ASSUMED, adjustable]"
+      "insufficient data. MacKinlay (1997) \u00a73 requires adequate estimation window length. ",
+      "[Threshold: < 80% fitted \u2014 ASSUMED, adjustable]"
     ),
     citation = list(
       author = "MacKinlay, A.C.",
@@ -381,7 +381,7 @@ EVENTSTUDY_KB <- list(
       "a large-sample normal approximation that is unreliable with fewer than ~10 events. ",
       "Non-parametric tests (Sign Test, Rank Test) are preferred in small samples, ",
       "as documented by Brown & Warner (1985). Interpret parametric p-values cautiously. ",
-      "[Threshold: n < 10 — ASSUMED, adjustable]"
+      "[Threshold: n < 10 \u2014 ASSUMED, adjustable]"
     ),
     citation = list(
       author = "Brown, S.J. and Warner, J.B.",
