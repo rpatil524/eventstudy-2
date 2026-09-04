@@ -10,16 +10,16 @@ The package is mature and CRAN-published. The v0.50.0 milestone made it **never 
 
 The package must never produce a silently incorrect statistical result — and now, the AI layer must never present an ungrounded one. On degenerate input the pipeline errors clearly or returns NA with one warning; the advisor cites only diagnostics the package actually computed, and refuses to invent numbers. Trustworthy numbers, trustworthy interpretation.
 
-## Current Milestone: v0.61.0 Advisor Vignette + Dieselgate Walkthrough
+## Current Milestone: v0.62.0 Documentation Site (pkgdown + CI/CD)
 
-**Goal:** Ship a CRAN vignette that explains the AI advisor's idea and mechanics, anchored by a real Volkswagen dieselgate worked example, and align the package's other doc entry points around that story.
+**Goal:** Ship a curated, professionally-themed pkgdown documentation website for EventStudy — auto-built and deployed to GitHub Pages by CI on every push to `main` and on releases — and link it prominently from the repo, matching the `fdars-r` documentation pattern.
 
 **Target features:**
-- Bundled **dieselgate dataset** — fetch VW + index returns around the Sept 2015 EPA disclosure via the package's own `download_stock_data()`, frozen into `data/` with a `data-raw/` provenance script (source, tickers, date range, access date) and a documented `.Rd`
-- **Advisor vignette** — narrative on *why* the advisor exists and *how* it works (two-layer: deterministic offline grounding + LLM interpretation), then a dieselgate walkthrough: prepare → fit → statistics → `es_diagnostics()` → `recommend_stat()`/`flag_robustness()` run **live**, plus a **static, clearly-labelled captured `es_advise()`** block explaining why the LLM layer isn't evaluated at build
-- **Offline-safe build** — the vignette compiles with no network/API calls; deterministic layer evaluated live, LLM layer precomputed/non-evaluated
-- **Supporting docs** — README / pkgdown / NEWS touch-ups so the advisor + dieselgate story is coherent across entry points
-- **CRAN-clean** — version bump, vignette builder registered, green `R CMD check --as-cran` with no new NOTEs/WARNINGs, suite stays green
+- **Curated `_pkgdown.yml` site** (fdars-r style) — thematically grouped Reference index (Pipeline & tasks · Return models · Test statistics · Panel/intraday/synthetic · AI advisor · Diagnostics/export/plotting), an organized Articles menu over the 18 existing vignettes, custom homepage, News/Changelog
+- **Custom Bootstrap-5 theme** — bootswatch/accent color + fonts (no logo), professional look without artwork
+- **CI/CD deploy workflow** — r-lib standard `pkgdown.yaml` GitHub Action building the site and deploying to the `gh-pages` branch → GitHub Pages, triggered on push to `main` and on release
+- **Repo linkage** — DESCRIPTION `URL` gains the pkgdown site URL, README gets a docs-site badge/link, `.Rbuildignore` keeps pkgdown scaffolding out of the CRAN tarball
+- **CI-/offline-safe build** — the site builds cleanly in Actions; network-touching vignettes (e.g. `data-download`) handled for reproducibility; no new `R CMD check` NOTEs/WARNINGs, CRAN tarball unaffected
 
 ## Business Context
 
@@ -52,16 +52,17 @@ The package must never produce a silently incorrect statistical result — and n
 - ✓ **LLM-agnostic provider abstraction** — hand-rolled thin `httr2` client (OpenAI-compatible + Anthropic + custom hook), 3-tier precedence, Suggests-guarded — v0.60.0
 - ✓ **Grounding knowledge base** — pure-R assumption→test KB with academic citations, rule-based offline advice engine — v0.60.0
 - ✓ **Claude Code Agent Skill + Advisor Pro waitlist** — `SKILL.md` loop over existing exports; CRAN-safe opt-in waitlist surface — v0.60.0
+- ✓ **Advisor vignette + bundled multi-automaker dieselgate dataset** — offline-safe CRAN vignette, CI bands + group CAAR comparison, `data-raw/` provenance — v0.61.0
 
 ### Active
 
-<!-- This milestone (v0.61.0). Detailed, testable REQ-IDs live in REQUIREMENTS.md. -->
+<!-- This milestone (v0.62.0). Detailed, testable REQ-IDs live in REQUIREMENTS.md. -->
 
-- [ ] **Bundled dieselgate dataset** — reproducible `data-raw/` fetch (via `download_stock_data()`) of VW + index returns around the Sept 2015 disclosure, frozen into `data/` with documented provenance and `.Rd`
-- [ ] **Advisor vignette** — narrative on why the advisor exists and its two-layer architecture, with a dieselgate walkthrough: pipeline + deterministic offline layer run live, LLM `es_advise()` shown as clearly-labelled static output
-- [ ] **Offline-safe vignette build** — no network/API calls at build time; deterministic layer evaluated, LLM layer precomputed/non-evaluated
-- [ ] **Supporting docs alignment** — README / pkgdown / NEWS updated so the advisor + dieselgate story is coherent across entry points
-- [ ] **CRAN-clean release** — version bump, vignette builder registered, no new `R CMD check` NOTEs/WARNINGs, suite stays green
+- [ ] **Curated pkgdown site** — `_pkgdown.yml` with thematically grouped Reference index, organized Articles menu over the 18 vignettes, custom homepage, News/Changelog (fdars-r style)
+- [ ] **Custom Bootstrap-5 theme** — bootswatch/accent color + fonts, no logo
+- [ ] **CI/CD docs deploy** — r-lib `pkgdown.yaml` GitHub Action building and deploying to `gh-pages` → GitHub Pages, on push to `main` and on release
+- [ ] **Repo linkage** — DESCRIPTION `URL` + README docs badge/link + `.Rbuildignore` keeps pkgdown scaffolding out of the CRAN tarball
+- [ ] **CI-/offline-safe build** — site builds cleanly in Actions; network-touching vignettes handled; no new `R CMD check` NOTEs/WARNINGs, CRAN tarball unaffected
 
 ### Out of Scope
 
@@ -105,6 +106,9 @@ The package must never produce a silently incorrect statistical result — and n
 | Freemium: bundled advisor free, retrieval-corpus "Advisor Pro" as a future paid tier gated by a waitlist | Validate commercial demand before building the heavier RAG version | — Pending |
 | Agent Skill surface now, MCP server deferred | The Skill delivers the full loop with less surface area; MCP can follow if agent demand appears | — Pending |
 | Defer performance/scaling and native reimplementation | Real but orthogonal to this milestone | — Pending |
+| Curated pkgdown site (grouped reference, custom homepage) over auto-generated default | Matches the fdars-r reference; a flat index over 30+ exports and 18 vignettes is not discoverable | — Pending |
+| Custom Bootstrap-5 theme, no logo | Professional look without needing artwork; logo can follow later | — Pending |
+| CI deploy to gh-pages on push-to-main + releases (r-lib `pkgdown.yaml`) | Always-current docs; standard, well-supported r-lib workflow; keeps site out of the CRAN tarball | — Pending |
 
 ## Evolution
 
@@ -125,4 +129,4 @@ This document evolves at phase transitions and milestone boundaries.
 5. Update Context with current state
 
 ---
-*Last updated: 2026-09-04 starting milestone v0.61.0 Advisor Vignette + Dieselgate Walkthrough*
+*Last updated: 2026-09-04 starting milestone v0.62.0 Documentation Site (pkgdown + CI/CD)*

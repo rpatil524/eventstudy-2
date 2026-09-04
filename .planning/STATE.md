@@ -1,21 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.61.0
-milestone_name: Advisor Vignette + Dieselgate Walkthrough
-status: Awaiting next milestone
-stopped_at: Phases 9-10 complete; milestone closeout (audit/complete) pending (2026-09-04)
-last_updated: "2026-09-04T12:18:16.343Z"
+milestone: v0.62.0
+milestone_name: Documentation Site (pkgdown + CI/CD)
+status: planning
+last_updated: "2026-09-04T19:18:30.059Z"
 last_activity: 2026-09-04
-last_activity_desc: Milestone v0.61.0 completed and archived
-state_head: eca14efbbe399aaf22eb57d964180da1b352c9b0
 progress:
-  total_phases: 2
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
-current_phase: 10
-current_phase_name: Advisor Vignette + Offline-Safe Build + Docs + Release
 ---
 
 # Project State
@@ -29,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: Milestone v0.61.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-04 — Milestone v0.61.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-09-04 — Milestone v0.62.0 started
 
 ## Performance Metrics
 
