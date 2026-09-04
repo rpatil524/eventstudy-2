@@ -152,8 +152,10 @@ plot_event_study <- function(task,
     data = data %>%
       dplyr::mutate(
         value = abnormal_returns,
-        ci_lower = -z_val * sigma,
-        ci_upper = z_val * sigma
+        # Confidence band is each abnormal return +/- its standard error
+        # (z * sigma), so the ribbon envelops the AR points.
+        ci_lower = value - z_val * sigma,
+        ci_upper = value + z_val * sigma
       )
     y_label = "Abnormal Return"
     if (is.null(title)) title = paste("Abnormal Returns - Event", event_id)
