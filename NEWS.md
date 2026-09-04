@@ -1,3 +1,24 @@
+# EventStudy 0.61.1
+
+## Correctness fix + advisor vignette plots
+
+* **Return calculation could silently return all zeros/NA when `dplyr` was not
+  attached.** `SimpleReturn` / `LogReturn` called a bare `lag()`, but
+  `dplyr::lag` was not imported into the package namespace, so `lag` resolved to
+  `stats::lag`, which no-ops on a plain numeric vector. Every return then
+  computed as `0` (and row 1 as `0` instead of `NA`); the resulting
+  zero-variance series tripped the market-model variance guard, so **all**
+  abnormal returns and CARs came back `NA`. This only manifested when `dplyr`
+  was not on the search path (e.g. a plain `library(EventStudy)` session or the
+  advisor vignette build); the test suite and audit ran with `dplyr` attached,
+  masking `stats::lag`, and never observed it. `dplyr::lag` is now imported, so
+  returns are correct for everyone. Behavior is unchanged for callers who
+  already had `dplyr` attached. A regression test locks the namespace
+  resolution so `lag` can never silently fall back to `stats::lag` again.
+* **Advisor vignette (`ai-advisor.Rmd`) gains AR and CAR plots** — the abnormal
+  return across the `[-10, +10]` event window and the cumulative abnormal
+  return path, both rendered offline, making the dieselgate crash visible.
+
 # EventStudy 0.61.0
 
 ## Advisor Vignette + Bundled Dieselgate Dataset
