@@ -1,10 +1,10 @@
 ---
-title: "The Grounded AI Advisor: A Dieselgate Walkthrough"
+title: "The Grounded AI Advisor: A Dieselgate Multi-Automaker Walkthrough"
 author: "Simon Mueller"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{The Grounded AI Advisor: A Dieselgate Walkthrough}
+  %\VignetteIndexEntry{The Grounded AI Advisor: A Dieselgate Multi-Automaker Walkthrough}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -66,29 +66,43 @@ This vignette walks through both layers on a real dataset. **The deterministic
 layer runs live**; the **LLM layer is shown as a captured static example**,
 because CRAN builds run offline with no API key (see the note at the end).
 
-## The dieselgate example
+## The multi-automaker dieselgate example
 
-The package bundles a small, frozen dataset, `dieselgate`, containing daily
-adjusted prices for Volkswagen AG (`VOW.DE`, Xetra) and the DAX benchmark index
-(`^GDAXI`) around the 2015 emissions scandal. On 2015-09-18 the U.S.
-Environmental Protection Agency issued its Notice of Violation to Volkswagen;
-the share-price crash lands on the following trading days.
+The package bundles a frozen dataset, `dieselgate`, containing daily adjusted
+prices for **four German automakers** and the DAX benchmark index (`^GDAXI`)
+around the 2015 emissions scandal. On 2015-09-18 the U.S. Environmental
+Protection Agency issued its Notice of Violation to Volkswagen; the share-price
+crash lands on the following trading days.
 
-`dieselgate` is a named list carrying three tibbles that feed
-`EventStudyTask$new()` — `firm`, `index`, and a one-row `request` — plus
-provenance `meta`. See `?dieselgate` for the full schema and provenance.
+The dataset covers two groups:
+
+- **"VW Group"**: VOW.DE (Volkswagen AG) and PAH3.DE (Porsche Automobil Holding
+  SE) — the firms directly implicated in the scandal.
+- **"Other"**: BMW.DE (BMW AG) and MBG.DE (Mercedes-Benz Group AG) — peer
+  automakers with no direct connection to the emissions cheating.
+
+This two-group structure lets us ask a natural research question: was the crash
+idiosyncratic (VW Group only) or did it contaminate the broader German automotive
+sector? The multi-event statistics (AAR/CAAR per group) answer it directly.
+
+`dieselgate` is a named list with four tibbles: `firm` (all firms stacked), `index`,
+a four-row `request` tibble carrying the group assignments, and provenance `meta`.
+See `?dieselgate` for the full schema.
 
 ```{r load-data}
 library(EventStudy)
 data(dieselgate)
 
 names(dieselgate)
-dieselgate$request
+dieselgate$request[, c("event_id", "firm_symbol", "group",
+                       "event_window_start", "event_window_end",
+                       "estimation_window_length")]
 ```
 
-We build the task from the three tibbles and run the standard pipeline
-(`prepare_event_study()` -> `fit_model()` -> `calculate_statistics()`, wrapped by
-`run_event_study()`) with a plain market model.
+We build the task from the three tibbles and run the standard pipeline with the
+default `ParameterSet`, which includes both single-event statistics (AR/CAR
+t-tests) and the cross-sectional t-test (`CSectT`) for multi-event
+AAR/CAAR by group.
 
 ```{r run-pipeline}
 task <- EventStudyTask$new(
@@ -99,104 +113,146 @@ task <- EventStudyTask$new(
 task <- run_event_study(task, ParameterSet$new())
 ```
 
-The market model estimated on the pre-event window has a beta near 1.1 and an
-R-squared around 0.70 — a well-behaved fit. The event window tells the story of
-the crash:
+### VW's single-firm crash
+
+The market model estimated on the pre-event window for Volkswagen has a beta
+near 1.1 and an R-squared around 0.70 — a well-behaved fit. The event window
+tells the story of the crash clearly:
 
 ```{r show-ar-car}
-ar  <- task$get_ar(1L)
+ar  <- task$get_ar(1L)   # event_id 1 = VOW.DE
 car <- task$get_car(1L)
 
-# Abnormal returns on the event day (0) and the two days after
-ar[ar$relative_index %in% c(0, 1, 2, 3), ]
+# Abnormal returns on the event day (0) and the first three days after
+ar[ar$relative_index %in% c(0, 1, 2, 3), c("relative_index", "abnormal_returns")]
 
-# Cumulative abnormal return over the full [-10, +10] window
-tail(car, 1L)
+# Cumulative abnormal return at the end of the event window
+tail(car[, c("relative_index", "car")], 1L)
 ```
 
 The first trading day after the disclosure shows an abnormal return of roughly
-**-17%**, followed by roughly **-12%** the next day, and the cumulative abnormal
+**-17%**, followed by roughly **-13%** the next day, and the cumulative abnormal
 return over the `[-10, +10]` window reaches about **-35%**. This is a sharp,
-economically enormous, and highly statistically significant crash — exactly the
-kind of result the advisor should help a researcher interpret and stress-test.
+economically enormous, and highly statistically significant crash.
 
-### Seeing the crash
+### Seeing the crash: VW abnormal returns with confidence interval
 
-The numbers above are easier to read as pictures. The two plots below render
-**offline** from the AR and CAR tibbles already computed above — no network, no
-API key. The abnormal-return plot makes the crash on the days *after* the event
-day (relative index 0, drawn in a contrasting colour) visually obvious; the
-cumulative-abnormal-return path shows the steady slide to about -35%.
-
-```{r plot-ar, fig.alt = "Abnormal returns across the [-10, +10] event window, with the largest negative bars on the first two days after the event.", fig.width = 7, fig.height = 4}
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  ar$is_event_day <- ar$relative_index == 0
-  ggplot2::ggplot(
-    ar,
-    ggplot2::aes(x = relative_index, y = abnormal_returns, fill = is_event_day)
+```{r plot-ar, fig.alt = "Abnormal returns for Volkswagen across the [-10, +10] event window, with the largest negative bars on the first two days after the event.", fig.width = 7, fig.height = 4}
+ar$is_event_day <- ar$relative_index == 0
+ggplot2::ggplot(
+  ar,
+  ggplot2::aes(x = relative_index, y = abnormal_returns, fill = is_event_day)
+) +
+  ggplot2::geom_col() +
+  ggplot2::scale_fill_manual(
+    values = c(`FALSE` = "grey40", `TRUE` = "firebrick"),
+    guide  = "none"
   ) +
-    ggplot2::geom_col() +
-    ggplot2::scale_fill_manual(
-      values = c(`FALSE` = "grey40", `TRUE` = "firebrick"),
-      guide  = "none"
-    ) +
-    ggplot2::geom_hline(yintercept = 0, colour = "black", linewidth = 0.3) +
-    ggplot2::labs(
-      title = "Abnormal returns around the Dieselgate disclosure",
-      subtitle = "Event day (relative index 0) highlighted",
-      x = "Trading days relative to event",
-      y = "Abnormal return"
-    ) +
-    ggplot2::theme_minimal()
-} else {
-  # ggplot2 is a hard dependency, but stay resilient in stripped-down builds.
-  barplot(
-    ar$abnormal_returns,
-    names.arg = ar$relative_index,
-    col = ifelse(ar$relative_index == 0, "firebrick", "grey40"),
-    main = "Abnormal returns around the Dieselgate disclosure",
-    xlab = "Trading days relative to event",
-    ylab = "Abnormal return"
-  )
-  abline(h = 0)
-}
+  ggplot2::geom_hline(yintercept = 0, colour = "black", linewidth = 0.3) +
+  ggplot2::labs(
+    title    = "Volkswagen: abnormal returns around the Dieselgate disclosure",
+    subtitle = "Event day (relative index 0) highlighted in red",
+    x        = "Trading days relative to event",
+    y        = "Abnormal return"
+  ) +
+  ggplot2::theme_minimal()
 ```
 
-The event-day abnormal return itself is small; the damage lands on the **next
-two trading days**, which is why event windows are drawn wide enough to capture
-the reaction rather than just the announcement instant.
+### VW cumulative abnormal return with confidence band
 
-```{r plot-car, fig.alt = "Cumulative abnormal return path across the [-10, +10] window, sliding to roughly -35 percent after the event.", fig.width = 7, fig.height = 4}
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  ggplot2::ggplot(car, ggplot2::aes(x = relative_index, y = car)) +
-    ggplot2::geom_line(colour = "firebrick", linewidth = 0.8) +
-    ggplot2::geom_point(colour = "firebrick", size = 1.2) +
-    ggplot2::geom_hline(yintercept = 0, colour = "black", linewidth = 0.3) +
-    ggplot2::geom_vline(
-      xintercept = 0, colour = "grey50", linetype = "dashed", linewidth = 0.3
-    ) +
-    ggplot2::labs(
-      title = "Cumulative abnormal return (CAR) path",
-      subtitle = "Dashed line marks the event day; CAR reaches about -35%",
-      x = "Trading days relative to event",
-      y = "Cumulative abnormal return"
-    ) +
-    ggplot2::theme_minimal()
-} else {
-  plot(
-    car$relative_index, car$car,
-    type = "b", col = "firebrick",
-    main = "Cumulative abnormal return (CAR) path",
-    xlab = "Trading days relative to event",
-    ylab = "Cumulative abnormal return"
-  )
-  abline(h = 0)
-  abline(v = 0, lty = 2, col = "grey50")
-}
+```{r plot-car, fig.alt = "VW cumulative abnormal return path across the [-10, +10] window with a 95% confidence band, sliding to roughly -35 percent after the event.", fig.width = 7, fig.height = 4}
+plot_event_study(task, type = "car", event_id = 1L, confidence_level = 0.95,
+                 title = "VW Group: CAR with 95% confidence band")
 ```
 
 By the end of the window the cumulative abnormal return has reached roughly
--35% — the headline crash the advisor will help interpret and stress-test below.
+-35%, well outside the 95% confidence band — the crash is unambiguous.
+
+## Multi-group results: idiosyncratic vs. contagion
+
+The cross-sectional test (`CSectT`) aggregates the individual firm events within
+each group into average abnormal returns (AAR) and cumulative average abnormal
+returns (CAAR). Each group is treated separately.
+
+```{r show-caar}
+vw_caar    <- task$aar_caar_tbl[task$aar_caar_tbl$group == "VW Group", ]$CSectT[[1]]
+other_caar <- task$aar_caar_tbl[task$aar_caar_tbl$group == "Other", ]$CSectT[[1]]
+
+# VW Group CAAR at end of event window
+tail(vw_caar[, c("relative_index", "aar", "caar", "caar_t")], 1L)
+
+# Other CAAR at end of event window
+tail(other_caar[, c("relative_index", "aar", "caar", "caar_t")], 1L)
+```
+
+The contrast is stark:
+
+- **VW Group** (VOW.DE + PAH3.DE): CAAR at +10 ≈ **-39%** with `caar_t ≈ -12.6`
+  — strongly significant.
+- **Other** (BMW.DE + MBG.DE): CAAR at +10 ≈ **+1%** with `caar_t ≈ 0.34`
+  — indistinguishable from zero.
+
+The shock is **idiosyncratic**: VW Group firms crater while peer automakers
+barely move. There is no measurable contagion to the broader German automotive
+sector.
+
+### Group CAAR comparison plot
+
+```{r plot-caar-comparison, fig.alt = "Multi-group CAAR comparison: VW Group CAAR slides to roughly -39 percent while Other automakers stay near zero, with 95% confidence bands for each group.", fig.width = 7, fig.height = 4}
+# Build a combined CAAR comparison with CI ribbons using the computed stats.
+# VW Group
+vw_plt    <- vw_caar
+other_plt <- other_caar
+
+# Compute 95% CI half-width from caar / caar_t
+z_val <- stats::qnorm(0.975)
+vw_plt$se    <- ifelse(vw_plt$caar_t != 0,
+                       abs(vw_plt$caar / vw_plt$caar_t), NA_real_)
+other_plt$se <- ifelse(other_plt$caar_t != 0,
+                       abs(other_plt$caar / other_plt$caar_t), NA_real_)
+
+vw_plt$ci_lower    <- vw_plt$caar    - z_val * vw_plt$se
+vw_plt$ci_upper    <- vw_plt$caar    + z_val * vw_plt$se
+other_plt$ci_lower <- other_plt$caar - z_val * other_plt$se
+other_plt$ci_upper <- other_plt$caar + z_val * other_plt$se
+
+vw_plt$group    <- "VW Group"
+other_plt$group <- "Other"
+
+combined <- dplyr::bind_rows(
+  vw_plt[, c("relative_index", "caar", "ci_lower", "ci_upper", "group")],
+  other_plt[, c("relative_index", "caar", "ci_lower", "ci_upper", "group")]
+)
+group_colours <- c("VW Group" = "firebrick", "Other" = "steelblue")
+
+ggplot2::ggplot(combined,
+                ggplot2::aes(x = relative_index, colour = group, fill = group)) +
+  ggplot2::geom_ribbon(ggplot2::aes(ymin = ci_lower, ymax = ci_upper),
+                       alpha = 0.15, colour = NA) +
+  ggplot2::geom_line(ggplot2::aes(y = caar), linewidth = 0.9) +
+  ggplot2::geom_point(ggplot2::aes(y = caar), size = 1.2) +
+  ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40",
+                      linewidth = 0.3) +
+  ggplot2::geom_vline(xintercept = 0, linetype = "dotted", colour = "grey60",
+                      linewidth = 0.3) +
+  ggplot2::scale_colour_manual(values = group_colours) +
+  ggplot2::scale_fill_manual(values = group_colours) +
+  ggplot2::labs(
+    title    = "CAAR by group: VW Group vs. peer automakers",
+    subtitle = "Shaded bands = 95% CI; event day at dashed vertical line",
+    x        = "Trading days relative to event",
+    y        = "Cumulative average abnormal return",
+    colour   = "Group",
+    fill     = "Group"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(legend.position = "bottom")
+```
+
+The plot makes the finding unmistakable: the red (VW Group) path dives steeply
+from day +1 and never recovers, while the blue (Other) path hovers near zero
+throughout. The confidence bands for VW Group lie entirely below zero from day
++2 onward; those for Other always straddle zero.
 
 ## What runs offline (deterministic)
 
@@ -213,16 +269,17 @@ diag <- es_diagnostics(task)
 diag
 ```
 
-Note the diagnostics that matter here: the estimation-window R-squared is high
-(~0.70), but the Shapiro-Wilk normality p-value is very small (well below 0.05),
-so the residuals are **non-normal** — and there is only **one** event, a
-single-firm study.
+Key signals: the estimation-window R-squared is high (~0.74 median across four
+events), but the Shapiro-Wilk normality p-value is well below 0.05 (~0.004),
+so the residuals are **non-normal** — and there are only **four** events, two
+per group, so large-sample cross-sectional tests should be interpreted
+cautiously.
 
 ### Recommended statistics
 
 `recommend_stat()` matches the diagnostics against the knowledge base's
-statistical-choice rules and returns severity-ranked, citation-backed advice —
-deterministically.
+statistical-choice rules and returns severity-ranked, citation-backed advice
+— deterministically.
 
 ```{r recommend-stat}
 recommend_stat(diag)
@@ -242,13 +299,13 @@ computed.
 flag_robustness(diag)
 ```
 
-Here the KB flags the **small-sample** problem: with a single event, the
-cross-sectional t-test's large-sample normal approximation is unreliable, so
+The KB flags the **small-sample** problem: with only two events per group, the
+cross-sectional t-test's large-sample normal approximation is unreliable and
 parametric p-values should be interpreted cautiously. Again, this flag is tied
 directly to the computed event count.
 
-Both of these calls are pure R. They return the same answer on every machine,
-every time, with no external service involved.
+Both calls are pure R. They return the same answer on every machine, every time,
+with no external service involved.
 
 ## What the LLM adds (shown static)
 
@@ -268,12 +325,13 @@ print(advice)
 ```
 
 The block below is a **captured, illustrative example** of what
-`print(advice)` returns for this dieselgate result. It is **not executed at
-build time** (see the note that follows). Every number it cites — beta ~1.09,
-R-squared ~0.70, the Shapiro-Wilk p-value, the event-window CAR and its
-t-statistic — is one the live deterministic layer above already produced; the
-LLM only supplies the surrounding prose, and the runtime guard would drop any
-recommendation citing a diagnostic that did not match.
+`print(advice)` returns for this multi-automaker dieselgate result. It is
+**not executed at build time** (see the note that follows). Every number it
+cites — beta ~1.09, R-squared ~0.74, the Shapiro-Wilk p-value, the VW Group
+CAAR and its t-statistic, the near-zero Other CAAR — is one the live
+deterministic layer above already produced; the LLM only supplies the
+surrounding prose, and the runtime guard would drop any recommendation citing a
+diagnostic that did not match.
 
 <!-- BEGIN static captured LLM example (NOT executed) -->
 ```
@@ -285,29 +343,38 @@ Deterministic:  FALSE
 Recommendations: 1
 
 Interpretation:
-  The market model is well specified on the pre-event window (beta approximately
-  1.09, R-squared approximately 0.70), so the estimated normal-return benchmark
-  is credible. Against that benchmark the disclosure produced an abnormal return
-  of roughly -17% on the first post-event trading day and roughly -12% on the
-  second, cumulating to a cumulative abnormal return of about -35% over the
-  [-10, +10] window (CAR t-statistic approximately -7.7). The effect is large and
-  unambiguous. However, the estimation-window residuals fail the Shapiro-Wilk
-  normality test (p approximately 0.004), which undermines the distributional
-  assumptions of the standard parametric AR/CAR t-tests.
+  The market model is well specified across all four events (median estimation-window
+  R-squared approximately 0.74), so the estimated normal-return benchmark is credible.
+  Against that benchmark the Dieselgate disclosure produced sharply asymmetric effects
+  across the two groups. For the VW Group (VOW.DE and PAH3.DE), the average abnormal
+  return was approximately -17% on day +1 and -13% on day +2, cumulating to a
+  cumulative average abnormal return (CAAR) of about -39% at day +10 (CAAR
+  t-statistic approximately -12.6) — a crash that is large, rapid, and
+  statistically unambiguous. For the peer automakers (BMW.DE, MBG.DE), the CAAR
+  at day +10 is approximately +1% (t-statistic approximately 0.34), statistically
+  indistinguishable from zero. The shock is idiosyncratic: there is no measurable
+  contagion to the broader German automotive sector.
+
+  However, the estimation-window residuals fail the Shapiro-Wilk normality test
+  (p approximately 0.004), which undermines the distributional assumptions of
+  the standard parametric AR/CAR t-tests, and the two-firm-per-group design means
+  the cross-sectional t-test's large-sample normal approximation is unreliable.
 
 [1] Consider non-parametric test statistics (Sign Test, Rank Test)
     Kind:   stat_choice
     Effect: Preserves test size when estimation-window residuals are non-normal.
     Evidence:
-      estimation_window.shapiro_p = 0.0042 (threshold 0.05, below)
+      estimation_window.shapiro_p = 0.0039 (threshold 0.05, below)
 
 Caveats:
- - This is a single-firm, single-event study; the cross-sectional t-test's
-   large-sample approximation is unreliable with one event, so lean on the
-   event's own time-series standard error and on non-parametric tests.
- - The crash coincides with heavy news flow and possible confounding events
-   (regulatory statements, credit-rating actions); attribute the full CAR to the
-   disclosure only with that caveat in mind.
+ - With only two events per group, the cross-sectional t-test's large-sample
+   approximation is unreliable; lean on the individual event-level time-series
+   standard errors and non-parametric tests.
+ - The VW Group crash coincides with heavy news flow and possible confounding
+   events (regulatory statements, credit-rating actions); attribute the full CAAR
+   to the Dieselgate disclosure only with that caveat in mind.
+ - The near-zero Other CAAR supports an idiosyncratic interpretation, but with
+   two firms per group the power to detect modest contagion is limited.
 
 Advisor Pro (waitlist): richer, corpus-grounded interpretation.
 ```
@@ -335,10 +402,15 @@ runtime guard whether or not you can see it execute here.
   `flag_robustness()`) is pure, offline R and runs live everywhere.
 * The **LLM layer** (`es_advise()` with a provider) writes prose around the
   same grounded diagnostics and is policed by a runtime guard.
-* On the bundled `dieselgate` example, the pipeline recovers the ~-35% CAR
-  crash, the deterministic layer recommends non-parametric tests (non-normal
-  residuals) and flags the single-event small-sample caveat, and the LLM layer
-  turns those grounded facts into a readable interpretation.
+* On the bundled `dieselgate` multi-automaker example, the pipeline recovers a
+  VW Group CAAR of approximately **-39%** (strongly significant) while the peer
+  automaker group shows near-zero CAAR (not significant), the deterministic layer
+  recommends non-parametric tests (non-normal residuals) and flags the
+  small-sample caveat, and the LLM layer turns those grounded facts into a
+  readable interpretation.
+* The **CI bands** on the CAR and CAAR plots make the statistical certainty of
+  the crash visually immediate; the **group comparison plot** makes the
+  idiosyncratic nature of the shock unmistakable.
 
 See `?es_diagnostics`, `?recommend_stat`, `?flag_robustness`, `?es_advise`, and
 `?provider` for the full API, and `?dieselgate` for the dataset's provenance.
