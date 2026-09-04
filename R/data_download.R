@@ -23,6 +23,16 @@ download_stock_data <- function(symbols, from, to = Sys.Date(),
   if (requireNamespace("tidyquant", quietly = TRUE)) {
     data <- tidyquant::tq_get(symbols, get = "stock.prices",
                                 from = from, to = to)
+    # tq_get returns a bare logical (NA) when the source is unreachable or the
+    # symbol cannot be resolved; guard so we fail with a clear message instead
+    # of a cryptic "no applicable method for 'transmute'" dispatch error.
+    if (!is.data.frame(data) || nrow(data) == 0) {
+      stop("Failed to download stock data for ",
+           paste(symbols, collapse = ", "), " from source '", source,
+           "'. The source returned no data (it may be unreachable or ",
+           "rate-limited, or the ticker symbols may be invalid). Check the ",
+           "network connection and the ticker symbols.", call. = FALSE)
+    }
     if (format_for_task) {
       data <- data %>%
         dplyr::transmute(

@@ -1,3 +1,21 @@
+# EventStudy 0.61.3
+
+## Robustness: graceful degradation when a data source is unreachable
+
+* **`download_stock_data()` now fails clearly when the source returns no data.**
+  When `tidyquant::tq_get()` cannot reach the source (network outage, rate limit)
+  or the ticker is invalid, it returns a bare logical instead of a data frame.
+  Previously this surfaced as a cryptic `no applicable method for 'transmute'`
+  error; the function now detects the empty result and stops with an actionable
+  message naming the symbols and source. No behavior change on valid downloads.
+
+* **Network download tests skip gracefully on source outages.** The Yahoo Finance
+  and Ken French library tests are wrapped so a transient source outage skips the
+  test instead of failing CI (`skip_if_offline()` only checks generic
+  connectivity, not the specific source). Fixes intermittent red CI on the
+  R-devel job when Yahoo was unreachable.
+
+
 # EventStudy 0.61.2
 
 ## Multi-automaker dieselgate dataset + CI bands + group CAAR plot + mock advisor
