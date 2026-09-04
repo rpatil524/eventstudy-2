@@ -2,15 +2,20 @@
 gsd_state_version: 1.0
 milestone: v0.61.0
 milestone_name: Advisor Vignette + Dieselgate Walkthrough
-status: roadmapped
-last_updated: "2026-09-04T11:35:04.846Z"
+current_phase: 10
+current_phase_name: Advisor Vignette + Offline-Safe Build + Docs + Release
+status: in_progress
+stopped_at: Phase 9 complete; Phase 10 in progress (2026-09-04)
+last_updated: "2026-09-04T11:43:53.108Z"
 last_activity: 2026-09-04
+last_activity_desc: Roadmap created for v0.61.0 (Phases 9-10)
+state_head: eb289b73d17fa391800b04d6f9eb4386f5a28a04
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 50
 ---
 
 # Project State
@@ -94,7 +99,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- **Phase 9 data-sourcing blocked (2026-09-04) — NEEDS USER DECISION.** The chosen strategy "Fetch + snapshot via `download_stock_data()`" is not executable in this environment: `tidyquant`/`quantmod`/`xts` are NOT installed, and network to Yahoo Finance is unreliable (probe returned HTTP 404). Autonomous execution stopped before Phase 9 to avoid (a) installing a large dependency tree unattended, or (b) silently switching the data-sourcing approach the user explicitly chose. **Options to resolve:** (1) install `tidyquant`+deps and confirm network, then fetch once and freeze; (2) user provides a CSV of VW+index returns to bundle; (3) fall back to a simulated dieselgate-shaped dataset (was the runner-up option); (4) fetch on a machine with the packages/network and drop the frozen `data/` file in. Resume with `/gsd-autonomous --from 9` after deciding. Milestone planning (PROJECT/REQUIREMENTS/ROADMAP for v0.61.0, Phases 9-10) is complete and committed.
+- **Phase 9 data-sourcing blocker RESOLVED (2026-09-04).** User chose option 1 (install + fetch). `tidyquant` installed successfully; `download_stock_data("VOW.DE","^GDAXI", 2014-08-01..2015-11-30)` fetched 336 rows each; frozen to `data/dieselgate.rda` (named list firm/index/request/meta), documented in `man/dieselgate.Rd`, reproducible via `data-raw/dieselgate.R`. DATA-04 proven end-to-end (beta 1.086, R² 0.704, CAR[-10,+10] −35.5%). Commit `0365753`. Phase 9 complete.
 - **Phase 5 KB correctness (carry-over):** cross-check assumption→test mappings against Brown & Warner (1985), MacKinlay (1997), Patell (1976), BMP (1991), Kolari-Pynnönen (2010) primary literature — relevant to how the vignette narrates recommendations.
 
 ### Quick Tasks Completed
@@ -115,8 +120,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-04T11:35:04.846Z
-Stopped at: roadmap created for v0.61.0
+Last session: 2026-09-04T11:43:53.085Z
+Stopped at: context exhaustion at 76% (2026-09-04)
 Resume file: None
 
 ## Operator Next Steps
