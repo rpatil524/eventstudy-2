@@ -2,5 +2,279 @@ url: https://sipemu.github.io/eventstudy/
 
 title: EventStudy
 
+description: >
+  Financial event study analysis for R — classical methodology, modern
+  estimators, and grounded AI interpretation.
+
 template:
   bootstrap: 5
+
+navbar:
+  bg: light
+  left:
+    - text: "Get Started"
+      href: articles/introduction.html
+    - text: "Reference"
+      href: reference/index.html
+    - text: "Articles"
+      menu:
+        - text: "Core Workflow"
+        - text: "Extracting and Exporting Results"
+          href: articles/result-extraction.html
+        - text: "Diagnostics and Validation"
+          href: articles/diagnostics-validation.html
+        - text: "Bootstrap Inference and Multiple Testing"
+          href: articles/inference-robustness.html
+        - text: "---"
+        - text: "Return Models"
+        - text: "Factor Models, GARCH, and BHAR"
+          href: articles/factor-models-bhar.html
+        - text: "Time-Varying Volatility Models"
+          href: articles/time-varying-models.html
+        - text: "Custom Return Models"
+          href: articles/custom-models.html
+        - text: "Volume and Volatility Event Studies"
+          href: articles/volume-volatility-event-study.html
+        - text: "---"
+        - text: "Test Statistics"
+        - text: "Custom Test Statistics"
+          href: articles/custom-test-statistics.html
+        - text: "---"
+        - text: "Advanced Designs"
+        - text: "Panel DiD Event Studies"
+          href: articles/panel-event-study.html
+        - text: "Modern DiD Estimators"
+          href: articles/modern-did-estimators.html
+        - text: "Intraday Event Studies"
+          href: articles/intraday-event-study.html
+        - text: "Synthetic Control"
+          href: articles/synthetic-control.html
+        - text: "---"
+        - text: "Cross-Sectional and Simulation"
+        - text: "Cross-Sectional Analysis"
+          href: articles/cross-sectional-analysis.html
+        - text: "Monte Carlo Power Analysis"
+          href: articles/simulation-power-analysis.html
+        - text: "---"
+        - text: "AI Advisor"
+        - text: "Grounded AI Advisor"
+          href: articles/ai-advisor.html
+        - text: "---"
+        - text: "Data and Reporting"
+        - text: "Downloading Stock and Factor Data"
+          href: articles/data-download.html
+        - text: "Automated Reporting"
+          href: articles/automated-reports.html
+    - text: "Changelog"
+      href: news/index.html
+  right:
+    - icon: fab fa-github fa-lg
+      href: https://github.com/sipemu/eventstudy
+      aria-label: GitHub
+
+reference:
+  - title: "Pipeline & Tasks"
+    desc: >
+      Core entry points and task containers — the objects and functions a user
+      touches first to set up and run an event study.
+    contents:
+      - EventStudyTask
+      - ParameterSet
+      - run_event_study
+      - prepare_event_study
+      - fit_model
+      - calculate_statistics
+
+  - title: "Return Models"
+    desc: >
+      R6 model classes for estimating normal returns and computing abnormal
+      returns, plus return-calculation strategy classes.
+    contents:
+      - MarketModel
+      - MarketAdjustedModel
+      - ComparisonPeriodMeanAdjustedModel
+      - FamaFrench3FactorModel
+      - FamaFrench5FactorModel
+      - Carhart4FactorModel
+      - LinearFactorModel
+      - GARCHModel
+      - DCCGARCHModel
+      - RollingWindowModel
+      - BHARModel
+      - VolumeModel
+      - VolatilityModel
+      - SimpleReturn
+      - LogReturn
+
+  - title: "Test Statistics"
+    desc: >
+      Single-event (AR/CAR) and multi-event (AAR/CAAR) test statistic classes
+      and their container sets.
+    contents:
+      - ARTTest
+      - CARTTest
+      - BHARTTest
+      - CSectTTest
+      - PatellZTest
+      - BMPTest
+      - SignTest
+      - GeneralizedSignTest
+      - RankTest
+      - KolariPynnonenTest
+      - CalendarTimePortfolioTest
+      - SingleEventStatisticsSet
+      - MultiEventStatisticsSet
+      - StatisticsSetBase
+
+  - title: "Panel, Intraday & Synthetic Control"
+    desc: >
+      Specialized task types and estimation functions for panel DiD, intraday,
+      and synthetic control event study designs.
+    contents:
+      - PanelEventStudyTask
+      - IntradayEventStudyTask
+      - SyntheticControlTask
+      - estimate_panel_event_study
+      - prepare_intraday_event_study
+      - nonparametric_intraday_test
+      - estimate_synthetic_control
+      - sc_placebo_test
+
+  - title: "AI Advisor"
+    desc: >
+      Grounded AI advisor layer — deterministic diagnostics harvester, LLM
+      advise function, knowledge base, and provider abstraction classes.
+    contents:
+      - es_advise
+      - es_diagnostics
+      - es_kb
+      - recommend_stat
+      - flag_robustness
+      - provider
+      - ProviderBase
+      - AnthropicProvider
+      - OpenAICompatProvider
+      - CustomProvider
+
+  - title: "Diagnostics"
+    desc: >
+      Model validation, pre-trend testing, and p-value adjustment functions.
+    contents:
+      - validate_task
+      - model_diagnostics
+      - pretrend_test
+      - adjust_p_values
+
+  - title: "Cross-Sectional & Simulation"
+    desc: >
+      CAR-level cross-sectional analysis, group comparisons, quantiles,
+      bootstrap inference, and Monte Carlo power simulation.
+    contents:
+      - cross_sectional_regression
+      - car_by_group
+      - car_quantiles
+      - bootstrap_test
+      - simulate_event_study
+
+  - title: "Export & Reporting"
+    desc: >
+      Result extraction, multi-format export, broom-compatible tidying, and
+      automated RMarkdown report generation.
+    contents:
+      - export_results
+      - generate_report
+      - tidy.EventStudyTask
+
+  - title: "Plotting"
+    desc: >
+      Interactive Plotly-based visualization functions for event study results,
+      stock prices, diagnostics, and specialized designs.
+    contents:
+      - plot_event_study
+      - plot_stocks
+      - plot_diagnostics
+      - plot_car_distribution
+      - plot_panel_event_study
+      - plot_synthetic_control
+
+  - title: "Data & Datasets"
+    desc: >
+      Functions for downloading stock prices, factor data, and risk-free rates,
+      plus bundled example datasets.
+    contents:
+      - download_stock_data
+      - download_factor_data
+      - download_risk_free_rate
+      - has_keyword("datasets")
+
+  - title: internal
+    contents:
+      - ModelBase
+      - ReturnCalculation
+      - TestStatisticBase
+      - degenerate-input-contract
+      - starts_with("print.")
+
+articles:
+  - title: "Get Started"
+    desc: >
+      Package overview with a complete Dieselgate worked example.
+    contents:
+      - introduction
+
+  - title: "Core Workflow"
+    desc: >
+      From raw price data to publication-ready results — extraction, diagnostics,
+      and robust inference.
+    contents:
+      - result-extraction
+      - diagnostics-validation
+      - inference-robustness
+
+  - title: "Return Models"
+    desc: >
+      Multi-factor, time-varying, GARCH, BHAR, volume, volatility, and custom
+      return models.
+    contents:
+      - factor-models-bhar
+      - time-varying-models
+      - custom-models
+      - volume-volatility-event-study
+
+  - title: "Test Statistics"
+    desc: >
+      Parametric and non-parametric test statistics, and how to create your own.
+    contents:
+      - custom-test-statistics
+
+  - title: "Advanced Designs"
+    desc: >
+      Panel DiD with modern estimators, intraday event windows, and synthetic
+      control.
+    contents:
+      - panel-event-study
+      - modern-did-estimators
+      - intraday-event-study
+      - synthetic-control
+
+  - title: "Cross-Sectional & Simulation"
+    desc: >
+      CAR-level regression on firm characteristics and Monte Carlo power analysis.
+    contents:
+      - cross-sectional-analysis
+      - simulation-power-analysis
+
+  - title: "AI Advisor"
+    desc: >
+      Grounded AI advisor — two-layer walkthrough with the bundled Dieselgate
+      dataset.
+    contents:
+      - ai-advisor
+
+  - title: "Data & Reporting"
+    desc: >
+      Downloading market and factor data, and automated RMarkdown report
+      generation.
+    contents:
+      - data-download
+      - automated-reports
