@@ -70,7 +70,7 @@ Encoded event-study methodology with citations.
 - [x] **CRAN-01**: Offline diagnostics add zero hard dependencies; all advisor deps stay in Suggests
 - [x] **CRAN-02**: No network in examples/tests/vignettes by default (`@examplesIf` / `skip_on_cran()` / vignette eval guards)
 - [x] **CRAN-03**: Provider layer tested offline (httptest2 mocks / static fixtures); the grounding guard has dedicated deterministic regression tests
-- [ ] **CRAN-04**: Green `R CMD check` — no new NOTEs/WARNINGs; existing 1378 tests stay green
+- [x] **CRAN-04**: Green `R CMD check` — no new NOTEs/WARNINGs; existing 1378 tests stay green
 - [x] **CRAN-05**: Existing pipeline behavior on valid input is unchanged (advisor is purely additive)
 
 ## Future Requirements
@@ -140,7 +140,7 @@ Deferred beyond this milestone. Tracked, not in the current roadmap.
 | SKILL-03 | Phase 8 | Complete |
 | BIZ-01 | Phase 8 | Complete |
 | BIZ-02 | Phase 8 | Complete |
-| CRAN-04 | Phase 8 | Pending |
+| CRAN-04 | Phase 8 | Complete |
 
 **Coverage:**
 

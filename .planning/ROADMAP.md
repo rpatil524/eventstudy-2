@@ -111,10 +111,10 @@ Decimal phases appear between their surrounding integers in numeric order. Numbe
   2. Package docs advertise a future retrieval-grounded "Advisor Pro" paid tier with a passive waitlist pointer (static URL + optional printed footer) that initiates zero runtime network/telemetry not requested by the user
   3. `R CMD check` is green with no new NOTEs or WARNINGs and all 1378 existing tests stay green
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans executed
 
 - [x] 08-01-PLAN.md — Agent Skill (SKILL.md + reference/) + Advisor Pro waitlist (opt-in footer, ?advisor_pro topic, README) (Wave 1)
-- [ ] 08-02-PLAN.md — Version bump 0.60.0 + NEWS.md + .Rbuildignore dev-dir exclusions + green R CMD check --as-cran gate (Wave 2)
+- [x] 08-02-PLAN.md — Version bump 0.60.0 + NEWS.md + .Rbuildignore dev-dir exclusions + green R CMD check --as-cran gate (Wave 2)
 
 ## Progress
 
@@ -130,4 +130,4 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 5. Offline Diagnostics + Grounding KB | v0.60.0 | 3/3 | Complete    | 2026-09-03 |
 | 6. Provider Abstraction + HTTP Harness | v0.60.0 | 3/3 | Complete    | 2026-09-04 |
 | 7. Grounded Advise Layer + Guard | v0.60.0 | 2/2 | Complete    | 2026-09-04 |
-| 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 1/2 | In Progress|  |
+| 8. Agent Skill + Waitlist + Check Gate | v0.60.0 | 2/2 | In Progress|  |

@@ -5,16 +5,16 @@ milestone_name: Grounded AI Advisor
 current_phase: 8
 current_phase_name: Agent Skill + Waitlist + Green Check Gate
 status: planning
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-09-04T07:37:20.852Z"
+stopped_at: Completed 08-02-PLAN.md — CRAN green-check gate
+last_updated: "2026-09-04T07:53:07.956Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 7 complete, transitioned to Phase 8
-state_head: 9e3d04186bbf4269eda5b5c32c0145410b34cdee
+state_head: 709942faa3079edd3e47795867582563c8c9bbe9
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 75
 ---
 
@@ -70,6 +70,7 @@ Progress: [████████░░] 75%
 | Phase 06 P02 | 7m | 3 tasks | 6 files |
 | Phase 06 P03 | 9 min | 3 tasks | 7 files |
 | Phase 07 P2 | 4 | 2 tasks | 4 files |
+| Phase 08 P02 | 838 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,7 @@ Recent decisions affecting current work:
 - [Phase 6]: AnthropicProvider tool-use input_schema structured output serialized to character via guarded jsonlite::toJSON, with a plain text-block fallback (never-crash)
 - [Phase 7]: advice param positioned after interactive and before ... — zero positional-arg breakage
 - [Phase 7]: skeleton.Rmd eval= double-guard (is.null + inherits) ensures NULL path is byte-identical
+- [Phase 8]: Pre-existing non-ASCII WARNING (Phases 5-7) does not block v0.60.0 CRAN gate; documented as pre-existing baseline in cran-comments.md
 
 ### Pending Todos
 
@@ -119,8 +121,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-04T07:37:20.797Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-09-04T07:53:07.897Z
+Stopped at: Completed 08-02-PLAN.md — CRAN green-check gate
 Resume file: None
 
 ## Operator Next Steps
