@@ -40,6 +40,45 @@ test_that("only one warning is emitted on the degrade path", {
   expect_length(warns, 1L)
 })
 
+test_that("a custom fn returning NULL degrades to one warning + NA, never errors", {
+  p <- CustomProvider$new(function(prompt, schema) NULL)
+
+  expect_warning(res <- p$complete("hi"), "failed")
+  expect_true(inherits(res, "es_provider_response"))
+  expect_true(is.na(res$text))
+  expect_type(res$text, "character")
+  expect_false(is.null(res$error))
+})
+
+test_that("a custom fn returning character(0) degrades to one warning + NA, never errors", {
+  p <- CustomProvider$new(function(prompt, schema) character(0))
+
+  expect_warning(res <- p$complete("hi"), "failed")
+  expect_true(inherits(res, "es_provider_response"))
+  expect_true(is.na(res$text))
+  expect_type(res$text, "character")
+  expect_false(is.null(res$error))
+})
+
+test_that("empty-return degrade path (NULL / character(0)) emits EXACTLY ONE warning", {
+  count_warnings <- function(expr) {
+    n <- 0L
+    withCallingHandlers(
+      force(expr),
+      warning = function(w) {
+        n <<- n + 1L
+        invokeRestart("muffleWarning")
+      }
+    )
+    n
+  }
+  for (fn in list(function(prompt, schema) NULL,
+                  function(prompt, schema) character(0))) {
+    p <- CustomProvider$new(fn)
+    expect_equal(count_warnings(p$complete("hi")), 1L)
+  }
+})
+
 test_that("ProviderBase is abstract: complete() stops with a clear message", {
   base <- ProviderBase$new()
   expect_error(base$complete("hi"), "abstract")

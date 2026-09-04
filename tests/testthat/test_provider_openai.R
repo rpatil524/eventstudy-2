@@ -120,6 +120,27 @@ test_that("OpenAICompatProvider missing key degrades to one warning + NA at call
   expect_equal(res$source, "openai")
 })
 
+test_that("OpenAICompatProvider degrades to one warning + NA when jsonlite is absent", {
+  # jsonlite is Suggests-only; httr2's req_body_json() throws when it is absent.
+  # Simulate absence by stubbing requireNamespace to report jsonlite missing
+  # (httr2 still present) — the complete() guard must route through
+  # .provider_failure(): one warning + NA, never an uncaught crash.
+  withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
+  real_require <- base::requireNamespace
+  local_mocked_bindings(
+    requireNamespace = function(package, ...) {
+      if (identical(package, "jsonlite")) return(FALSE)
+      real_require(package, ...)
+    },
+    .package = "base"
+  )
+  p <- OpenAICompatProvider$new(model = "gpt-4o")
+  expect_warning(res <- p$complete("hi"), "jsonlite")
+  expect_true(is.na(res$text))
+  expect_equal(res$source, "openai")
+  expect_false(is.null(res$error))
+})
+
 test_that("OpenAICompatProvider 4xx degrades to one warning + NA", {
   withr::local_envvar(OPENAI_API_KEY = DUMMY_OPENAI_KEY)
   httr2::local_mocked_responses(mock_status(401L))

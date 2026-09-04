@@ -186,26 +186,34 @@
                              timeout = 30, max_tries = 2) {
   auth <- match.arg(auth)
 
-  req <- httr2::request(base_url)
-  req <- httr2::req_url_path_append(req, path)
-  req <- httr2::req_body_json(req, body)
-  req <- httr2::req_timeout(req, timeout)
-  req <- httr2::req_retry(req, max_tries = max_tries, retry_on_failure = FALSE)
-  # is_error = FALSE turns non-2xx into a normal return so .finish_response()
-  # branches on resp_status() instead of httr2 throwing an httr2_http_* error.
-  req <- httr2::req_error(req, is_error = function(resp) FALSE)
-
-  if (identical(auth, "bearer")) {
-    req <- httr2::req_auth_bearer_token(req, key)
-  } else {
-    req <- httr2::req_headers_redacted(req, "x-api-key" = key)
-  }
-  if (length(extra_headers)) {
-    req <- do.call(httr2::req_headers, c(list(req), extra_headers))
-  }
-
+  # The ENTIRE request-building sequence is inside the tryCatch (not just
+  # req_perform): req_body_json() calls check_installed("jsonlite") which THROWS
+  # when jsonlite is absent, and any other build-time error must degrade too. Any
+  # such error is returned as the condition object `e` (never thrown), which
+  # .finish_response() maps to the standard one-warning + NA failure. Redaction
+  # logic (req_auth_bearer_token / req_headers_redacted) is preserved exactly.
   tryCatch(
-    httr2::req_perform(req),
+    {
+      req <- httr2::request(base_url)
+      req <- httr2::req_url_path_append(req, path)
+      req <- httr2::req_body_json(req, body)
+      req <- httr2::req_timeout(req, timeout)
+      req <- httr2::req_retry(req, max_tries = max_tries, retry_on_failure = FALSE)
+      # is_error = FALSE turns non-2xx into a normal return so .finish_response()
+      # branches on resp_status() instead of httr2 throwing an httr2_http_* error.
+      req <- httr2::req_error(req, is_error = function(resp) FALSE)
+
+      if (identical(auth, "bearer")) {
+        req <- httr2::req_auth_bearer_token(req, key)
+      } else {
+        req <- httr2::req_headers_redacted(req, "x-api-key" = key)
+      }
+      if (length(extra_headers)) {
+        req <- do.call(httr2::req_headers, c(list(req), extra_headers))
+      }
+
+      httr2::req_perform(req)
+    },
     error = function(e) e
   )
 }
@@ -356,7 +364,14 @@ CustomProvider <- R6::R6Class(
       if (inherits(out, "condition")) {
         return(.provider_failure("custom", "custom function errored"))
       }
-      .provider_success("custom", as.character(out)[[1L]])
+      # A fn returning NULL / character(0) makes as.character(out) length-0, so
+      # [[1L]] would throw "subscript out of bounds" — coerce safely and guard
+      # empties/NA so an empty return degrades to one warning + NA, never crashes.
+      txt <- tryCatch(as.character(out), error = function(e) character(0))
+      if (length(txt) == 0L || is.na(txt[[1L]])) {
+        return(.provider_failure("custom", "custom function returned no text"))
+      }
+      .provider_success("custom", txt[[1L]])
     }
   ),
   private = list(
@@ -433,6 +448,15 @@ OpenAICompatProvider <- R6::R6Class(
       if (!requireNamespace("httr2", quietly = TRUE)) {
         stop("Package 'httr2' is required for the OpenAI-compatible provider. ",
              "Install it with: install.packages('httr2')")
+      }
+      # jsonlite is Suggests-only and req_body_json() calls check_installed(),
+      # which THROWS when it is absent. Degrade to one warning + NA (never an
+      # uncaught crash) via the single failure funnel, mirroring the httr2 guard.
+      if (!requireNamespace("jsonlite", quietly = TRUE)) {
+        return(.provider_failure(
+          "openai",
+          "package 'jsonlite' is required for HTTP providers (install.packages('jsonlite'))"
+        ))
       }
       key <- .resolve_api_key("openai")
       # Treat unset (NA) AND set-but-empty ("") identically as "no key".
@@ -581,6 +605,15 @@ AnthropicProvider <- R6::R6Class(
       if (!requireNamespace("httr2", quietly = TRUE)) {
         stop("Package 'httr2' is required for the Anthropic provider. ",
              "Install it with: install.packages('httr2')")
+      }
+      # jsonlite is Suggests-only and req_body_json() calls check_installed(),
+      # which THROWS when it is absent. Degrade to one warning + NA (never an
+      # uncaught crash) via the single failure funnel, mirroring the httr2 guard.
+      if (!requireNamespace("jsonlite", quietly = TRUE)) {
+        return(.provider_failure(
+          "anthropic",
+          "package 'jsonlite' is required for HTTP providers (install.packages('jsonlite'))"
+        ))
       }
       key <- .resolve_api_key("anthropic")
       # Treat unset (NA) AND set-but-empty ("") identically as "no key".
