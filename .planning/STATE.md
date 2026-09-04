@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.61.0
 milestone_name: Advisor Vignette + Dieselgate Walkthrough
-status: planning
+status: roadmapped
 last_updated: "2026-09-04T11:35:04.846Z"
 last_activity: 2026-09-04
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,18 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-02)
+See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics, never fabricating a result.
-**Current focus:** Phase 05 — Offline Diagnostics + Grounding Knowledge Base
+**Current focus:** Phase 9 — Bundled Dieselgate Dataset + Provenance
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 9 — Bundled Dieselgate Dataset + Provenance
 Plan: —
-Status: Defining requirements
-Last activity: 2026-09-04 — Milestone v0.61.0 started
+Status: Roadmapped (not yet planned)
+Progress: [░░░░░░░░░░] 0/2 phases
+Last activity: 2026-09-04 — Roadmap created for v0.61.0 (Phases 9-10)
 
 ## Performance Metrics
 
@@ -72,43 +73,35 @@ Last activity: 2026-09-04 — Milestone v0.61.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v0.61.0 is a documentation milestone: two coarse phases — Phase 9 bundles the dieselgate dataset (prerequisite), Phase 10 delivers the advisor vignette + offline-safe build + docs alignment + CRAN-clean release.
+- Phase 9 open question (phase resolves via research, not a blocker): exact VW ticker (VOW.DE vs VOW3.DE), benchmark index choice, data-source licensing check.
+- CRAN vignettes build OFFLINE: deterministic advisor layer (`es_diagnostics()`/`recommend_stat()`/`flag_robustness()`) runs live with no key; LLM layer (`es_advise()`) shown as static/precomputed, clearly labelled.
+- Dataset reproducibly fetched via `download_stock_data()` in `data-raw/dieselgate.R`, frozen into `data/`; event anchor Volkswagen EPA disclosure 2015-09-18.
 - Two-layer advisor: deterministic offline `es_diagnostics()` + grounded `es_advise()` (pyfda/fdars pattern); offline layer always available and testable
 - Grounding invariant enforced by a runtime guard (`.validate_grounding()`), not by prompt alone
 - LLM layer optional (Suggests: httr2/jsonlite, requireNamespace-guarded); offline layer pure base R, zero hard deps
 - Provider abstraction = OpenAI-compatible + Anthropic + custom hook (R6 strategy pattern); resolution arg → env → default
 - Freemium: bundled advisor free; retrieval-corpus "Advisor Pro" a future paid tier gated by a waitlist
 - [Phase 05]: p-values extracted via stats::pt(abs(t), df, lower.tail=FALSE)*2 — dist_student_t objects never stored in es_diagnostics output
-- [Phase 05]: unclass() required before jsonlite::toJSON() to strip S3 class from es_diagnostics and invoke default list handler
-- [Phase 05]: cross_sectional signals computed across ALL events; per-event vectors capped to max_events top-N by anomaly score (Inf for unfitted, abs(final_car) otherwise)
-- [Phase 05]: Added category field (stat_choice|robustness) to KB rules to enable recommend_stat()/flag_robustness() filtering without re-classifying at call time
-- [Phase 05]: KB-PRETREND omitted: pretrend signal not available in es_diagnostics harvester; documented in SUMMARY
-- [Phase 05]: recommend_stat/flag_robustness dispatch: accept either fitted task or es_diagnostics; provider=NULL silently ignored for Phase 7 forward-compat
-- [Phase 05]: es_advice contract: source=offline_kb, is_deterministic=TRUE, rules_matched with plain scalar fields only (JSON-safe)
-- [Phase 06]: provider layer = hand-rolled thin httr2 client (NOT ellmer) — user decision 2026-09-03. R6 ProviderBase → OpenAICompat/Anthropic/Custom; httr2/jsonlite stay Suggests; offline-tested via httr2::with_mocked_responses; keys redacted on all error paths; NA+one-warning on failure
-- [Phase 6]: es_provider_response is a distinct S3 class sharing source/is_deterministic field names with es_advice for trivial Phase 7 slotting
-- [Phase 6]: OpenAICompatProvider covers OpenAI + Ollama/LM Studio via base_url override; shared .perform_request/.finish_response reused by 06-3
-- [Phase 6]: Empty-string API key treated as missing (one warning + NA at call time)
-- [Phase 6]: AnthropicProvider tool-use input_schema structured output serialized to character via guarded jsonlite::toJSON, with a plain text-block fallback (never-crash)
-- [Phase 7]: advice param positioned after interactive and before ... — zero positional-arg breakage
-- [Phase 7]: skeleton.Rmd eval= double-guard (is.null + inherits) ensures NULL path is byte-identical
+- [Phase 05]: cross_sectional signals computed across ALL events; per-event vectors capped to max_events top-N by anomaly score
+- [Phase 06]: provider layer = hand-rolled thin httr2 client (NOT ellmer) — user decision 2026-09-03; httr2/jsonlite stay Suggests; NA+one-warning on failure
 - [Phase 8]: Pre-existing non-ASCII WARNING (Phases 5-7) does not block v0.60.0 CRAN gate; documented as pre-existing baseline in cran-comments.md
 
 ### Pending Todos
 
-- **Phase 6 post-review fixes — RESOLVED (2026-09-04, commit 23cc972).** Both CONFIRMED never-crash criticals fixed + regression-tested (CustomProvider NULL/character(0) degrade; OpenAICompat jsonlite-absent degrade). Full suite 1793 pass / 0 fail. Phase 6 marked complete.
-- **CRAN R CMD check (CRAN-02)** was NOT re-run after the fix (fix is within the guarded pattern, tests green). The Phase 8 green-check gate re-runs the full `R CMD check`; confirm clean there.
+- **Phase 9 research:** resolve VW ticker (VOW.DE vs VOW3.DE), benchmark index, and licensing of the download source before freezing `data/dieselgate`.
+- **Phase 10 CRAN gate:** confirm the pre-existing non-ASCII WARNING baseline stays clean; `R CMD check --as-cran` must show no new NOTEs/WARNINGs vs v0.60.0.
 
 ### Blockers/Concerns
 
-- **Phase 6 planning-time fork — RESOLVED (2026-09-03, user decision):** provider implementation = **hand-rolled thin `httr2` client** (not Posit `ellmer`). Rationale: smallest dependency surface (httr2/jsonlite stay Suggests, requireNamespace-guarded), full control over key redaction + never-crash error trapping, deterministic offline tests via `httr2::with_mocked_responses` with zero real API calls. Shape: R6 `ProviderBase` → `OpenAICompatProvider` (POST /chat/completions), `AnthropicProvider` (/v1/messages), `CustomProvider` (user `fn(prompt)->text`, the offline test seam); resolution arg→env→default; failure returns NA + one warning; keys redacted in all error paths.
-- **Phase 5 KB correctness:** cross-check assumption→test mappings against Brown & Warner (1985), MacKinlay (1997), Patell (1976), BMP (1991), Kolari-Pynnönen (2010) primary literature.
+- **Phase 5 KB correctness (carry-over):** cross-check assumption→test mappings against Brown & Warner (1985), MacKinlay (1997), Patell (1976), BMP (1991), Kolari-Pynnönen (2010) primary literature — relevant to how the vignette narrates recommendations.
 
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260904-er6 | Surface v0.60.0 AI advisor in README (Features bullet + Quick Start snippet + Roadmap item) | 2026-09-04 | 6e61c3b | [260904-er6-update-readme-md-to-prominently-feature-](./quick/260904-er6-update-readme-md-to-prominently-feature-/) |
-| 260904-id9 | Fix CRAN non-ASCII WARNING — escape non-ASCII in string literals of advise.R/knowledge_base.R/report.R (unblocks CI's error-on=warning gate) | 2026-09-04 | 462940f | [260904-id9-fix-cran-non-ascii-warning-escape-non-as](./quick/260904-id9-fix-cran-non-ascii-warning-escape-non-as/) |
+| 260904-id9 | Fix CRAN non-ASCII WARNING — escape non-ASCII in string literals of advise.R/knowledge_base.R/report.R | 2026-09-04 | 462940f | [260904-id9-fix-cran-non-ascii-warning-escape-non-as](./quick/260904-id9-fix-cran-non-ascii-warning-escape-non-as/) |
 
 ## Deferred Items
 
@@ -121,10 +114,11 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-04T08:30:50.090Z
-Stopped at: context exhaustion at 75% (2026-09-04)
+Last session: 2026-09-04T11:35:04.846Z
+Stopped at: roadmap created for v0.61.0
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review the roadmap in `.planning/ROADMAP.md`.
+- Plan the first phase with `/gsd-plan-phase 9`.
