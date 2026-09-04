@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v0.61.0
 milestone_name: Advisor Vignette + Dieselgate Walkthrough
-current_phase: 10
-current_phase_name: Advisor Vignette + Offline-Safe Build + Docs + Release
-status: in_progress
+status: Awaiting next milestone
 stopped_at: Phases 9-10 complete; milestone closeout (audit/complete) pending (2026-09-04)
-last_updated: "2026-09-04T11:43:53.108Z"
+last_updated: "2026-09-04T12:18:16.343Z"
 last_activity: 2026-09-04
-last_activity_desc: Phase 10 complete — advisor vignette + 0.61.0 release (c2c1783, 4852d27)
-state_head: eb289b73d17fa391800b04d6f9eb4386f5a28a04
+last_activity_desc: Milestone v0.61.0 completed and archived
+state_head: eca14efbbe399aaf22eb57d964180da1b352c9b0
 progress:
   total_phases: 2
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+current_phase: 10
+current_phase_name: Advisor Vignette + Offline-Safe Build + Docs + Release
 ---
 
 # Project State
@@ -29,11 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-04)
 
 ## Current Position
 
-Phase: 10 — Advisor Vignette + Offline-Safe Build + Docs + Release (COMPLETE)
+Phase: Milestone v0.61.0 complete
 Plan: —
-Status: All phases complete; milestone closeout pending
-Progress: [██████████] 2/2 phases
-Last activity: 2026-09-04 — Phase 10 complete (advisor vignette + 0.61.0 release; c2c1783, 4852d27)
+Status: Awaiting next milestone
+Last activity: 2026-09-04 — Milestone v0.61.0 completed and archived
 
 ## Performance Metrics
 
@@ -126,5 +125,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Review the roadmap in `.planning/ROADMAP.md`.
-- Plan the first phase with `/gsd-plan-phase 9`.
+- Start the next milestone with /gsd-new-milestone

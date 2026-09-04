@@ -1,5 +1,15 @@
 # Milestones
 
+## v0.61.0 v0.61.0 (Shipped: 2026-09-04)
+
+**Phases completed:** 0 phases, 0 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
 ## v0.60.0 Grounded AI Advisor (Shipped: 2026-09-04)
 
 **Phases completed:** 4 phases, 10 plans, 10 tasks
