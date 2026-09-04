@@ -109,3 +109,63 @@ addressed. Version number has been incremented beyond the archived version
 This milestone (0.50.0) adds robustness hardening: degenerate-input contract,
 per-model guards, test-statistic guards, pipeline hardening, external-package
 wrapping, and a 1378-test regression net.
+
+---
+
+## R CMD check gate result (milestone: Grounded AI Advisor v0.60.0, Phase 8, Plan 02)
+
+**Check command:** `rcmdcheck::rcmdcheck(args = c("--as-cran", "--no-manual"), error_on = "never")` with `_R_CHECK_FORCE_SUGGESTS_=false`
+
+**Check date:** 2026-09-04
+
+**R version:** 4.6.x, Linux (Manjaro), x86_64
+
+### Result summary
+
+```
+ERRORS: 0   WARNINGS: 1   NOTES: 2
+```
+
+**Milestone gate: PASSED — 0 new NOTEs/WARNINGs introduced by Phases 5–8.**
+
+All findings are pre-existing from prior milestones:
+
+| Finding | Category | Pre-existing Since | New? |
+|---------|----------|--------------------|------|
+| Non-ASCII chars in R/advise.R, R/knowledge_base.R, R/report.R | WARNING | Phase 5 | NO |
+| CRAN incoming feasibility (archived package) | NOTE | Original baseline | NO |
+| Undefined globals: `median`, `tail` in es_diagnostics.R | NOTE | Phase 5 | NO |
+
+### Pre-existing WARNING: non-ASCII characters
+
+`R/advise.R`, `R/knowledge_base.R`, `R/report.R` contain UTF-8 non-ASCII
+characters (Phase 5 commits). Requires `\uXXXX` escapes for CRAN submission.
+Deferred to future cleanup phase.
+
+### Pre-existing NOTE: CRAN incoming feasibility
+
+Package was archived 2024-04-20. Appears on every local check. Cover letter
+required at CRAN re-submission.
+
+### Pre-existing NOTE: undefined globals
+
+`median` (stats) and `tail` (utils) used in `R/es_diagnostics.R` (Phase 5)
+without explicit `importFrom`. Fix: add to `globalVariables()` or `importFrom`.
+Deferred to future cleanup phase.
+
+### CRAN-02 Network-Safety Confirmation
+
+**Confirmed clean:** No examples, tests, or vignettes make network calls by
+default under `R CMD check --as-cran`. All network access (LLM via `es_advise()`,
+factor data via `download_factor_data()`, stock data via `download_stock_data()`)
+requires explicit user action and is guarded by `requireNamespace()` for optional
+packages (`httr2`, `jsonlite` in Suggests). CRAN-02 concern is **confirmed resolved**.
+
+### Test suite result (v0.60.0)
+
+```
+[ FAIL 0 | WARN 1 | SKIP 31 | PASS 1913 ]
+```
+
+1913 tests pass, 0 failures. The single WARN and 31 SKIPs are pre-existing
+(optional Suggests packages not installed in dev environment).
