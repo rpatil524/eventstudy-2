@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.60.0
-milestone_name: Grounded AI Advisor
-status: Awaiting next milestone
-stopped_at: context exhaustion at 75% (2026-09-04)
-last_updated: "2026-09-04T08:30:50.100Z"
+milestone: v0.61.0
+milestone_name: Advisor Vignette + Dieselgate Walkthrough
+status: planning
+last_updated: "2026-09-04T11:35:04.846Z"
 last_activity: 2026-09-04
-last_activity_desc: Milestone v0.60.0 completed and archived
-state_head: 2336e81559282ef5ab7874ed4ebc65f2e057036d
 progress:
-  total_phases: 4
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
-current_phase: 8
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 ## Current Position
 
-Phase: Milestone v0.60.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-04 — Completed quick task 260904-id9: clear CRAN non-ASCII WARNING (unblocks CI)
+Status: Defining requirements
+Last activity: 2026-09-04 — Milestone v0.61.0 started
 
 ## Performance Metrics
 

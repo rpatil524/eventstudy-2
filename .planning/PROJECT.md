@@ -10,18 +10,16 @@ The package is mature and CRAN-published. The v0.50.0 milestone made it **never 
 
 The package must never produce a silently incorrect statistical result — and now, the AI layer must never present an ungrounded one. On degenerate input the pipeline errors clearly or returns NA with one warning; the advisor cites only diagnostics the package actually computed, and refuses to invent numbers. Trustworthy numbers, trustworthy interpretation.
 
-## Current Milestone: v0.60.0 Grounded AI Advisor
+## Current Milestone: v0.61.0 Advisor Vignette + Dieselgate Walkthrough
 
-**Goal:** Add an LLM-agnostic AI advisor that guides users through an entire event study — grounded so it interprets only package-computed numbers and never fabricates results.
+**Goal:** Ship a CRAN vignette that explains the AI advisor's idea and mechanics, anchored by a real Volkswagen dieselgate worked example, and align the package's other doc entry points around that story.
 
 **Target features:**
-- `es_diagnostics(task)` — deterministic offline diagnostics layer (zero new deps, works with no API key) harvesting fit stats, CAR/CAAR + p-values, cross-sectional dispersion, and v0.50.0 contract signals (`is_fitted`, NA/zero-variance/insufficient-obs flags)
-- `es_advise(diagnostics, task=, provider=, model=)` — grounded `Advice` object (interpretation / recommendations / caveats) with a runtime grounding guard that rejects evidence absent from the diagnostics
-- LLM-agnostic provider abstraction: OpenAI-compatible endpoint + native Anthropic + pluggable custom-provider hook; 3-tier precedence (arg → env var → default); `httr2`/`jsonlite` in Suggests only
-- Grounding knowledge base: assumption→test mappings, when-to-use rules, academic citations (MacKinlay, Brown & Warner, Patell, BMP, Kolari-Pynnönen)
-- Advice scope: interpret results, recommend test statistic, recommend model & windows, flag robustness issues, open design discussion, and report-writing help (feeds `generate_report()`)
-- Claude Code Agent Skill (`SKILL.md` with references) orchestrating load→run→diagnose→advise→re-run→compare
-- Commercial-tier waitlist surface advertising the future retrieval-grounded "Advisor Pro"
+- Bundled **dieselgate dataset** — fetch VW + index returns around the Sept 2015 EPA disclosure via the package's own `download_stock_data()`, frozen into `data/` with a `data-raw/` provenance script (source, tickers, date range, access date) and a documented `.Rd`
+- **Advisor vignette** — narrative on *why* the advisor exists and *how* it works (two-layer: deterministic offline grounding + LLM interpretation), then a dieselgate walkthrough: prepare → fit → statistics → `es_diagnostics()` → `recommend_stat()`/`flag_robustness()` run **live**, plus a **static, clearly-labelled captured `es_advise()`** block explaining why the LLM layer isn't evaluated at build
+- **Offline-safe build** — the vignette compiles with no network/API calls; deterministic layer evaluated live, LLM layer precomputed/non-evaluated
+- **Supporting docs** — README / pkgdown / NEWS touch-ups so the advisor + dieselgate story is coherent across entry points
+- **CRAN-clean** — version bump, vignette builder registered, green `R CMD check --as-cran` with no new NOTEs/WARNINGs, suite stays green
 
 ## Business Context
 
@@ -49,19 +47,21 @@ The package must never produce a silently incorrect statistical result — and n
 - ✓ **Hardened prepare/window logic, export/tidy NA-safety, cross-sectional collinearity guards** — v0.50.0
 - ✓ **Defensively wrapped external-package call sites** (did, DIDmultiplegt, didimputation, sandwich, rugarch, rmgarch, synthetic-control solve.QP) — v0.50.0
 - ✓ **Durable regression net**: 25-component contract matrix, fix→test catalog, green `R CMD check` (0 new NOTEs/WARNINGs) — v0.50.0
+- ✓ **Offline diagnostics layer** — deterministic zero-dependency `es_diagnostics()` harvester — v0.60.0
+- ✓ **Grounded advise layer** — `es_advise()` `Advice` object with runtime grounding guard, all six advice modes, `generate_report()` integration — v0.60.0
+- ✓ **LLM-agnostic provider abstraction** — hand-rolled thin `httr2` client (OpenAI-compatible + Anthropic + custom hook), 3-tier precedence, Suggests-guarded — v0.60.0
+- ✓ **Grounding knowledge base** — pure-R assumption→test KB with academic citations, rule-based offline advice engine — v0.60.0
+- ✓ **Claude Code Agent Skill + Advisor Pro waitlist** — `SKILL.md` loop over existing exports; CRAN-safe opt-in waitlist surface — v0.60.0
 
 ### Active
 
-<!-- This milestone (v0.60.0). Detailed, testable REQ-IDs live in REQUIREMENTS.md. -->
+<!-- This milestone (v0.61.0). Detailed, testable REQ-IDs live in REQUIREMENTS.md. -->
 
-- [ ] **Offline diagnostics layer** — `es_diagnostics()` deterministic, zero-dependency, serializable feature extraction reusing `diagnostics.R` and v0.50.0 contract signals
-- [ ] **Grounded advise layer** — `es_advise()` with structured `Advice` schema and a runtime grounding guard (no fabricated numbers)
-- [ ] **LLM-agnostic provider abstraction** — OpenAI-compatible + native Anthropic + custom-provider hook; 3-tier config precedence; AI deps in Suggests
-- [ ] **Grounding knowledge base** — curated methodology references and academic citations injected as grounded context
-- [ ] **Advice coverage** — interpret / recommend-statistic / recommend-model+windows / flag-robustness / design-discussion / report-writing
-- [ ] **Claude Code Agent Skill** — `SKILL.md` with references orchestrating the full advise loop
-- [ ] **Commercial-tier waitlist** — lightweight waitlist pointer + docs for the future "Advisor Pro"
-- [ ] **CRAN-clean** — offline layer pure base R; LLM layer optional/Suggests-guarded; green `R CMD check`
+- [ ] **Bundled dieselgate dataset** — reproducible `data-raw/` fetch (via `download_stock_data()`) of VW + index returns around the Sept 2015 disclosure, frozen into `data/` with documented provenance and `.Rd`
+- [ ] **Advisor vignette** — narrative on why the advisor exists and its two-layer architecture, with a dieselgate walkthrough: pipeline + deterministic offline layer run live, LLM `es_advise()` shown as clearly-labelled static output
+- [ ] **Offline-safe vignette build** — no network/API calls at build time; deterministic layer evaluated, LLM layer precomputed/non-evaluated
+- [ ] **Supporting docs alignment** — README / pkgdown / NEWS updated so the advisor + dieselgate story is coherent across entry points
+- [ ] **CRAN-clean release** — version bump, vignette builder registered, no new `R CMD check` NOTEs/WARNINGs, suite stays green
 
 ### Out of Scope
 
@@ -125,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 5. Update Context with current state
 
 ---
-*Last updated: 2026-09-02 starting milestone v0.60.0 Grounded AI Advisor*
+*Last updated: 2026-09-04 starting milestone v0.61.0 Advisor Vignette + Dieselgate Walkthrough*
