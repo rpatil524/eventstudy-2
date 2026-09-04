@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 Phase: Milestone v0.60.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-09-04 — Milestone v0.60.0 completed and archived
+Last activity: 2026-09-04 — Completed quick task 260904-er6: surface v0.60.0 AI advisor in README
 
 ## Performance Metrics
 
@@ -106,6 +106,12 @@ Recent decisions affecting current work:
 
 - **Phase 6 planning-time fork — RESOLVED (2026-09-03, user decision):** provider implementation = **hand-rolled thin `httr2` client** (not Posit `ellmer`). Rationale: smallest dependency surface (httr2/jsonlite stay Suggests, requireNamespace-guarded), full control over key redaction + never-crash error trapping, deterministic offline tests via `httr2::with_mocked_responses` with zero real API calls. Shape: R6 `ProviderBase` → `OpenAICompatProvider` (POST /chat/completions), `AnthropicProvider` (/v1/messages), `CustomProvider` (user `fn(prompt)->text`, the offline test seam); resolution arg→env→default; failure returns NA + one warning; keys redacted in all error paths.
 - **Phase 5 KB correctness:** cross-check assumption→test mappings against Brown & Warner (1985), MacKinlay (1997), Patell (1976), BMP (1991), Kolari-Pynnönen (2010) primary literature.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260904-er6 | Surface v0.60.0 AI advisor in README (Features bullet + Quick Start snippet + Roadmap item) | 2026-09-04 | 6e61c3b | [260904-er6-update-readme-md-to-prominently-feature-](./quick/260904-er6-update-readme-md-to-prominently-feature-/) |
 
 ## Deferred Items
 
