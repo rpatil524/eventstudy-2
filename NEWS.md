@@ -1,3 +1,33 @@
+# EventStudy 0.61.2
+
+## Multi-automaker dieselgate dataset + CI bands + group CAAR plot + mock advisor
+
+* **Extended `dieselgate` dataset** — the bundled dataset now covers **four German
+  automakers** (VOW.DE, PAH3.DE, BMW.DE, MBG.DE) plus the DAX benchmark across
+  the 2015 Dieselgate emissions scandal, with a two-group request structure:
+  "VW Group" (directly implicated firms) vs "Other" (peer automakers). This
+  enables multi-group event studies and CAAR comparisons out of the box. The
+  four-row `request` tibble carries the group column; `event_id = 1` remains
+  VOW.DE for backward compatibility. See `?dieselgate`.
+
+* **CI bands on CAR/CAAR plots** — `plot_event_study(type = "car", event_id = 1L,
+  confidence_level = 0.95)` draws a 95% confidence ribbon around the cumulative
+  abnormal return path; the group CAAR comparison plot in the advisor vignette
+  overlays per-group CI ribbons, making the statistical certainty of the VW Group
+  crash visually immediate.
+
+* **Multi-group CAAR comparison** — the advisor vignette now shows a side-by-side
+  ggplot2 CAAR path for "VW Group" (CAAR at +10 ≈ -39%, t ≈ -12.6) and "Other"
+  (CAAR at +10 ≈ +1%, t ≈ 0.34, not significant), illustrating the idiosyncratic
+  nature of the shock: VW Group craters while peer automakers barely move.
+
+* **Mock AI-advisor interpretation block** — the advisor vignette's static
+  LLM-output example is updated to reflect the multi-group results, grounded in
+  the actual computed diagnostics (beta ~1.09, R-squared ~0.74, Shapiro-Wilk
+  p ~0.004, VW Group CAAR t-statistic ~-12.6, near-zero Other CAAR). The block
+  is clearly labelled as a captured/illustrative example, not evaluated at build
+  time.
+
 # EventStudy 0.61.1
 
 ## Correctness fix + advisor vignette plots
