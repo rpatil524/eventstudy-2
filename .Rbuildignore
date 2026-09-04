@@ -9,3 +9,4 @@
 ^\.claude$
 ^\.planning$
 ^\.gsd$
+^data-raw$
