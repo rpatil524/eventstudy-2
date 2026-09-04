@@ -1,90 +1,90 @@
-# Requirements: EventStudy — Advisor Vignette + Dieselgate Walkthrough
+# Requirements: EventStudy — Documentation Site (pkgdown + CI/CD)
 
 **Defined:** 2026-09-04
-**Milestone:** v0.61.0
-**Core Value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics. This milestone makes that story *legible* through a worked, real-world example.
+**Milestone:** v0.62.0
+**Core Value:** Trustworthy numbers, trustworthy interpretation — now made discoverable. A curated, professional documentation site (matching the `fdars-r` pattern) that CI keeps current, so the package's capabilities and the AI advisor story are legible to anyone arriving from CRAN or GitHub.
 
 ## v1 Requirements
 
-Requirements for milestone v0.61.0. Each maps to exactly one roadmap phase.
+Requirements for milestone v0.62.0. Each maps to exactly one roadmap phase.
 
-### Dataset (DATA)
+### Site structure (SITE)
 
-- [ ] **DATA-01**: A reproducible `data-raw/dieselgate.R` script fetches Volkswagen + a benchmark index's returns spanning an estimation window and event window around the 2015-09-18 EPA disclosure, using the package's own `download_stock_data()`, and records source, tickers, date range, and access date as comments.
-- [ ] **DATA-02**: The fetched prices/returns are frozen as package data under `data/` (e.g. `dieselgate`), loadable via `data(dieselgate)` with no network access.
-- [ ] **DATA-03**: The dataset has a documented roxygen `.Rd` describing its columns, the firm and index, the event date, the window layout, and its provenance/licensing note.
-- [ ] **DATA-04**: The bundled dataset drives a valid event study end-to-end (`prepare_event_study()` → `fit_model()` → `calculate_statistics()`) producing a non-degenerate, interpretable result suitable for the vignette narrative.
+- [ ] **SITE-01**: A `_pkgdown.yml` at the package root configures a pkgdown 2.x (Bootstrap 5) site, with `url:` set to `https://sipemu.github.io/eventstudy/` so cross-references and canonical links resolve correctly.
+- [ ] **SITE-02**: The Reference index is organized into thematic groups with titles/descriptions — Pipeline & tasks, Return models, Test statistics, Panel/intraday/synthetic control, AI advisor, Diagnostics, Cross-sectional & simulation, Export & reporting, Plotting, Data & datasets — with every exported symbol appearing in exactly one group (no ungrouped/missing-topic warnings).
+- [ ] **SITE-03**: The navbar exposes Get Started, Reference, an Articles dropdown, and News/Changelog; all 18 existing vignettes are reachable and grouped meaningfully under Articles (e.g. Core workflow, Models, Inference & robustness, Specialized designs, AI advisor).
+- [ ] **SITE-04**: The homepage renders the README as the landing page (or a dedicated intro), building without error from the existing content.
 
-### Vignette (VIG)
+### Theme (THEME)
 
-- [x] **VIG-01**: A vignette (`vignettes/ai-advisor.Rmd` or similar) explains *why* the AI advisor exists and *how* it works, describing the two-layer architecture — deterministic offline grounding vs. LLM interpretation — and the grounding invariant (never fabricates a number).
-- [x] **VIG-02**: The vignette runs the dieselgate example live through `prepare_event_study()` → `fit_model()` → `calculate_statistics()` on the bundled data, showing the abnormal-return / CAR result.
-- [x] **VIG-03**: The vignette runs the deterministic offline advisor layer live with no API key — `es_diagnostics()`, `recommend_stat()`, and `flag_robustness()` — and shows their output.
-- [x] **VIG-04**: The vignette presents the LLM layer (`es_advise()`) as a static, clearly-labelled captured response, with an explicit note explaining why it is not evaluated at build time (offline CRAN build + no API key).
-- [x] **VIG-05**: The two layers are visually and narratively separated so a reader can tell which output is deterministic/live and which is the captured LLM interpretation.
+- [ ] **THEME-01**: A custom Bootstrap-5 theme is applied via `template.bootstrap: 5` and a `template.bootswatch` (or `template.theme`/`bslib` variables) choosing an accent color and font pairing that reads as professional; no package logo is required.
+- [ ] **THEME-02**: Syntax highlighting, code blocks, and the reference/article typography render cleanly under the chosen theme with no contrast or layout regressions in a local `pkgdown::build_site()`.
 
-### Offline-safe build (BUILD)
+### CI/CD deploy (CI)
 
-- [x] **BUILD-01**: The vignette compiles with zero network and zero LLM API calls — LLM chunks use `eval=FALSE` and/or precomputed static output; deterministic chunks evaluate live against bundled data.
-- [x] **BUILD-02**: `R CMD build` produces the vignette without needing a network connection, API key, or optional AI Suggests (`httr2`/`jsonlite`) to be present.
+- [ ] **CI-01**: A `.github/workflows/pkgdown.yaml` workflow (r-lib standard) builds the pkgdown site on push to `main` and on `release: [published]`, plus manual `workflow_dispatch`.
+- [ ] **CI-02**: The workflow deploys the built site to the `gh-pages` branch via `JamesIves/github-pages-deploy-action` (or `r-lib/actions` deploy step) with least-privilege `contents: write` permissions, so GitHub Pages serves it.
+- [ ] **CI-03**: The workflow installs the package with its Suggests and builds articles, completing green on GitHub Actions (verified by a successful run on the default branch).
 
-### Docs alignment (DOCS)
+### Repo linkage (LINK)
 
-- [x] **DOCS-01**: README references the advisor vignette and the dieselgate example as the entry point for understanding the advisor.
-- [x] **DOCS-02**: pkgdown configuration lists the new vignette (and, if applicable, the bundled dataset) under appropriate sections.
-- [x] **DOCS-03**: NEWS.md records the vignette and dataset addition under a new `v0.61.0` heading.
+- [ ] **LINK-01**: DESCRIPTION `URL` includes the pkgdown site URL (`https://sipemu.github.io/eventstudy/`) alongside the existing GitHub URL, and `BugReports` is retained.
+- [ ] **LINK-02**: README gains a documentation-site badge/link near the existing badge row pointing at the live site.
+- [ ] **LINK-03**: `.Rbuildignore` excludes `_pkgdown.yml`, `docs/`, `pkgdown/`, and the pkgdown workflow so the CRAN source tarball is unchanged by the site scaffolding.
 
-### Release quality (REL)
+### Build integrity (BUILD)
 
-- [x] **REL-01**: DESCRIPTION registers the vignette builder (`VignetteBuilder: knitr`), declares any newly-required Suggests, and bumps the package version to `0.61.0`.
-- [x] **REL-02**: `R CMD check --as-cran` passes with no new NOTEs/WARNINGs relative to the v0.60.0 baseline, and the existing test suite stays green.
+- [ ] **BUILD-01**: `pkgdown::build_site()` completes locally with no errors and no missing-topic/orphaned-reference warnings against the current exports and vignettes.
+- [ ] **BUILD-02**: Network-touching vignettes (e.g. `data-download`) build reproducibly in CI — either already offline-safe, cached, or gated so a transient network failure does not break the docs build; any non-evaluated content is clearly labelled.
+- [ ] **BUILD-03**: `R CMD check --as-cran` shows no new NOTEs/WARNINGs relative to the v0.61.x baseline, the existing test suite stays green, and the package version is bumped to `0.62.0` with a NEWS.md `v0.62.0` entry recording the documentation site.
 
 ## Future Requirements
 
 Deferred, tracked but not in this roadmap.
 
-- **Advisor Pro (PRO-01/02)**: RAG-corpus advisor + managed hosting — waitlist-gated.
-- **Surfaces (SURF-01/02)**: MCP server + panel/intraday/synthetic diagnostics.
-- **Additional vignettes**: model-selection guide, panel-DiD walkthrough — after the advisor vignette lands.
+- **Package logo / hex sticker** — add branded artwork to the navbar and homepage once a design exists.
+- **Custom homepage cards** — fdars-r-style illustrated topic cards on the landing page (beyond grouped reference), if desired later.
+- **Versioned/multi-version docs** — `pkgdown` dev-mode versioning for released vs. dev docs.
+- **Advisor Pro (PRO-01/02)** / **Surfaces (SURF-01/02)** — unchanged from prior deferrals.
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Live LLM calls during vignette build | CRAN builds run offline with no API key; the LLM layer must be shown statically |
-| Downloading data at build time | CRAN vignettes cannot hit the network; data is frozen into `data/` |
-| Changing advisor behavior/APIs | This is a documentation milestone; `es_diagnostics()`/`es_advise()` behavior is unchanged |
-| New advisor features or providers | Out of scope; the vignette documents what already shipped in v0.60.0 |
-| Bundling a large market-data corpus | Only the minimal VW + index window needed for one worked example |
+| Package logo creation | User chose "custom theme, no logo"; artwork is deferred |
+| Rewriting or adding vignette content | This milestone organizes and publishes existing vignettes; content changes are separate |
+| Changing package APIs or statistical behavior | Purely additive docs + infra milestone |
+| Setting the GitHub repo "About → Website" field | Manual GitHub UI setting; CI cannot set it — flagged as an operator step |
+| Bundling built `docs/` into the CRAN tarball | Site is CI-built and served from gh-pages; `.Rbuildignore` keeps it out |
+| Custom illustrated homepage cards | Deferred to Future; grouped reference + custom theme is the v0.62.0 bar |
 
 ## Traceability
 
-Mapped during roadmap creation (2026-09-04).
+Mapped during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 9 | Complete |
-| DATA-02 | Phase 9 | Complete |
-| DATA-03 | Phase 9 | Complete |
-| DATA-04 | Phase 9 | Complete |
-| VIG-01 | Phase 10 | Complete |
-| VIG-02 | Phase 10 | Complete |
-| VIG-03 | Phase 10 | Complete |
-| VIG-04 | Phase 10 | Complete |
-| VIG-05 | Phase 10 | Complete |
-| BUILD-01 | Phase 10 | Complete |
-| BUILD-02 | Phase 10 | Complete |
-| DOCS-01 | Phase 10 | Complete |
-| DOCS-02 | Phase 10 | N/A (no _pkgdown.yml) |
-| DOCS-03 | Phase 10 | Complete |
-| REL-01 | Phase 10 | Complete |
-| REL-02 | Phase 10 | Complete |
+| SITE-01 | — | Pending |
+| SITE-02 | — | Pending |
+| SITE-03 | — | Pending |
+| SITE-04 | — | Pending |
+| THEME-01 | — | Pending |
+| THEME-02 | — | Pending |
+| CI-01 | — | Pending |
+| CI-02 | — | Pending |
+| CI-03 | — | Pending |
+| LINK-01 | — | Pending |
+| LINK-02 | — | Pending |
+| LINK-03 | — | Pending |
+| BUILD-01 | — | Pending |
+| BUILD-02 | — | Pending |
+| BUILD-03 | — | Pending |
 
 **Coverage:**
-- v1 requirements: 16 total
-- Mapped to phases: 16 ✓
-- Unmapped: 0
+- v1 requirements: 15 total
+- Mapped to phases: 0 (filled by roadmap)
+- Unmapped: 15 ⚠️
 
 ---
 *Requirements defined: 2026-09-04*
-*Last updated: 2026-09-04 after roadmap creation (Phases 9-10 mapped)*
+*Last updated: 2026-09-04 after initial definition*
