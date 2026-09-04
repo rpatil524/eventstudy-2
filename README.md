@@ -70,6 +70,8 @@ print(advice)
 
 Runs offline out of the box. To use an LLM for prose interpretation, pass an optional `provider()` (Anthropic, OpenAI-compatible, or custom).
 
+The best entry point for understanding the advisor is the **"The Grounded AI Advisor"** vignette (`vignette("ai-advisor")`), which walks through the bundled `dieselgate` dataset (`data(dieselgate)` — Volkswagen vs. the DAX around the 2015 EPA disclosure), runs the deterministic advisor layer live, and shows the LLM layer as a captured static example.
+
 ## Example: Dieselgate
 
 Analyzing the 2015 Volkswagen emissions scandal and its impact on automotive stock prices.
@@ -378,6 +380,7 @@ See `vignette("custom-models")` and `vignette("custom-test-statistics")` for det
 
 | Vignette | Topic |
 |----------|-------|
+| `ai-advisor` | Grounded AI advisor two-layer walkthrough on the bundled `dieselgate` dataset |
 | `introduction` | Package overview with Dieselgate example |
 | `custom-models` | Creating and using custom return models |
 | `custom-test-statistics` | Creating custom test statistics |

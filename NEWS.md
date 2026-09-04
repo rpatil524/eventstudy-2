@@ -1,3 +1,29 @@
+# EventStudy 0.61.0
+
+## Advisor Vignette + Bundled Dieselgate Dataset
+
+This release makes the AI advisor's story legible through a real-world worked
+example, with no change to existing package behavior or APIs.
+
+* **`dieselgate` dataset** — a small, frozen dataset bundling daily adjusted
+  prices for Volkswagen AG (`VOW.DE`) and the DAX benchmark index (`^GDAXI`)
+  around the 2015-09-18 EPA emissions-scandal disclosure. Loadable via
+  `data(dieselgate)` with no network access; it drives a complete event study
+  end-to-end and recovers the roughly -35% cumulative abnormal return crash.
+  See `?dieselgate` for the documented schema and provenance, and
+  `data-raw/dieselgate.R` for the reproducible fetch script.
+
+* **"The Grounded AI Advisor" vignette** (`vignettes/ai-advisor.Rmd`) — explains
+  *why* the advisor exists (the grounding invariant: it never fabricates a
+  number) and *how* it works (the two-layer architecture: a deterministic
+  offline grounding layer plus an optional LLM interpretation layer policed by a
+  runtime guard). It walks through the `dieselgate` example, running the
+  pipeline and the deterministic advisor layer (`es_diagnostics()`,
+  `recommend_stat()`, `flag_robustness()`) **live with no API key**, and shows
+  the `es_advise()` LLM layer as a clearly-labelled captured static block. The
+  vignette builds fully offline.
+
+
 # EventStudy 0.60.0
 
 ## Grounded AI Advisor — Feature Set (Phases 5–8)
