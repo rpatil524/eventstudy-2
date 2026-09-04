@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-09-04T19:18:30.059Z"
 last_activity: 2026-09-04
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,15 +19,22 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-09-04)
 
-**Core value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics, never fabricating a result.
-**Current focus:** v0.61.0 closeout — milestone audit → complete → cleanup
+**Core value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics, never fabricating a result. This milestone makes that legible via a curated docs site.
+**Current focus:** v0.62.0 — ship a curated pkgdown documentation site, CI-deployed to GitHub Pages, linked from the repo.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 11 (not started) — roadmap created, awaiting plan
 Plan: —
-Status: Defining requirements
-Last activity: 2026-09-04 — Milestone v0.62.0 started
+Status: Roadmap created (2 phases, 15/15 requirements mapped)
+Last activity: 2026-09-04 — Milestone v0.62.0 roadmap created
+
+## Milestone Roadmap (v0.62.0)
+
+- **Phase 11: Curated pkgdown Site + Custom Theme (local build)** — SITE-01..04, THEME-01, THEME-02, BUILD-01. Site builds cleanly locally: grouped reference, Articles nav over 18 vignettes, README homepage, custom Bootstrap-5 theme.
+- **Phase 12: CI/CD Deploy + Repo Linkage + Release Integrity** — CI-01..03, LINK-01..03, BUILD-02, BUILD-03. r-lib `pkgdown.yaml` deploys to gh-pages, DESCRIPTION URL / README badge / `.Rbuildignore`, network-safe article build, green Actions run, CRAN-clean 0.62.0 release.
+
+Dependency order: Phase 11 (local build) → Phase 12 (CI deploy of that config + release).
 
 ## Performance Metrics
 
@@ -37,33 +44,12 @@ Last activity: 2026-09-04 — Milestone v0.62.0 started
 - Average duration: -
 - Total execution time: 0 hours
 
-**By Phase (v0.60.0):**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 5 | 3 | - | - |
-| 6 | 3 | - | - |
-| 7 | 2 | - | - |
-| 8 | 2 | - | - |
-
 **Recent Trend:**
 
 - Last 5 plans: n/a
 - Trend: n/a
 
 *Updated after each plan completion*
-**Per-Plan Metrics:**
-
-| Plan | Duration | Tasks | Files |
-|------|----------|-------|-------|
-| Phase 05 P01 | 10 | 3 tasks | 5 files |
-| Phase 05-offline-diagnostics-grounding-knowledge-base P02 | 277 | 2 tasks | 5 files |
-| Phase 05 P03 | 18 | 2 tasks | 6 files |
-| Phase 06 P01 | 6m | 3 tasks | 8 files |
-| Phase 06 P02 | 7m | 3 tasks | 6 files |
-| Phase 06 P03 | 9 min | 3 tasks | 7 files |
-| Phase 07 P2 | 4 | 2 tasks | 4 files |
-| Phase 08 P02 | 838 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -72,29 +58,22 @@ Last activity: 2026-09-04 — Milestone v0.62.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- v0.61.0 is a documentation milestone: two coarse phases — Phase 9 bundles the dieselgate dataset (prerequisite), Phase 10 delivers the advisor vignette + offline-safe build + docs alignment + CRAN-clean release.
-- Phase 9 open question (phase resolves via research, not a blocker): exact VW ticker (VOW.DE vs VOW3.DE), benchmark index choice, data-source licensing check.
-- CRAN vignettes build OFFLINE: deterministic advisor layer (`es_diagnostics()`/`recommend_stat()`/`flag_robustness()`) runs live with no key; LLM layer (`es_advise()`) shown as static/precomputed, clearly labelled.
-- Dataset reproducibly fetched via `download_stock_data()` in `data-raw/dieselgate.R`, frozen into `data/`; event anchor Volkswagen EPA disclosure 2015-09-18.
-- Two-layer advisor: deterministic offline `es_diagnostics()` + grounded `es_advise()` (pyfda/fdars pattern); offline layer always available and testable
-- Grounding invariant enforced by a runtime guard (`.validate_grounding()`), not by prompt alone
-- LLM layer optional (Suggests: httr2/jsonlite, requireNamespace-guarded); offline layer pure base R, zero hard deps
-- Provider abstraction = OpenAI-compatible + Anthropic + custom hook (R6 strategy pattern); resolution arg → env → default
-- Freemium: bundled advisor free; retrieval-corpus "Advisor Pro" a future paid tier gated by a waitlist
-- [Phase 05]: p-values extracted via stats::pt(abs(t), df, lower.tail=FALSE)*2 — dist_student_t objects never stored in es_diagnostics output
-- [Phase 05]: cross_sectional signals computed across ALL events; per-event vectors capped to max_events top-N by anomaly score
-- [Phase 06]: provider layer = hand-rolled thin httr2 client (NOT ellmer) — user decision 2026-09-03; httr2/jsonlite stay Suggests; NA+one-warning on failure
-- [Phase 8]: Pre-existing non-ASCII WARNING (Phases 5-7) does not block v0.60.0 CRAN gate; documented as pre-existing baseline in cran-comments.md
+- v0.62.0 is a small docs + infra milestone: two coarse phases. Phase 11 builds and verifies the curated pkgdown site locally (config + theme must exist and build before CI is meaningful); Phase 12 wires the r-lib CI deploy, repo linkage, network-safe article build, and the CRAN-clean 0.62.0 release.
+- Site URL is `https://sipemu.github.io/eventstudy/`; GitHub remote is `https://github.com/sipemu/eventstudy`.
+- Curated pkgdown site (grouped reference, custom homepage) over auto-generated default, matching the fdars-r reference.
+- Custom Bootstrap-5 theme, no logo — professional look without artwork; logo deferred.
+- CI deploy to gh-pages on push-to-main + releases (r-lib `pkgdown.yaml`); keeps the site out of the CRAN tarball via `.Rbuildignore`.
+- The GitHub repo "About → Website" field is a manual operator step (CI cannot set it) — flagged in Phase 12 notes, not an automated requirement.
 
 ### Pending Todos
 
-- **Phase 9 research:** resolve VW ticker (VOW.DE vs VOW3.DE), benchmark index, and licensing of the download source before freezing `data/dieselgate`.
-- **Phase 10 CRAN gate:** confirm the pre-existing non-ASCII WARNING baseline stays clean; `R CMD check --as-cran` must show no new NOTEs/WARNINGs vs v0.60.0.
+- **Phase 11:** Enumerate all 30+ exported symbols and assign each to exactly one Reference group so `build_site()` emits zero missing-topic warnings; group the 18 vignettes under Articles.
+- **Phase 12:** Verify a real Actions run is green on the default branch before considering CI-03 met; confirm `.Rbuildignore` keeps the CRAN tarball byte-unchanged; confirm no new R CMD check NOTEs/WARNINGs vs v0.61.x baseline.
+- **Operator step (Phase 12):** After first successful deploy, set the GitHub repo "About → Website" field to the live site URL (manual GitHub UI action).
 
 ### Blockers/Concerns
 
-- **Phase 9 data-sourcing blocker RESOLVED (2026-09-04).** User chose option 1 (install + fetch). `tidyquant` installed successfully; `download_stock_data("VOW.DE","^GDAXI", 2014-08-01..2015-11-30)` fetched 336 rows each; frozen to `data/dieselgate.rda` (named list firm/index/request/meta), documented in `man/dieselgate.Rd`, reproducible via `data-raw/dieselgate.R`. DATA-04 proven end-to-end (beta 1.086, R² 0.704, CAR[-10,+10] −35.5%). Commit `0365753`. Phase 9 complete.
-- **Phase 5 KB correctness (carry-over):** cross-check assumption→test mappings against Brown & Warner (1985), MacKinlay (1997), Patell (1976), BMP (1991), Kolari-Pynnönen (2010) primary literature — relevant to how the vignette narrates recommendations.
+- **BUILD-02:** `data-download` (and any other network-touching) vignettes must build reproducibly in Actions — verify offline-safe/gated handling before relying on the CI docs build.
 
 ### Quick Tasks Completed
 
@@ -113,13 +92,14 @@ Recent decisions affecting current work:
 | Scale | SCALE-01..03: streaming/data.table/sparse FE | Deferred | v0.50.0 init | v2 |
 | Advisor Pro | PRO-01..02: RAG corpus advisor + managed hosting | Deferred | v0.60.0 roadmap | future (waitlist-gated) |
 | Surfaces | SURF-01..02: MCP server + panel/intraday/synthetic diagnostics | Deferred | v0.60.0 roadmap | future |
+| Docs | Package logo / hex sticker, custom homepage cards, versioned docs | Deferred | v0.62.0 roadmap | future |
 
 ## Session Continuity
 
-Last session: 2026-09-04T11:43:53.085Z
-Stopped at: context exhaustion at 76% (2026-09-04)
+Last session: 2026-09-04
+Stopped at: v0.62.0 roadmap created (Phases 11-12)
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review the roadmap, then plan Phase 11 with /gsd-plan-phase 11

@@ -64,27 +64,31 @@ Mapped during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SITE-01 | — | Pending |
-| SITE-02 | — | Pending |
-| SITE-03 | — | Pending |
-| SITE-04 | — | Pending |
-| THEME-01 | — | Pending |
-| THEME-02 | — | Pending |
-| CI-01 | — | Pending |
-| CI-02 | — | Pending |
-| CI-03 | — | Pending |
-| LINK-01 | — | Pending |
-| LINK-02 | — | Pending |
-| LINK-03 | — | Pending |
-| BUILD-01 | — | Pending |
-| BUILD-02 | — | Pending |
-| BUILD-03 | — | Pending |
+| SITE-01 | Phase 11 | Pending |
+| SITE-02 | Phase 11 | Pending |
+| SITE-03 | Phase 11 | Pending |
+| SITE-04 | Phase 11 | Pending |
+| THEME-01 | Phase 11 | Pending |
+| THEME-02 | Phase 11 | Pending |
+| CI-01 | Phase 12 | Pending |
+| CI-02 | Phase 12 | Pending |
+| CI-03 | Phase 12 | Pending |
+| LINK-01 | Phase 12 | Pending |
+| LINK-02 | Phase 12 | Pending |
+| LINK-03 | Phase 12 | Pending |
+| BUILD-01 | Phase 11 | Pending |
+| BUILD-02 | Phase 12 | Pending |
+| BUILD-03 | Phase 12 | Pending |
 
 **Coverage:**
 - v1 requirements: 15 total
-- Mapped to phases: 0 (filled by roadmap)
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15 ✓
+- Unmapped: 0 ✓
+
+Phase distribution:
+- Phase 11 (Curated pkgdown Site + Custom Theme): SITE-01..04, THEME-01, THEME-02, BUILD-01 (7)
+- Phase 12 (CI/CD Deploy + Repo Linkage + Release Integrity): CI-01..03, LINK-01..03, BUILD-02, BUILD-03 (8)
 
 ---
 *Requirements defined: 2026-09-04*
-*Last updated: 2026-09-04 after initial definition*
+*Last updated: 2026-09-04 after roadmap creation — traceability mapped, 15/15 covered*
