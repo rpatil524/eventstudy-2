@@ -1,3 +1,15 @@
+# EventStudy 0.62.0
+
+## Documentation site + CI/CD deploy
+
+* A curated pkgdown documentation site is now published at
+  <https://sipemu.github.io/eventstudy/>, built and deployed to GitHub Pages
+  by CI (r-lib pkgdown workflow) on every push to main and on releases.
+* `DESCRIPTION` `URL` and `README` now link to the live docs site.
+* `.Rbuildignore` excludes `_pkgdown.yml`, `docs/`, and `pkgdown/` so the
+  site scaffolding is kept out of the CRAN source tarball; no source or
+  behaviour change.
+
 # EventStudy 0.61.3
 
 ## Robustness: graceful degradation when a data source is unreachable
