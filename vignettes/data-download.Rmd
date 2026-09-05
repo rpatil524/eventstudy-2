@@ -21,6 +21,8 @@ knitr::opts_chunk$set(
 
 The EventStudy package includes helper functions to download stock price data and Fama-French factor data, pre-formatted for use with `EventStudyTask`. This eliminates the need for manual data preparation.
 
+The code in this article is shown for illustration purposes and is not executed at build time because it requires a live network connection.
+
 # Downloading Stock Data
 
 The `download_stock_data()` function downloads adjusted close prices from Yahoo Finance. It requires either the `tidyquant` or `quantmod` package.
