@@ -95,7 +95,10 @@ Archive: `.planning/milestones/v0.61.0-ROADMAP.md`
   4. DESCRIPTION `URL` includes the pkgdown site URL alongside the GitHub URL (BugReports retained), the README shows a documentation-site badge/link near the existing badge row, and `.Rbuildignore` excludes `_pkgdown.yml`, `docs/`, `pkgdown/`, and the workflow so the CRAN source tarball is unchanged.
   5. `R CMD check --as-cran` shows no new NOTEs/WARNINGs vs the v0.61.x baseline, the existing test suite stays green, and the package is bumped to `0.62.0` with a NEWS.md `v0.62.0` entry recording the documentation site.
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+- [ ] 12-01-PLAN.md — r-lib `pkgdown.yaml` gh-pages deploy workflow, DESCRIPTION URL + README docs badge + `.Rbuildignore` site exclusions, network-safe vignette build, and CRAN-clean 0.62.0 release (version bump + NEWS)
+
 **Operator step**: Setting the GitHub repo "About → Website" field to the live site URL is a manual GitHub UI action — CI cannot set it. This is an operator task to perform after the first successful deploy, not an automated requirement.
 **UI hint**: no
 
@@ -114,4 +117,4 @@ Archive: `.planning/milestones/v0.61.0-ROADMAP.md`
 | 9. Bundled Dieselgate Dataset + Provenance | v0.61.0 | 1/1 | Complete | 2026-09-04 |
 | 10. Advisor Vignette + Offline-Safe Build + Docs + Release | v0.61.0 | 1/1 | Complete | 2026-09-04 |
 | 11. Curated pkgdown Site + Custom Theme (local build) | v0.62.0 | 1/1 | Complete    | 2026-09-04 |
-| 12. CI/CD Deploy + Repo Linkage + Release Integrity | v0.62.0 | 0/? | Not started | - |
+| 12. CI/CD Deploy + Repo Linkage + Release Integrity | v0.62.0 | 0/1 | Planned | - |
