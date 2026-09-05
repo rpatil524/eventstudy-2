@@ -4,16 +4,16 @@ milestone: v0.62.0
 milestone_name: Documentation Site (pkgdown + CI/CD)
 current_phase: 12
 current_phase_name: CI/CD Deploy + Repo Linkage + Release Integrity
-status: planning
+status: executing
 stopped_at: Phase 11 complete, ready to plan Phase 12
-last_updated: "2026-09-04T22:32:30.933Z"
-last_activity: 2026-09-04
-last_activity_desc: Phase 11 complete, transitioned to Phase 12
-state_head: e85ffbc9aad24e4e21581644acdb8ed59117c9ab
+last_updated: "2026-09-05T10:52:59.362Z"
+last_activity: 2026-09-05
+last_activity_desc: Phase 12 execution started
+state_head: 253c2cc9268d9588afe5c1ec774635f195d55096
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 1
+  total_plans: 2
   completed_plans: 1
   percent: 50
 ---
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-04)
 
 **Core value:** Trustworthy numbers, trustworthy interpretation — the pipeline is never silently wrong, and the AI advisor cites only package-computed diagnostics, never fabricating a result. This milestone makes that legible via a curated docs site.
-**Current focus:** Phase 11 — Curated pkgdown Site + Custom Theme (local build)
+**Current focus:** Phase 12 — CI/CD Deploy + Repo Linkage + Release Integrity
 
 ## Current Position
 
-Phase: 12 — CI/CD Deploy + Repo Linkage + Release Integrity
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-09-04 — Phase 11 complete, transitioned to Phase 12
+Phase: 12 (CI/CD Deploy + Repo Linkage + Release Integrity) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 12
+Last activity: 2026-09-05 — Phase 12 execution started
 
 ## Milestone Roadmap (v0.62.0)
 
