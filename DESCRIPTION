@@ -23,7 +23,7 @@ Description: Perform financial event study analysis in R. Implements the
     power analysis via simulation, data download helpers, automated
     reporting, and visualization tools. Results can be exported to CSV,
     Excel, or 'LaTeX'.
-URL: https://github.com/sipemu/eventstudy
+URL: https://github.com/sipemu/eventstudy, https://sipemu.github.io/eventstudy/
 BugReports: https://github.com/sipemu/eventstudy/issues
 License: AGPL-3
 Depends:
