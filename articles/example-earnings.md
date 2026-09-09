@@ -223,7 +223,7 @@ for the full battery.
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> other attached packages:
-    #> [1] EventStudy_0.64.0
+    #> [1] EventStudy_0.65.0
     #> 
     #> loaded via a namespace (and not attached):
     #>  [1] plotly_4.12.1        sass_0.4.10          utf8_1.2.6          
@@ -244,7 +244,7 @@ for the full battery.
     #> [46] xfun_0.60            tibble_3.3.1         tidyselect_1.2.1    
     #> [49] knitr_1.52           farver_2.1.2         htmltools_0.5.9     
     #> [52] rmarkdown_2.32       labeling_0.4.3       compiler_4.6.1      
-    #> [55] S7_0.2.2             distributional_0.8.1
+    #> [55] S7_0.2.2             distributional_0.9.0
 
 Boehmer, Ekkehart, Jim Musumeci, and Annette B. Poulsen. 1991.
 “Event-Study Methodology Under Conditions of Event-Induced Variance.”
