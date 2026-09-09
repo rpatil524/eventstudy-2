@@ -208,7 +208,7 @@ excludes.
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> other attached packages:
-    #> [1] EventStudy_0.62.0
+    #> [1] EventStudy_0.64.0
     #> 
     #> loaded via a namespace (and not attached):
     #>  [1] gtable_0.3.6         jsonlite_2.0.0       dplyr_1.2.1         

@@ -223,7 +223,7 @@ for the full battery.
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> other attached packages:
-    #> [1] EventStudy_0.62.0
+    #> [1] EventStudy_0.64.0
     #> 
     #> loaded via a namespace (and not attached):
     #>  [1] plotly_4.12.1        sass_0.4.10          utf8_1.2.6          

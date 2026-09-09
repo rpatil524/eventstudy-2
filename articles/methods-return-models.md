@@ -188,10 +188,10 @@ knitr::kable(head(tidy.EventStudyTask(task_g, type = "car"), 5),
 | event_id | group    | firm_symbol | term        | estimate | std.error | statistic | p.value |
 |---------:|:---------|:------------|:------------|---------:|----------:|----------:|--------:|
 |        1 | VW Group | VOW.DE      | \[-10,-10\] |   0.0030 |    0.0099 |    0.2995 |  0.7648 |
-|        1 | VW Group | VOW.DE      | \[-10,-9\]  |   0.0034 |    0.0140 |    0.2433 |  0.8080 |
+|        1 | VW Group | VOW.DE      | \[-10,-9\]  |   0.0034 |    0.0141 |    0.2433 |  0.8080 |
 |        1 | VW Group | VOW.DE      | \[-10,-8\]  |   0.0129 |    0.0172 |    0.7483 |  0.4550 |
-|        1 | VW Group | VOW.DE      | \[-10,-7\]  |   0.0355 |    0.0199 |    1.7861 |  0.0753 |
-|        1 | VW Group | VOW.DE      | \[-10,-6\]  |   0.0299 |    0.0222 |    1.3470 |  0.1792 |
+|        1 | VW Group | VOW.DE      | \[-10,-7\]  |   0.0355 |    0.0199 |    1.7860 |  0.0753 |
+|        1 | VW Group | VOW.DE      | \[-10,-6\]  |   0.0299 |    0.0222 |    1.3468 |  0.1793 |
 
 GARCH-based CAR t-statistics. {.table}
 
