@@ -512,7 +512,7 @@ unit level to account for serial correlation within units. When the
 `sandwich` package is installed,
 [`estimate_panel_event_study()`](https://sipemu.github.io/eventstudy/reference/estimate_panel_event_study.md)
 **automatically computes cluster-robust standard errors** via
-[`sandwich::vcovCL()`](https://zeileis.codeberg.page/sandwich/reference/vcovCL.html).
+[`sandwich::vcovCL()`](https://rdrr.io/pkg/sandwich/man/vcovCL.html).
 The `cluster` parameter controls the clustering variable and defaults to
 the unit ID:
 
