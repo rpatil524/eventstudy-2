@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">EventStudy</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.65.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.66.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,7 +86,7 @@
                         <h4 data-toc-skip class="author">Simon
 Mueller</h4>
             
-            <h4 data-toc-skip class="date">2026-09-11</h4>
+            <h4 data-toc-skip class="date">2026-09-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/sipemu/eventstudy/blob/main/vignettes/panel-event-study.Rmd" class="external-link"><code>vignettes/panel-event-study.Rmd</code></a></small>
       <div class="d-none name"><code>panel-event-study.Rmd</code></div>
@@ -601,7 +601,7 @@ the unit level to account for serial correlation within units. When the
 <code>sandwich</code> package is installed,
 <code><a href="../reference/estimate_panel_event_study.html">estimate_panel_event_study()</a></code> <strong>automatically computes
 cluster-robust standard errors</strong> via
-<code><a href="https://rdrr.io/pkg/sandwich/man/vcovCL.html" class="external-link">sandwich::vcovCL()</a></code>. The <code>cluster</code> parameter
+<code><a href="https://zeileis.codeberg.page/sandwich/reference/vcovCL.html" class="external-link">sandwich::vcovCL()</a></code>. The <code>cluster</code> parameter
 controls the clustering variable and defaults to the unit ID:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Cluster-robust SEs at the unit level (the default)</span></span>
